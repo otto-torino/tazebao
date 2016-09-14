@@ -1,0 +1,25 @@
+
+##
+# Installation of necessary system wide packages
+#
+# sshpass is used by ansible to allow ssh authentication with password
+#
+##
+---
+    - name: check connection
+      ping:
+
+    - name: install necessary packages
+      sudo: true
+      apt: name={{ item }} state=present update_cache=yes
+      with_items:
+        - libfreetype6-dev
+        - zlib1g-dev
+        - libjpeg-dev
+        - sshpass
+        - python-dev
+        - libffi-dev
+        - python-virtualenv
+        - ruby
+        - vim
+

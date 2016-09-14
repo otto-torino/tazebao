@@ -1,0 +1,20 @@
+.header {
+    background: #d7dce2;
+    color: #000;
+    text-shadow: 0 0px #fff;
+    height: 50px;
+}
+.header .header-content .time {
+    color: red;
+}
+.header a {
+    color: red;
+}
+.header #branding {
+    height: 50px;
+}
+
+.login #content-main h1 {
+    padding: 5px 0;
+    background: #d7dce2;
+}

@@ -1,0 +1,78 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+
+{% block extrastyle %}
+  {{ block.super }}
+{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+  <div id="content-main" style="max-width: 60%;">
+      <h2 style="margin-left: 0; margin-bottom: 10px;">Tazebao, gestione newsletter</h2>
+      <p>Tazebao consente di gestire in autonomia una newsletter. Gli iscritti possono essere categorizzati in liste, le campagne sono organizzate in topics, e ciascuna campagna può essere inviata alle liste di iscritti desiderate.<br />
+          Le e-mail vengono poi gestite in un sistema di code che garantisce un invio scaglionato nel tempo.</p>
+      <p>Tazebao implementa un Web Service REST che consente di gestire le sottoscrizioni e le liste di iscritti. Questo consente di implementare i form di iscrizione e disiscrizione direttamente sul proprio sito.
+     <p>L'autenticazione avviene tramite HMAC, ulteriori dettagli sulla <a href="http://github.com/otto-torino/tazebao">pagina del progetto</a>.</p>
+     <p>Rispetto a quanto indicato nella pagina del progetto, sostituire alle chiamte <b>localhost:8000</b> con <b>tazebao.sqrt64.it</b>.</p>
+      <h2 style="margin-left: 0; margin-bottom: 10px;">Menu Newsletter</h2>
+      <ul>
+          <li><b>Client</b><br />Account legato all'utenza, riporta l'ID_KEY e la SECRET_KEY da utilizzare per autenticare le request al web service.</li>
+          <li><b>Liste iscritti</b><br />Gli iscritti devono essere organizzati in liste, gestibili anche da web service.</li>
+          <li><b>Iscritti</b><br />Iscritti alla newsletter. Esiste un campo <b>info</b> che può essere utilizzato per salvare informazioni in qualunque formato (json?)</li>
+          <li><b>Topic</b><br />Ciascuna campagna di invii appartiene ad un Topic, che conserva le informazioni di invio from_name e from_address.</li>
+          <li><b>Campagne</b><br />In questa sezione si crea una newsletter e si effettua l'invio a liste di iscritti. C'è la possibilità di inserire un contenuto in plain text ed uno in html.</li>
+          <li><b>Invii</b><br />Resoconto degli invii delle campagne</li>
+          <li><b>Log code invio</b><br />Gli invii vengono accodati e spediti in scaglioni, qui si vedono i log degli invii effettuati e non.</li>
+      </ul>
+      <h2 style="margin-left: 0; margin-bottom: 10px;">Supporto</h2>
+      <p>Per richieste di supporto e segnalazione bug utilizzare gli appositi link a fondo pagina.</p>
+  </div>
+{% endblock %}
+
+
+{% block sidebar %}
+  <div id="content-related">
+    <div class="module" id="recent-actions-module">
+      <h4 class="italic-title">{% trans 'Azioni' %}</h4>
+
+      {% load log %}
+      {% get_admin_log 10 as admin_log for_user user %}
+      {% if not admin_log %}
+        <p>{% trans 'None available' %}</p>
+      {% else %}
+        <ul class="actionlist">
+          {% for entry in admin_log %}
+            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}text-error{% endif %}">
+
+              <i class="{% if entry.is_addition %}icon-plus{% endif %}{% if entry.is_change %}icon-pencil{% endif %}{% if entry.is_deletion %}icon-trash{% endif %} icon-alpha5"></i>
+
+              {% spaceless %}
+                {% if entry.is_addition %}{% trans 'added'|capfirst %}{% endif %}
+                {% if entry.is_change %}{% trans 'changed'|capfirst %}{% endif %}
+                {% if entry.is_deletion %}{% trans 'deleted'|capfirst %}{% endif %}
+
+                {% if entry.content_type %}
+                  <span class="mini quiet">{% filter capfirst %}
+                    {% trans entry.content_type.name %}{% endfilter %}</span>
+                {% else %}
+                  <span class="mini quiet">{% trans 'Unknown content' %}</span>
+                {% endif %}
+              {% endspaceless %}&nbsp;
+
+              {% if entry.is_deletion or not entry.get_admin_url %}
+                <span class="color-grey">{{ entry.object_repr }}</span>
+              {% else %}
+                <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
+              {% endif %}
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% load static %}
+{% load pipeline %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport">
+        <title>{% block title %}8mail{% endblock %}</title>
+        {% block meta %}
+            <meta name="title" content="8mail" />
+            <meta name="description" content="Otto srl newsletter web application" />
+            <meta name="keywords" content="" />
+
+            <meta property="og:title" content="8mail" />
+            <meta property="og:type" content="website" />
+            <meta property="og:url" content="http://8mail.sqrt64.it" />
+            <meta property="og:description" content="Otto srl newsletter web application" />
+
+            <meta name="twitter:card" content="summary" />
+            <meta name="twitter:url" content="http://8mail.sqrt64.it" />
+            <meta name="twitter:title" content="8mail" />
+            <meta name="twitter:description" content="Otto srl newsletter web application" />
+            <meta name="twitter:creator" content="@abidibo" />
+        {% endblock %}
+        {% stylesheet 'vendor' %}
+        {% stylesheet '8mail' %}
+        {% block extra_css %}{% endblock %}
+        <script src="{% static 'core/src/vendor/jquery/jquery.js' %}"></script>
+        {% javascript 'vendor' %}
+        {% javascript '8mail' %}
+        {% block extra_js %}{% endblock %}
+    </head>
+    <body class="{% block body_css %}{% endblock %}">
+        {% block navbar %}
+            <nav class="navbar navbar-dark bg-inverse">
+                <button class="navbar-toggler hidden-sm-up pull-right" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
+                    &#9776;
+                </button>
+                <a class="navbar-brand" href="#">8mail</a>
+                <div class="collapse navbar-toggleable-xs" id="collapsingNavbar">
+                    <ul class="nav navbar-nav">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        {% endblock %}
+        {% block jumbotron %}{% endblock %}
+        {% block content %}{% endblock %}
+        <footer>
+            <div class="container">
+            </div>
+        </footer>
+    </body>
+</html>

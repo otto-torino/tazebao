@@ -1,0 +1,12 @@
+*.swp
+*.pyc
+tazebao/.env
+.virtualenv
+tazebao/media
+tazebao/static
+provisioning/ansible_remote_variables
+provisioning/ansible_remote_inventory
+provisioning/playbooks/roles/webapp/templates/env
+releases
+logs
+tazebao/.ropeproject
