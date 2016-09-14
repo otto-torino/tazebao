@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils.safestring import mark_safe
 
 from mailqueue.models import MailerMessage
 
@@ -78,7 +79,20 @@ class Campaign(models.Model):
                                               verbose_name='ultima modifica')
 
     subject = models.CharField('oggetto', max_length=255)
-    plain_text = models.TextField('testo', blank=True, null=True)
+    plain_text = models.TextField(
+        'testo',
+        blank=True,
+        null=True,
+        help_text=mark_safe('''
+            variabili disponibili per il testo e testo html<br/>
+            - <code>{{ email }}</code> e-mail iscritto<br />
+            - <code>{{ view_online_url }}</code> url relativo della newsletter
+                 online<br />
+            - <code>{{ site_url }}</code> url applicazione senza
+                 protocollo<br />
+            per ottenere l'url completo della newsletter online<br />
+            <code>http://{{ site_url }}{{ view_online_url }}</code>
+        '''))
     html_text = models.TextField('testo html', blank=True, null=True)
     view_online = models.BooleanField('visualizza online', default=True)
 

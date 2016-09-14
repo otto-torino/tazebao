@@ -315,7 +315,8 @@ class UserCampaignAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
                     # msg.attach_alternative(html_content, 'text/html')
                     msg.html_content = html_content
                 try:
-                    sent += msg.save()
+                    msg.save()
+                    sent += 1
                     used_addresses.append(subscriber.email)
                 except:
                     error_addresses.append(subscriber.email)
