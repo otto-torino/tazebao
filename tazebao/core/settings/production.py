@@ -7,10 +7,10 @@ import os
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['8mail.sqrt64.it',]
+ALLOWED_HOSTS = ['tazebao.sqrt64.it',]
 
-STATIC_ROOT = '/home/8mail/www/8mail/static/'
-MEDIA_ROOT = '/home/8mail/www/8mail/media'
+STATIC_ROOT = '/home/tazebao/www/tazebao/static/'
+MEDIA_ROOT = '/home/tazebao/www/tazebao/media'
 
 # MAIL
 MAILQUEUE_QUEUE_UP = True

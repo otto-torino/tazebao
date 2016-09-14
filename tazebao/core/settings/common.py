@@ -1,5 +1,5 @@
 """
-Django settings for 8mail project.
+Django settings for tazebao project.
 """
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -43,9 +43,9 @@ EMAIL_PORT = 25
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': env('DB_NAME', 'db8mail'),
+        'NAME': env('DB_NAME', 'dbtazebao'),
         'HOST': env('DB_HOST', 'localhost'),
-        'USER': env('DB_USER', '8mail'),
+        'USER': env('DB_USER', 'tazebao'),
         'PASSWORD': env('DB_PASSWORD', required=True),
         'PORT': '',
         'OPTIONS': {
@@ -222,7 +222,7 @@ PIPELINE = {
             ),
             'output_filename': 'core/css/vendor.min.css',
         },
-        '8mail': { # bootstrap + custom
+        'tazebao': { # bootstrap + custom
             'source_filenames': (
                 'core/src/scss/styles.scss',
             ),
@@ -237,7 +237,7 @@ PIPELINE = {
             ),
             'output_filename': 'core/js/vendor.min.js'
         },
-        '8mail': {
+        'tazebao': {
             'source_filenames': (
                 'core/src/js/core.js',
             ),

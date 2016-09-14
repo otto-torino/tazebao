@@ -1,5 +1,5 @@
 """
-WSGI config for 8mail project.
+WSGI config for tazebao project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
