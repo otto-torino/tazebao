@@ -2,7 +2,17 @@
 
 Otto srl newsletter web application.
 
-## What?
+## Table of Contents
+
+* [What?](#what)
+* [REST Web Service](#rest-webservice)
+    * [REST Service Authentication](#rest-authentication)
+    * [REST resources](#rest-resources)
+* [Getting Started](#getting-started)
+* [Remote setup](#remote-setup)
+* [Deploy and Stuff](#deploy)
+
+## <a name="what"></a>What?
 
 Tazebao is a web application which aims to provide a newsletter service to other sites/applications.
 
@@ -30,12 +40,15 @@ Just set a crontab which calls
 
 Tazebao provides a REST webservice in order to retrieve, create, edit and delete subscribers and lists. Each Client can then implement its own registration form and use the provided API to update Tazebao DB. Also the unsign feature must be implemented by the Client, which will then use the API to delete the record from Tazebao.
 
+## <a name="rest-webservice"></a>REST Web Service
+
 The admin application authentication is a session based authentication, while the web service uses HMAC (Keyed-Hash Message Authentication Code).
+
 Each Client gets an ID_KEY and a SECRET_KEY through which authenticate to Tazebao. The Signature must be passed in the HTTP header of every request, Tazebao uses [django-rest-framework-httpsignature](https://github.com/etoccalino/django-rest-framework-httpsignature) to manage this stuff.
 
-### REST Service Authentication
+### <a name="rest-authentication"></a>REST Service Authentication
 
-In order to perform valid requests to the REST Endpoint, every request must be signed in the HTTP header.
+In order to perform valid requests to the REST resources, every request must be signed in the HTTP header.
 The signature must be calculated this way:
 
     SIGNATURE = Base64(Hmac('SECRET_KEY', "date: DATETIME", 'sha256'))
@@ -46,15 +59,15 @@ And the request should be:
 
 this was descriptive code, take a look at the [client repository](https://github.com/otto-torino/tazebao-client) to see how to implement this stuff in real languages.
 
-## REST Web Service
+### <a name="rest-resources"></a>REST resources
 
 Tazebao provides a REST Web Service which allows to manage subscribers and lists data.
 
-### Subscribers Lists
+#### Subscribers Lists
 
 This section describes possible CRUD requests to manage subscribers's lists.
 
-#### Retrieve lists
+##### Retrieve lists
 
     GET http://localhost:8000/api/v1/newsletter/subscriberlist/
 
@@ -62,7 +75,7 @@ returns a list of subscribers' lists associated to the authenticated client, i.e
 
     [{"id":1,"name":"Journalists"},{"id":8,"name":"ACABS"}]
 
-#### Add a list
+##### Add a list
 
     POST http://localhost:8000/api/v1/newsletter/subscriberlist/
 
@@ -74,7 +87,7 @@ for example with PHP:
 
     $post_data = json_encode(array('name' => 'Journalists'))
 
-#### Edit a list
+##### Edit a list
 
     PUT http://localhost:8000/api/v1/newsletter/subscriberlist/<LIST_ID>/
 
@@ -82,15 +95,15 @@ the submitted data should be a json containing the name field, i.e.:
 
     "{"name":"Journalists"}"
 
-#### Delete a list
+##### Delete a list
 
     DELETE http://localhost:8000/api/v1/newsletter/subscriberlist/<LIST_ID>/
 
-### Subscribers
+#### Subscribers
 
 This section describes possible CRUD requests to manage subscribers.
 
-#### Retrieve subscribers
+##### Retrieve subscribers
 
     GET http://localhost:8000/api/v1/newsletter/subscriber/
 
@@ -113,7 +126,7 @@ returns a list of subscribers associated to the authenticated client, i.e.:
         "lists":[1, 2]
     }]
 
-#### Add a subscriber
+##### Add a subscriber
 
     POST http://localhost:8000/api/v1/newsletter/subscriber/
 
@@ -123,7 +136,7 @@ the POST data should be a json of the following format:
 
 email and lists fields are required.
 
-#### Edit a subscriber
+##### Edit a subscriber
 
     PUT http://localhost:8000/api/v1/newsletter/subscriber/<SUBSCRIBER_ID>/
 
@@ -133,11 +146,11 @@ the POST data should be a json of the following format:
 
 email and lists fields are required.
 
-#### Delete a subscriber
+##### Delete a subscriber
 
     DELETE http://localhost:8000/api/v1/newsletter/subscriber/<SUBSCRIBER_ID>/
 
-## Getting Started
+## <a name="getting-started"></a>Getting Started
 
 To be up and running for local development just follow these steps:
 
@@ -176,7 +189,7 @@ To monitor celery workers:
   - stop all
   - status
 
-## Remote setup
+## <a name="remote-setup"></a>Remote setup
 
 Remote setup is done with ansible, using the root user, the scripts are configured for debian based distros.    
 First you need to configure your remote host inventory and variables.
@@ -253,7 +266,7 @@ maybe you're trying to create a user which already existed and was delete. In th
 see [this answer on stack overflow](http://stackoverflow.com/questions/5555328/error-1396-hy000-operation-create-user-failed-for-jacklocalhost])
 
 
-## Deploy and Stuff
+## <a name="deploy"></a>Deploy and Stuff
 
 In the deployment process, the last revision of the git repository is deployed to the remote server.
 So be sure to have committed all your changes:
