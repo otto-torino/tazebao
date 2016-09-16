@@ -1,8 +1,6 @@
-# Tazebao
-
 ![image](https://raw.githubusercontent.com/otto-torino/tazebao/master/tazebao/core/static/core/img/logo.png "Logo")
 
-Otto srl newsletter web application
+Otto srl newsletter web application.
 
 ## What?
 
@@ -10,13 +8,14 @@ Tazebao is a web application which aims to provide a newsletter service to other
 
 Every platform __User__ can be associated to one __Client__ and manage a newsletter. The platform provides an administrative area where the client user can manage its data.
 
-Tazebao provides these entities:
+Tazebao provides the following entities:
 
 - subscriber
 - list of subscribers
 - topic
 - campaign
 - dispatch
+- dispatch queue log
 
 Each __Subscriber__ must belong to one or more lists (__SubscriberList__). Subscriber's e-mail must be unique for each client.
 Each __Campaign__ must belong to a __Topic__, which stores the information about the sender name and address.
@@ -24,7 +23,7 @@ The newsletter is sent creating a __Dispatch__, where the user chooses one or mo
 
 The __Subscriber__ has an __info__ text field which can be used to store additional information, for example in a json format.
 
-E-mails are queued and sent in blocks, the scheduling must be set with a crontab, Tazebao uses the [django-mail-queue application](https://github.com/dstegelman/django-mail-queue/) in order to manage this stuff.
+E-mails are prepared asynchronously through a celery task, queued and sent in blocks. The scheduling must be set with a crontab, Tazebao uses the [django-mail-queue application](https://github.com/dstegelman/django-mail-queue/) in order to manage this stuff.    
 Just set a crontab which calls 
 
     $ python manage.py send_queued_messages
@@ -140,6 +139,8 @@ email and lists fields are required.
 
 ## Getting Started
 
+To be up and running for local development just follow these steps:
+
 - clone the repository    
   `$ git clone https://github.com/otto-torino/tazebao.git`
 - cd the new project    
@@ -161,16 +162,75 @@ email and lists fields are required.
 - enjoy    
   `http://localhost:8000`
 
+E-mails are queued and sent in blocks. The scheduling is managed with crontab, but the queue preparation is managed asynchronously with a celery task. That's because preparing thousand of e-mails for sending is a dispendious job to do within a request, and it would require a not-pleasant timeout setting.
+
+To start celery services:
+
+- `supervisord -c supervisord.conf.local`
+
+To monitor celery workers:
+
+- `supervisorctl -c supervisord.conf.local`    
+  inside the prompt start, stop and see the status:    
+  - start all
+  - stop all
+  - status
+
 ## Remote setup
 
-Remote setup is done with ansible, using the root user. Run
+Remote setup is done with ansible, using the root user, the scripts are configured for debian based distros.    
+First you need to configure your remote host inventory and variables.
+
+Create a file `provisioning/ansible_remote_inventory` with the following content:
+
+    remote ansible_ssh_host=<YOUR_DOMAIN_HERE>
+
+then create a `provisioning/ansible_remote_variables` file:
+
+    ---
+    provisioning: 'remote'
+    domain: '<YOUR_DOMAIN_HERE>'
+    mysql_root_password: '<MYSQL_ROOT_PWD>'
+    db_user: '<CHOOSE_A_DB_USER>'
+    db_password: '<CHOOSE_A_DB_PWD>'
+    db_name: '<CHOOSE_A_DB_NAME>'
+    user: '<CHOOSE_THE_REMOTE_USER_TIED_TO_THE_APP>'
+    password: '<..AND_ITS_PWD>'
+    webapp_dir: '<REMOTE_WEBAPP_DIR>'
+
+Ok you're ready for the provisioning phase, launch
 
     $ bin/ansible_remote
 
-and provide the root password when prompted.
+and provide the remote root password when prompted.
 
-If all goes well now you should have your remote machine ready for deploy.
+If all goes well, now you should have your remote machine ready for deploy.
 Visit your domain and you should see a maintenance page already there.
+
+### Celery configuration
+
+Celery has a production ready configuration file you find in the ROOT of the repository:
+
+`supervisord.conf.production`
+
+You need to customize it in order to match your remote user and rempte paths, just edit the following section:
+
+    [program:tazebao-workers]
+    command=/home/tazebao/www/tazebao/.virtualenv/bin/celery --app=core.celery:app worker --loglevel=INFO
+    directory=/home/tazebao/www/tazebao/releases/current
+    user=tazebao
+    numprocs=1
+    stdout_logfile=/home/tazebao/www/tazebao/logs/celery-beat.log
+    stderr_logfile=/home/tazebao/www/tazebao/logs/celery-beat.log
+    autostart=true
+    autorestart=true
+    startsecs=10
+
+(in this case the user is __tazebao__ and the webapp remote dir is `/home/tazebao/www/tazebao`, leave the nested parts of the paths as they are, or it'll not work).
+
+As for now it is not uploaded during the provisioning phase with ansible, so you have to do it manually:
+
+    $ scp supervisord.conf.production USER@HOST:/PATH/TO/REMOTE/WEBAPP/DIR
 
 ### Troubleshooting
 
@@ -222,7 +282,25 @@ launched inside the root/repo\_name folder. This command does the following thin
 
 When performing the first deploy you can create a superuser account using the shell which the script leaves open at the end.
 
-###Other useful fab commands
+When deploying the first time you need also to start celery workers, so inside the open shell session:
+
+    $ supervisord -c ../../supervisord.conf.production
+
+As in locale you can monitor the supervisor status and start and stop processes:
+
+    $ supervisorctl -c ../../supervisord.conf.production
+
+When you deploy again it won't be necessary to repeat the command above, because the processes are already running. But if you changed the configuration or the tasks you may need to restart this stuff, so:
+
+
+    $ supervisorctl -c ../../supervisord.conf.production
+    $ > stop all
+    $ > exit
+    $ supervisord -c ../../supervisord.conf.production
+
+Then just check with `ps ax | grep supervisor` and `ps ax | grep celery` if all is ok, if not just `kill -9` the processes and restart supervisord.
+
+### Other useful fab commands
 
 #### rollback
 
