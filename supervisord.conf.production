@@ -58,12 +58,12 @@ serverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket
 ; ================================
 
 [program:tazebao-workers]
-command=/home/torinometeo/www/tazebao/.virtualenv/bin/celery --app=core.celery:app worker --loglevel=INFO
-directory=/home/torinometeo/www/tazebao/releases/current
-user=torinometeo
+command=/home/tazebao/www/tazebao/.virtualenv/bin/celery --app=core.celery:app worker --loglevel=INFO
+directory=/home/tazebao/www/tazebao/releases/current
+user=tazebao
 numprocs=1
-stdout_logfile=/home/torinometeo/www/tazebao/logs/celery-beat.log
-stderr_logfile=/home/torinometeo/www/tazebao/logs/celery-beat.log
+stdout_logfile=/home/tazebao/www/tazebao/logs/celery-beat.log
+stderr_logfile=/home/tazebao/www/tazebao/logs/celery-beat.log
 autostart=true
 autorestart=true
 startsecs=10
@@ -80,23 +80,3 @@ killasgroup=true
 ; if rabbitmq is supervised, set its priority higher
 ; so it starts first
 priority=998
-
-
-; ================================
-;  celery beat tazebao
-; ================================
-
-[program:tazebao-beat]
-command=/home/torinometeo/www/tazebao/.virtualenv/bin/celery beat --app=core.celery:app --loglevel=INFO
-directory=/home/torinometeo/www/tazebao/releases/current
-user=torinometeo
-numprocs=1
-stdout_logfile=/home/torinometeo/www/tazebao/logs/celery-beat.log
-stderr_logfile=/home/torinometeo/www/tazebao/logs/celery-beat.log
-autostart=true
-autorestart=true
-startsecs=10
-
-; if rabbitmq is supervised, set its priority higher
-; so it starts first
-priority=999
