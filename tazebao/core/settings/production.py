@@ -23,6 +23,7 @@ CKEDITOR_CONFIGS['default']['contentsCss'] = [
     STATIC_URL + 'core/src/css/ckeditor.css']
 
 LOGGING['handlers']['file']['filename'] = here('..', '..', '..', '..', os.path.join('logs', 'debug.log')) # noqa
+LOGGING['handlers']['celery_logger']['filename'] = here('..', '..', '..', '..', os.path.join('logs', 'celery.log'))
 
 # CELERY
 CELERY_ACCEPT_CONTENT = ['json']
