@@ -4,6 +4,9 @@
     text-shadow: 0 0px #fff;
     height: 50px;
 }
+i {
+    background-image: url('/static/core/img/glyphicons-halflings.png') !important;
+}
 .header .header-content .time {
     color: red;
 }
