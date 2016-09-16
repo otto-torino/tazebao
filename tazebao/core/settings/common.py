@@ -297,7 +297,13 @@ LOGGING = {
             'filename': here('..', '..', '..', os.path.join('logs', 'debug.log')),
             'when':     'midnight',
         },
-
+        'celery_logger': {
+            'level': 'DEBUG',
+            'filters': None,
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': here('..', '..', '..', os.path.join('logs', 'celery.log')),
+            'formatter': 'verbose'
+        },
         'mail_admins': {
             'level': 'ERROR',
             'class': 'django.utils.log.AdminEmailHandler',
@@ -320,6 +326,11 @@ LOGGING = {
             'handlers': ['null'],  # Quiet by default!
             'propagate': False,
             'level':'DEBUG',
+        },
+        'celery': {
+            'handlers': ['celery_logger'],
+            'level': 'DEBUG',
+            'propagate': True,
         },
         'core': LOGGING_DEFAULT,
         '':                             LOGGING_DEFAULT,# root logger

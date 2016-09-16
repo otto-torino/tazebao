@@ -1,22 +1,17 @@
 from django.contrib import admin
-from django import template
 from django.utils.crypto import get_random_string
 from django.shortcuts import get_object_or_404, render
 from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 from django import forms
-from django.utils import timezone
 from django.http.response import HttpResponseRedirect
 # from django.core.mail import EmailMultiAlternatives
-from django.template import Context
-
-from mailqueue.models import MailerMessage
 
 from .models import Client, SubscriberList, Subscriber
 from .models import Topic, Campaign, Dispatch
 from .models import UserClient, UserSubscriberList, UserSubscriber
 from .models import UserTopic, UserCampaign, UserDispatch, UserMailerMessage
-from .context import get_campaign_context
+from .tasks import send_campaign
 
 
 class DisplayOnlyIfHasClientAdmin(admin.ModelAdmin):
@@ -255,7 +250,8 @@ class UserCampaignAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
 
         if form.is_valid():
             info = self.model._meta.app_label, self.model._meta.model_name
-            self.send_campaign(form.cleaned_data, campaign)
+            lists_ids = [x.pk for x in form.cleaned_data['lists']]
+            send_campaign.delay(lists_ids, campaign_pk)
             return HttpResponseRedirect(
                 reverse('admin:%s_%s_changelist' % info)
             )
@@ -274,60 +270,6 @@ class UserCampaignAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
                 'has_add_permission': False,
                 'has_change_permission': False,
             })
-
-    def send_campaign(self, cleaned_data, campaign, fail_silently=False):
-        """ Dispatches the newsletter """
-        dispatch = Dispatch(
-            campaign=campaign,
-            started_at=timezone.now(),
-            error=True,
-            success=False
-        )
-        dispatch.save()
-        dispatch.lists = cleaned_data['lists']
-        dispatch.save()
-        # send
-        sent = 0
-        used_addresses = []
-        error_addresses = []
-        # param
-        text_template = template.Template(campaign.plain_text)
-        html_template = template.Template(campaign.html_text)
-        from_header = "%s <%s>" % (
-            campaign.topic.sending_name,
-            campaign.topic.sending_address
-        )
-        for subscriber_list in cleaned_data['lists']:
-            for subscriber in subscriber_list.subscriber_set.all():
-                msg = MailerMessage()
-                context = Context()
-                context.update({'email': subscriber.email})
-                if campaign.view_online:
-                    context.update(get_campaign_context(campaign))
-                msg.app = dispatch.pk
-                msg.subject = campaign.subject
-                msg.to_address = subscriber.email
-                msg.from_address = from_header
-                msg.content = text_template.render(context)
-                # msg.body = text_template.render(context)
-                if campaign.html_text is not None and campaign.html_text != u"": # noqa
-                    html_content = html_template.render(context)
-                    # msg.attach_alternative(html_content, 'text/html')
-                    msg.html_content = html_content
-                try:
-                    msg.save()
-                    sent += 1
-                    used_addresses.append(subscriber.email)
-                except:
-                    error_addresses.append(subscriber.email)
-        dispatch.error = False
-        dispatch.success = True
-        dispatch.finished_at = timezone.now()
-        dispatch.sent = sent
-        dispatch.sent_recipients = ','.join(used_addresses)
-        dispatch.error_recipients = ','.join(error_addresses)
-        dispatch.save()
-        return sent
 
 admin.site.register(UserCampaign, UserCampaignAdmin)
 
