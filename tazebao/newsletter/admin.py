@@ -133,6 +133,7 @@ class UserSubscriberAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
     list_filter = ('subscription_datetime', )
     readonly_fields = ('client', )
     search_fields = ('email', 'info', )
+    actions = ['action_add_to_list', 'action_remove_from_list', ]
 
     def lists_string(self, obj):
         return ', '.join([x.name for x in obj.lists.all()])
@@ -151,6 +152,146 @@ class UserSubscriberAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
         """
         qs = super(UserSubscriberAdmin, self).get_queryset(request)
         return qs.filter(client__user=request.user)
+
+    def action_add_to_list(self, request, queryset):
+        """ Adds selected subscribers to choosen lists
+        """
+        # http://www.b-list.org/weblog/2008/nov/09/dynamic-forms/
+        def _make_add_to_list_form():
+            fields = {
+                'lists': forms.ModelMultipleChoiceField(
+                    queryset=SubscriberList.objects.filter(
+                        client__user=request.user
+                    ),
+                    label=u'liste iscritti'
+                ),
+            }
+
+            return type(
+                'AddToListForm',
+                (forms.BaseForm,),
+                {'base_fields': fields}
+            )
+
+        form = _make_add_to_list_form()(request.POST or None)
+
+        if 'send_submit' in request.POST:
+            if form.is_valid():
+                info = self.model._meta.app_label, self.model._meta.model_name
+
+                try:
+                    for l in form.cleaned_data['lists']:
+                        # http://stackoverflow.com/questions/19371677/django-add-into-many-to-many-field-for-each-item-in-a-queryset
+                        Subscriber.lists.through.objects.bulk_create(
+                            [Subscriber.lists.through(subscriber_id=s.pk, subscriberlist_id=l.pk) for s in queryset] # noqa
+                        )
+                except Exception, e:
+                    return render(
+                        request,
+                        'admin/subscriber/add_to_list.html', {
+                            'form': form,
+                            'error': True,
+                            'exception': str(e),
+                            # just to extend change_list without problems
+                            'opts': self.model._meta,
+                            'change': True,
+                            'is_popup': False,
+                            'save_as': False,
+                            'has_delete_permission': False,
+                            'has_add_permission': False,
+                            'has_change_permission': False,
+                        })
+
+                return HttpResponseRedirect(
+                    reverse('admin:%s_%s_changelist' % info)
+                )
+
+        return render(
+            request,
+            'admin/subscriber/add_to_list.html', {
+                'form': form,
+                'error': False,
+                # just to extend change_list without problems
+                'opts': self.model._meta,
+                'change': True,
+                'is_popup': False,
+                'save_as': False,
+                'has_delete_permission': False,
+                'has_add_permission': False,
+                'has_change_permission': False,
+            })
+    action_add_to_list.short_description = 'Aggiungi a liste'
+
+    def action_remove_from_list(self, request, queryset):
+        """ Removes selected subscribers to choosen lists
+        """
+        # http://www.b-list.org/weblog/2008/nov/09/dynamic-forms/
+        def _make_remove_from_list_form():
+            fields = {
+                'lists': forms.ModelMultipleChoiceField(
+                    queryset=SubscriberList.objects.filter(
+                        client__user=request.user
+                    ),
+                    label=u'liste iscritti'
+                ),
+            }
+
+            return type(
+                'RemoveFromListForm',
+                (forms.BaseForm,),
+                {'base_fields': fields}
+            )
+
+        form = _make_remove_from_list_form()(request.POST or None)
+
+        print 'STOCAZZO'
+        print request.POST
+
+        if 'send_submit' in request.POST:
+            if form.is_valid():
+                info = self.model._meta.app_label, self.model._meta.model_name
+
+                try:
+                    # http://stackoverflow.com/questions/26839115/django-removing-item-from-many-to-many-relation-more-efficiently
+                    Subscriber.lists.through.objects.filter(
+                        subscriberlist_id__in=[x.pk for x in form.cleaned_data['lists']], # noqa
+                        subscriber_id__in=[x.pk for x in queryset]).delete()
+                except Exception, e:
+                    return render(
+                        request,
+                        'admin/subscriber/remove_from_list.html', {
+                            'form': form,
+                            'error': True,
+                            'exception': str(e),
+                            # just to extend change_list without problems
+                            'opts': self.model._meta,
+                            'change': True,
+                            'is_popup': False,
+                            'save_as': False,
+                            'has_delete_permission': False,
+                            'has_add_permission': False,
+                            'has_change_permission': False,
+                        })
+
+                return HttpResponseRedirect(
+                    reverse('admin:%s_%s_changelist' % info)
+                )
+
+        return render(
+            request,
+            'admin/subscriber/remove_from_list.html', {
+                'form': form,
+                'error': False,
+                # just to extend change_list without problems
+                'opts': self.model._meta,
+                'change': True,
+                'is_popup': False,
+                'save_as': False,
+                'has_delete_permission': False,
+                'has_add_permission': False,
+                'has_change_permission': False,
+            })
+    action_remove_from_list.short_description = 'Rimuovi da liste'
 
 admin.site.register(UserSubscriber, UserSubscriberAdmin)
 
