@@ -132,7 +132,7 @@ class UserSubscriberAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
     list_display = ('email', 'subscription_datetime', 'lists_string', 'info', )
     list_filter = ('subscription_datetime', )
     readonly_fields = ('client', )
-    search_fields = ('email', )
+    search_fields = ('email', 'info', )
 
     def lists_string(self, obj):
         return ', '.join([x.name for x in obj.lists.all()])
