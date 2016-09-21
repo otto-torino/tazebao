@@ -76,7 +76,7 @@ def send_campaign(lists_ids, campaign_id):
             if campaign.html_text is not None and campaign.html_text != u"": # noqa
                 context.update({'unsubscription_text': unsubscription_html_text}) # noqa
                 html_content = html_template.render(context)
-                msg.html_content = html_content + unsubscription_html_text
+                msg.html_content = html_content
             try:
                 msg.save()
                 sent += 1
