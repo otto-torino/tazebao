@@ -67,8 +67,7 @@ def send_campaign(lists_ids, campaign_id):
             # subject and body
             context = Context()
             context.update({'unsubscription_text': unsubscription_text})
-            if campaign.view_online:
-                context.update(get_campaign_context(campaign))
+            context.update(get_campaign_context(campaign))
             msg.app = dispatch.pk
             msg.subject = campaign.subject
             msg.to_address = subscriber.email

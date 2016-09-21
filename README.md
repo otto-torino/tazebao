@@ -38,7 +38,8 @@ Just set a crontab which calls
 
     $ python manage.py send_queued_messages
 
-Tazebao provides a REST webservice in order to retrieve, create, edit and delete subscribers and lists. Each Client can then implement its own registration form and use the provided API to update Tazebao DB. Also the unsign feature must be implemented by the Client, which will then use the API to delete the record from Tazebao.
+Tazebao provides a REST webservice in order to retrieve, create, edit and delete subscribers and lists. Each Client can then implement its own registration form and use the provided API to update Tazebao DB. Also the unsubscription feature must be implemented by the Client, which will then use the API to delete the record from Tazebao. Tazebao provides a functionality which can be used to create a signed string of subscriber's data used to generate the unsubscription url.
+Unsubscription text is managed in the Topic section of Tazebao. For example you can generate a URL which includes a signature of the ID and EMAIL of the subscriber, then you can check the signature in your own application, and if matches call the delete action of the API.
 
 ## <a name="rest-webservice"></a>REST Web Service
 
