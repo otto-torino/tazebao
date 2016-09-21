@@ -16,7 +16,7 @@ logger = get_task_logger('celery')
 
 
 @app.task
-def send_campaign(lists_ids, campaign_id, fail_silently=False):
+def send_campaign(lists_ids, campaign_id):
     """ Dispatches the newsletter """
     logger.debug('running task: send_newsletter')
     campaign = Campaign.objects.get(pk=campaign_id)
@@ -36,6 +36,8 @@ def send_campaign(lists_ids, campaign_id, fail_silently=False):
     used_addresses = []
     error_addresses = []
     # param
+    unsubscription_template = template.Template('{% load newsletter_tags %}' + campaign.topic.unsubscription_text) # noqa
+    unsubscription_html_template = template.Template('{% load newsletter_tags %}' + campaign.topic.unsubscription_html_text) # noqa
     text_template = template.Template(campaign.plain_text)
     html_template = template.Template(campaign.html_text)
     from_header = "%s <%s>" % (
@@ -45,8 +47,26 @@ def send_campaign(lists_ids, campaign_id, fail_silently=False):
     for subscriber_list in lists_obj:
         for subscriber in subscriber_list.subscriber_set.all():
             msg = MailerMessage()
+            # unsubscribe text
+            unsubscription_text = ''
+            unsubscription_html_text = ''
+            if campaign.topic.unsubscription_text:
+                ctx = Context()
+                ctx.update({'client': campaign.client})
+                ctx.update({'id': subscriber.id})
+                ctx.update({'email': subscriber.email})
+                ctx.update({'subscription_datetime': subscriber.subscription_datetime}) # noqa
+                unsubscription_text = unsubscription_template.render(ctx)
+            if campaign.topic.unsubscription_html_text:
+                ctx = Context()
+                ctx.update({'client': campaign.client})
+                ctx.update({'id': subscriber.id})
+                ctx.update({'email': subscriber.email})
+                ctx.update({'subscription_datetime': subscriber.subscription_datetime}) # noqa
+                unsubscription_html_text = unsubscription_html_template.render(ctx) # noqa
+            # subject and body
             context = Context()
-            context.update({'email': subscriber.email})
+            context.update({'unsubscription_text': unsubscription_text})
             if campaign.view_online:
                 context.update(get_campaign_context(campaign))
             msg.app = dispatch.pk
@@ -54,11 +74,10 @@ def send_campaign(lists_ids, campaign_id, fail_silently=False):
             msg.to_address = subscriber.email
             msg.from_address = from_header
             msg.content = text_template.render(context)
-            # msg.body = text_template.render(context)
             if campaign.html_text is not None and campaign.html_text != u"": # noqa
+                context.update({'unsubscription_text': unsubscription_html_text}) # noqa
                 html_content = html_template.render(context)
-                # msg.attach_alternative(html_content, 'text/html')
-                msg.html_content = html_content
+                msg.html_content = html_content + unsubscription_html_text
             try:
                 msg.save()
                 sent += 1

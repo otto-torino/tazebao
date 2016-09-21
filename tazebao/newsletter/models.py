@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 from django.db import models
@@ -59,6 +60,38 @@ class Topic(models.Model):
     name = models.CharField('nome', max_length=50)
     sending_address = models.EmailField('indirizzo invio')
     sending_name = models.CharField('nome invio', max_length=50)
+    unsubscription_text = models.TextField(
+        'testo cancellazione registrazione',
+        blank=True,
+        null=True,
+        help_text=mark_safe('''
+            <p><b>variabili</b> disponibili</p>
+            - <code>{{ id }}</code> id iscritto<br />
+            - <code>{{ email }}</code> e-mail iscritto<br />
+            - <code>{{ subscription_datetime }}</code> data
+                            sottoscrizione<br />
+            <p>Per criptare utilizzando la SECRET_KEY:</p>
+            <code>{% encrypt id email %}</code>
+            <p>genera una stringa criptata della concatenazione di id
+                            e email.</p>
+        ''')
+    )
+    unsubscription_html_text = models.TextField(
+        'testo html cancellazione registrazione',
+        blank=True,
+        null=True,
+        help_text=mark_safe('''
+            <p><b>variabili</b> disponibili</p>
+            - <code>{{ id }}</code> id iscritto<br />
+            - <code>{{ email }}</code> e-mail iscritto<br />
+            - <code>{{ subscription_datetime }}</code> data
+                            sottoscrizione<br />
+            <p>Per criptare utilizzando la SECRET_KEY:</p>
+            <code>{% encrypt id email %}</code>
+            <p>genera una stringa criptata ed url encoded della
+                            concatenazione di id e email.</p>
+        ''')
+    )
 
     class Meta:
         verbose_name = "Topic"
@@ -84,8 +117,10 @@ class Campaign(models.Model):
         blank=True,
         null=True,
         help_text=mark_safe('''
-            variabili disponibili per il testo e testo html<br/>
-            - <code>{{ email }}</code> e-mail iscritto<br />
+            <p><b>variabili</b> disponibili per il testo e testo html
+                            se la campagna è visualizzabile online:</p>
+            - <code>{{ unsubscription_text }}</code> testo cancellazione
+                            sottoscrizione definito nel Topic<br />
             - <code>{{ view_online_url }}</code> url relativo della newsletter
                  online<br />
             - <code>{{ site_url }}</code> url applicazione senza
@@ -93,7 +128,12 @@ class Campaign(models.Model):
             per ottenere l'url completo della newsletter online<br />
             <code>http://{{ site_url }}{{ view_online_url }}</code>
         '''))
-    html_text = models.TextField('testo html', blank=True, null=True)
+    html_text = models.TextField(
+        'testo html',
+        blank=True,
+        null=True,
+        help_text='''si possono utilizzare le stesse variabili definite sopra
+        ''')
     view_online = models.BooleanField('visualizza online', default=True)
 
     class Meta:
