@@ -117,8 +117,8 @@ class Campaign(models.Model):
         blank=True,
         null=True,
         help_text=mark_safe('''
-            <p><b>variabili</b> disponibili per il testo e testo html
-                            se la campagna è visualizzabile online:</p>
+            <p><b>variabili</b> disponibili per il testo e testo html:</p>
+            - <code>{{ id }}</code> id campagna<br />
             - <code>{{ unsubscription_text }}</code> testo cancellazione
                             sottoscrizione definito nel Topic<br />
             - <code>{{ view_online_url }}</code> url relativo della newsletter

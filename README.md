@@ -76,6 +76,14 @@ returns a list of subscribers' lists associated to the authenticated client, i.e
 
     [{"id":1,"name":"Journalists"},{"id":8,"name":"ACABS"}]
 
+##### Get a list
+
+    GET http://localhost:8000/api/v1/newsletter/subscriberlist/<LIST_ID>/
+
+returns the list object represented by LIST_ID, i.e.:
+
+    {"id":1,"name":"Journalists"}
+
 ##### Add a list
 
     POST http://localhost:8000/api/v1/newsletter/subscriberlist/
@@ -108,16 +116,39 @@ This section describes possible CRUD requests to manage subscribers.
 
     GET http://localhost:8000/api/v1/newsletter/subscriber/
 
-returns a list of subscribers associated to the authenticated client, i.e.:
+returns a paginated (200 for page) list of subscribers associated to the authenticated client, i.e.:
 
-    [{
-        "id":1,
-        "client":1,
-        "email":"email@example.com",
-        "subscription_datetime":"2016-09-08T14:49:58.860948Z",
-        "info":"custom stuff",
-        "lists":[1]
-    },
+    {
+        "count": 300,
+        "next": "http://localhost:8000/api/v1/newsletter/subscriber/?page=2",
+        "previous": null,
+        "results": [
+            {
+                "id":1,
+                "client":1,
+                "email":"email@example.com",
+                "subscription_datetime":"2016-09-08T14:49:58.860948Z",
+                "info":"custom stuff",
+                "lists":[1]
+            },
+            {
+                "id":2,
+                "client":1,
+                "email":"email2@example.com",
+                "subscription_datetime":"2016-09-08T14:59:58.860948Z",
+                "info":"",
+                "lists":[1, 2]
+            },
+            // ... 198 more
+        ]
+    }
+
+##### Get a subscriber
+
+    GET http://localhost:8000/api/v1/newsletter/subscriber/<SUBSCRIBER_ID>/
+
+returns the subscriber object represented by SUBSCRIBER_ID, i.e.:
+
     {
         "id":2,
         "client":1,
@@ -125,7 +156,7 @@ returns a list of subscribers associated to the authenticated client, i.e.:
         "subscription_datetime":"2016-09-08T14:59:58.860948Z",
         "info":"",
         "lists":[1, 2]
-    }]
+    }
 
 ##### Add a subscriber
 
@@ -150,6 +181,62 @@ email and lists fields are required.
 ##### Delete a subscriber
 
     DELETE http://localhost:8000/api/v1/newsletter/subscriber/<SUBSCRIBER_ID>/
+
+#### Campaigns
+
+Campaign models are readonly, so you can only retrieve a list of paginated campaigns, or a single campaign.
+This resource is usefull in order to display the newsletter content on your own application, or to create
+a newsletter archive.
+
+##### Retrieve campaigns
+
+    GET http://localhost:8000/api/v1/newsletter/campaign/
+
+returns a paginated (20 for page) list of campaigns associated to the authenticated client, i.e.:
+
+    {
+        "count": 2,
+        "next": "http://localhost:8000/api/v1/newsletter/campaign/?page=2",
+        "previous": null,
+        "results": [
+            {
+                "id": 1,
+                "topic_id": 1,
+                "topic": "New Articles",
+                "name": "Let's talk about birds!",
+                "insertion_datetime": "2016-09-08T14:51:06.980733Z",
+                "last_edit_datetime": "2016-09-22T11:42:30.398038Z",
+                "subject": "A new article on birds.com!",
+                "plain_text": "plain bla bla",
+                "html_text": "html bla bla",
+                "view_online": true,
+                "url": "http://localhost:8000/newsletter/client-slug/2016/09/08/campaign-slug/"
+            }
+            // ... 19 more
+        ]
+    }
+
+##### Get a campaign
+
+    GET http://localhost:8000/api/v1/newsletter/campaign/<CAMPAIGN_ID>/
+
+returns the campaign object represented by CAMPAIGN_ID, i.e.:
+
+    {
+        "id": 1,
+        "topic_id": 1,
+        "topic": "New Articles",
+        "name": "Let's talk about birds!",
+        "insertion_datetime": "2016-09-08T14:51:06.980733Z",
+        "last_edit_datetime": "2016-09-22T11:42:30.398038Z",
+        "subject": "A new article on birds.com!",
+        "plain_text": "plain bla bla",
+        "html_text": "html bla bla",
+        "view_online": true,
+        "url": "http://localhost:8000/newsletter/client-slug/2016/09/08/campaign-slug/"
+    }
+
+
 
 ## <a name="getting-started"></a>Getting Started
 

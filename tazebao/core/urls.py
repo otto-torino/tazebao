@@ -23,11 +23,13 @@ from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
 
 from newsletter.views import SubscriberListViewSet, SubscriberViewSet
+from newsletter.views import CampaignViewSet
 
 # BEGIN API
 router = DefaultRouter()
 router.register(r'newsletter/subscriberlist', SubscriberListViewSet)
 router.register(r'newsletter/subscriber', SubscriberViewSet)
+router.register(r'newsletter/campaign', CampaignViewSet)
 # END API
 
 urlpatterns = [
