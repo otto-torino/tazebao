@@ -1,11 +1,11 @@
 from django import template, http
 from django.shortcuts import get_object_or_404
 
-
 from rest_framework import viewsets
+from rest_framework.pagination import PageNumberPagination
 
 from .models import Campaign, SubscriberList, Subscriber
-from .serializers import SubscriberListSerializer, SubscriberSerializer
+from .serializers import SubscriberListSerializer, SubscriberSerializer, CampaignSerializer # noqa
 from .context import get_campaign_context
 from .permissions import IsClient
 
@@ -36,8 +36,7 @@ def campaign_detail_view(request, client_slug,
             tpl = template.Template(campaign.plain_text)
             content_type = 'text/plain; charset=utf-8'
         context = template.Context({})
-        if campaign.view_online:
-            context.update(get_campaign_context(campaign))
+        context.update(get_campaign_context(campaign))
         return http.HttpResponse(tpl.render(context),
                                  content_type=content_type)
 
@@ -45,6 +44,15 @@ def campaign_detail_view(request, client_slug,
 
 
 # API
+
+class ResultsSetPagination(PageNumberPagination):
+    page_size = 1
+
+
+class LargeResultsSetPagination(PageNumberPagination):
+    page_size = 200
+
+
 class SubscriberListViewSet(viewsets.ModelViewSet):
     """ SubscriberList CRUD
     """
@@ -60,7 +68,7 @@ class SubscriberListViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """ Retrieves only clients lists
         """
-        return SubscriberList.objects.filter(client__user=self.request.user)
+        return SubscriberList.objects.filter(client__user__id=self.request.user.id) # noqa
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
@@ -73,6 +81,7 @@ class SubscriberViewSet(viewsets.ModelViewSet):
     lookup_field = 'pk'
     queryset = Subscriber.objects.all()
     serializer_class = SubscriberSerializer
+    pagination_class = LargeResultsSetPagination
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -82,8 +91,27 @@ class SubscriberViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """ Retrieves only clients subscribers
         """
-        return Subscriber.objects.filter(client__user=self.request.user)
+        return Subscriber.objects.filter(client__user__id=self.request.user.id)
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
         serializer.save(client=self.request.user.client)
+
+
+class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
+    """ Subscriber cRud
+    """
+    lookup_field = 'pk'
+    queryset = Campaign.objects.all()
+    serializer_class = CampaignSerializer
+    pagination_class = ResultsSetPagination
+
+    def get_permissions(self):
+        """ Only client users can perform object actions
+        """
+        return [IsClient(), ]
+
+    def get_queryset(self):
+        """ Retrieves only clients campaigns
+        """
+        return Campaign.objects.filter(client__user__id=self.request.user.id)
