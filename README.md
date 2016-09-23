@@ -185,7 +185,7 @@ email and lists fields are required.
 #### Campaigns
 
 Campaign models are readonly, so you can only retrieve a list of paginated campaigns, or a single campaign.
-This resource is usefull in order to display the newsletter content on your own application, or to create
+This resource is usefull in order to display the newsletter content in your own application, or to create
 a newsletter archive.
 
 ##### Retrieve campaigns

@@ -36,8 +36,8 @@ def send_campaign(lists_ids, campaign_id):
     used_addresses = []
     error_addresses = []
     # param
-    unsubscription_template = template.Template('{% load newsletter_tags %}' + campaign.topic.unsubscription_text) # noqa
-    unsubscription_html_template = template.Template('{% load newsletter_tags %}' + campaign.topic.unsubscription_html_text) # noqa
+    unsubscription_template = template.Template('{% load newsletter_tags %}' + str(campaign.topic.unsubscription_text)) # noqa
+    unsubscription_html_template = template.Template('{% load newsletter_tags %}' + str(campaign.topic.unsubscription_html_text)) # noqa
     text_template = template.Template(campaign.plain_text)
     html_template = template.Template(campaign.html_text)
     from_header = "%s <%s>" % (
