@@ -26,10 +26,13 @@ Tazebao provides the following entities:
 - campaign
 - dispatch
 - dispatch queue log
+- tracking
 
 Each __Subscriber__ must belong to one or more lists (__SubscriberList__). Subscriber's e-mail must be unique for each client.
 Each __Campaign__ must belong to a __Topic__, which stores the information about the sender name and address.
 The newsletter is sent creating a __Dispatch__, where the user chooses one or more lists of subscribers which will receive the e-mail.
+If the html template of the email contains the closing body tag, then a tracking code is added automatically in order to track if the user opens the e-mail.
+These statistics are inaccurate, because the tracking code works only if the user loads the e-mail images.
 
 The __Subscriber__ has an __info__ text field which can be used to store additional information, for example in a json format.
 
