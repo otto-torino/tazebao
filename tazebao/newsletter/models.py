@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.safestring import mark_safe
+from django.utils.formats import date_format
+from django.utils import timezone
 
 from mailqueue.models import MailerMessage
 
@@ -174,7 +176,7 @@ class Dispatch(models.Model):
         verbose_name_plural = 'Invii'
 
     def __unicode__(self):
-        return '%s - %s' % (self.campaign, str(self.started_at))
+        return '%s - %s - %s' % (self.id, self.campaign, date_format(timezone.localtime(self.started_at), 'DATETIME_FORMAT')) # noqa
 
 
 class Tracking(models.Model):
@@ -187,7 +189,7 @@ class Tracking(models.Model):
         verbose_name_plural = "Tracking"
 
     def __unicode__(self):
-        return self.id
+        return 'tracking ID %s' % str(self.id)
 
 
 # proxies
