@@ -174,7 +174,7 @@ class Dispatch(models.Model):
         verbose_name_plural = 'Invii'
 
     def __unicode__(self):
-        return '%s - %s' % (self.campaign, self.started_at)
+        return '%s - %s' % (self.campaign, str(self.started_at))
 
 
 class Tracking(models.Model):

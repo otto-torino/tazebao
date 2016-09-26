@@ -107,7 +107,7 @@ def send_campaign(lists_ids, campaign_id):
                 error_addresses.append(subscriber.email)
     dispatch.error = False
     dispatch.success = True
-    dispatch.tracking = tracking
+    dispatch.statistics = tracking
     dispatch.finished_at = timezone.now()
     dispatch.sent = sent
     dispatch.sent_recipients = ','.join(used_addresses)
