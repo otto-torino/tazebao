@@ -506,7 +506,7 @@ class UserMailerMessageAdmin(admin.ModelAdmin):
     actions = ['send_failed']
 
     def dispatch(self, obj):
-        return '%s - %s ' % (obj.app, Dispatch.objects.get(pk=int(obj.app)))
+        return '%s' % (Dispatch.objects.get(pk=int(obj.app)))
     dispatch.short_description = 'App: Invio ID - DATA CAMPAGNA'
 
     def has_add_permission(self, request):
