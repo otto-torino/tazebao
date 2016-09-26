@@ -182,8 +182,8 @@ class Tracking(models.Model):
     subscriber = models.ForeignKey(Subscriber, verbose_name='iscritto')
 
     class Meta:
-        verbose_name = "Apertura"
-        verbose_name_plural = "Aperture"
+        verbose_name = "Tracking"
+        verbose_name_plural = "Tracking"
 
     def __unicode__(self):
         return self.id

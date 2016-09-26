@@ -515,6 +515,8 @@ class UserMailerMessageAdmin(admin.ModelAdmin):
         """ Let the user see only related logs
         """
         qs = super(UserMailerMessageAdmin, self).get_queryset(request)
+        if request.user.is_superuser:
+            return qs
         return qs.filter(app__in=[str(d.pk) for d in Dispatch.objects.filter(
             campaign__client__user=request.user)])
 
