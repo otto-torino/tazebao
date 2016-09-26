@@ -452,6 +452,8 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
         trackings = Tracking.objects.filter(dispatch=obj).count()
         if obj.error:
             return ''
+        elif not obj.statistics:
+            return 'N.D.'
         perc = int(round(100 * trackings / obj.sent))
         return mark_safe(
             '<span style="font-weight: bold;color: %s">%s%%</span> (%s/%s)' %

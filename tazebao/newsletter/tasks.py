@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+import re
 
 from django import template
 from django.utils import timezone
@@ -75,22 +76,27 @@ def send_campaign(lists_ids, campaign_id):
             msg.to_address = subscriber.email
             msg.from_address = from_header
             msg.content = text_template.render(context)
+            tracking = False
             if campaign.html_text is not None and campaign.html_text != u"": # noqa
                 context.update({'unsubscription_text': unsubscription_html_text}) # noqa
                 html_content = html_template.render(context)
                 # add tracking image
-                tracking_image = '''
-                <img src="%s" />
-                ''' % ''.join([
-                    'http://',
-                    str(Site.objects.get_current()),
-                    reverse('newsletter-email-tracking',
-                            kwargs={
-                                'dispatch_id': dispatch.id,
-                                'subscriber_id': subscriber.id
-                            })
-                ])
-                html_content = html_content.replace('</body>', tracking_image + '</body>') # noqa
+                matches = re.match(r'[^\$]*(</body>)[^\$]*', html_content, re.I) # noqa
+                if matches:
+                    tracking_image = '''
+                    <img src="%s" />
+                    ''' % ''.join([
+                        'http://',
+                        str(Site.objects.get_current()),
+                        reverse('newsletter-email-tracking',
+                                kwargs={
+                                    'dispatch_id': dispatch.id,
+                                    'subscriber_id': subscriber.id
+                                })
+                    ])
+                    rexp = re.compile(re.escape('</body>'), re.I)
+                    html_content = rexp.sub(tracking_image + matches.group(1), html_content) # noqa
+                    tracking = True
                 msg.html_content = html_content
 
             try:
@@ -101,6 +107,7 @@ def send_campaign(lists_ids, campaign_id):
                 error_addresses.append(subscriber.email)
     dispatch.error = False
     dispatch.success = True
+    dispatch.tracking = tracking
     dispatch.finished_at = timezone.now()
     dispatch.sent = sent
     dispatch.sent_recipients = ','.join(used_addresses)
