@@ -3,6 +3,8 @@ from __future__ import absolute_import
 from django import template
 from django.utils import timezone
 from django.template import Context
+from django.core.urlresolvers import reverse
+from django.contrib.sites.models import Site
 
 from core.celery import app
 from celery.utils.log import get_task_logger
@@ -76,7 +78,21 @@ def send_campaign(lists_ids, campaign_id):
             if campaign.html_text is not None and campaign.html_text != u"": # noqa
                 context.update({'unsubscription_text': unsubscription_html_text}) # noqa
                 html_content = html_template.render(context)
+                # add tracking image
+                tracking_image = '''
+                <img src="%s" />
+                ''' % ''.join([
+                    'http://',
+                    str(Site.objects.get_current()),
+                    reverse('newsletter-email-tracking',
+                            kwargs={
+                                'dispatch_id': dispatch.id,
+                                'subscriber_id': subscriber.id
+                            })
+                ])
+                html_content = html_content.replace('</body>', tracking_image + '</body>') # noqa
                 msg.html_content = html_content
+
             try:
                 msg.save()
                 sent += 1

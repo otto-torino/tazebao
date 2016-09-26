@@ -159,8 +159,8 @@ class Campaign(models.Model):
 class Dispatch(models.Model):
     campaign = models.ForeignKey(Campaign, verbose_name='campagna')
     lists = models.ManyToManyField(SubscriberList, verbose_name='liste')
-    started_at = models.DateTimeField()
-    finished_at = models.DateTimeField(blank=True, null=True)
+    started_at = models.DateTimeField('inizio')
+    finished_at = models.DateTimeField('fine', blank=True, null=True)
     error = models.BooleanField('errore', default=False)
     success = models.BooleanField('successo', default=False)
     sent = models.IntegerField('e-mail inviate', blank=True, null=True)
@@ -169,11 +169,24 @@ class Dispatch(models.Model):
                                         null=True)
 
     class Meta:
-        verbose_name = "Invio"
-        verbose_name_plural = "Invii"
+        verbose_name = 'Invio'
+        verbose_name_plural = 'Invii'
 
     def __unicode__(self):
-        return '%s - %s' % (str(self.started_at), str(self.campaign))
+        return '%s - %s' % (self.campaign, self.started_at)
+
+
+class Tracking(models.Model):
+    datetime = models.DateTimeField(auto_now_add=True)
+    dispatch = models.ForeignKey(Dispatch, verbose_name='invio')
+    subscriber = models.ForeignKey(Subscriber, verbose_name='iscritto')
+
+    class Meta:
+        verbose_name = "Apertura"
+        verbose_name_plural = "Aperture"
+
+    def __unicode__(self):
+        return self.id
 
 
 # proxies
@@ -217,6 +230,13 @@ class UserDispatch(Dispatch):
         proxy = True
         verbose_name = 'User - Invio Campagna'
         verbose_name_plural = 'User - Invii Campagne'
+
+
+class UserTracking(Tracking):
+    class Meta:
+        proxy = True
+        verbose_name = 'User - Traking'
+        verbose_name_plural = 'User - Tracking'
 
 
 class UserMailerMessage(MailerMessage):

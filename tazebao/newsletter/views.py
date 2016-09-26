@@ -1,10 +1,11 @@
 from django import template, http
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
 
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
 
-from .models import Campaign, SubscriberList, Subscriber
+from .models import Campaign, SubscriberList, Subscriber, Tracking, Dispatch
 from .serializers import SubscriberListSerializer, SubscriberSerializer, CampaignSerializer # noqa
 from .context import get_campaign_context
 from .permissions import IsClient
@@ -43,8 +44,17 @@ def campaign_detail_view(request, client_slug,
     raise http.Http404()
 
 
-# API
+def email_tracking(request, dispatch_id, subscriber_id):
+    dispatch = get_object_or_404(Dispatch, id=dispatch_id)
+    subscriber = get_object_or_404(Subscriber, id=subscriber_id)
+    tracking, created = Tracking.objects.get_or_create(
+        dispatch=dispatch,
+        subscriber=subscriber
+    )
+    return HttpResponse(status=204)
 
+
+# API
 class ResultsSetPagination(PageNumberPagination):
     page_size = 1
 

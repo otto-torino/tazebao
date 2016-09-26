@@ -171,6 +171,7 @@ SUIT_CONFIG = {
              'topic',
              'campaign',
              'dispatch',
+             'tracking',
              {'model': 'userclient', 'label': 'Client'},
              {'model': 'usersubscriberlist', 'label': 'Liste iscritti'},
              {'model': 'usersubscriber', 'label': 'Iscritti'},
@@ -178,6 +179,7 @@ SUIT_CONFIG = {
              {'model': 'usercampaign', 'label': 'Campagne'},
              {'model': 'userdispatch', 'label': 'Invii'},
              {'model': 'usermailermessage', 'label': 'Log code invio'},
+             {'model': 'usertracking', 'label': 'Tracking'},
          )},
         {'app': 'mailqueue', 'label': 'Log invio e-mail', 'icon':'icon-list'},
     )

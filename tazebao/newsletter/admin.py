@@ -8,8 +8,8 @@ from django.http.response import HttpResponseRedirect
 # from django.core.mail import EmailMultiAlternatives
 
 from .models import Client, SubscriberList, Subscriber
-from .models import Topic, Campaign, Dispatch
-from .models import UserClient, UserSubscriberList, UserSubscriber
+from .models import Topic, Campaign, Dispatch, Tracking
+from .models import UserClient, UserSubscriberList, UserSubscriber, UserTracking # noqa
 from .models import UserTopic, UserCampaign, UserDispatch, UserMailerMessage
 from .tasks import send_campaign
 
@@ -88,6 +88,13 @@ class DispatchAdmin(admin.ModelAdmin):
     list_filter = ('campaign__client',)
 
 admin.site.register(Dispatch, DispatchAdmin)
+
+
+class TrackingAdmin(admin.ModelAdmin):
+    list_display = ('datetime', 'dispatch', 'subscriber', )
+    list_filter = ('dispatch__campaign__client',)
+
+admin.site.register(Tracking, TrackingAdmin)
 
 
 class UserClientAdmin(DisplayOnlyIfHasClientAdmin):
@@ -417,7 +424,7 @@ admin.site.register(UserCampaign, UserCampaignAdmin)
 
 class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
     list_display = ('id', 'campaign', 'started_at', 'finished_at',
-                    'error', 'success', 'sent', )
+                    'error', 'success', 'sent', 'tracking_rate', )
     list_filter = ('campaign', 'error', 'success', 'started_at', )
     readonly_fields = [f.name for f in UserDispatch._meta.fields] + ['lists', ]
 
@@ -441,7 +448,49 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
         qs = super(UserDispatchAdmin, self).get_queryset(request)
         return qs.filter(campaign__client__user=request.user)
 
+    def tracking_rate(self, obj):
+        trackings = Tracking.objects.filter(dispatch=obj).count()
+        if obj.error:
+            return ''
+        perc = int(round(100 * trackings / obj.sent))
+        return mark_safe(
+            '<span style="font-weight: bold;color: %s">%s%%</span> (%s/%s)' %
+            (
+            '#00aa00' if perc >= 50 else 'red',
+             perc,
+             trackings,
+             obj.sent)) # noqa
+    tracking_rate.short_description = 'percentuale apertura'
+
 admin.site.register(UserDispatch, UserDispatchAdmin)
+
+
+class UserTrackingAdmin(DisplayOnlyIfHasClientAdmin):
+    list_display = ('datetime', 'dispatch', 'subscriber', )
+    list_filter = ('dispatch', 'datetime', )
+    readonly_fields = [f.name for f in UserTracking._meta.fields]
+
+    def has_add_permission(self, request):
+        """ User can't create trackings """
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """ User can't delete trackings """
+        return False
+
+    def get_actions(self, request):
+        actions = super(UserTrackingAdmin, self).get_actions(request)
+        if 'delete_selected' in actions:
+            del actions['delete_selected']
+        return actions
+
+    def get_queryset(self, request):
+        """ Let the user see only related trackings
+        """
+        qs = super(UserTrackingAdmin, self).get_queryset(request)
+        return qs.filter(dispatch__campaign__client__user=request.user)
+
+admin.site.register(UserTracking, UserTrackingAdmin)
 
 
 class UserMailerMessageAdmin(admin.ModelAdmin):
