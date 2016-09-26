@@ -51,7 +51,11 @@ def email_tracking(request, dispatch_id, subscriber_id):
         dispatch=dispatch,
         subscriber=subscriber
     )
-    return HttpResponse(status=204)
+
+    PIXEL_GIF_DATA = """
+    R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7
+    """.strip().decode('base64')
+    return HttpResponse(PIXEL_GIF_DATA, content_type='image/gif')
 
 
 # API
