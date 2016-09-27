@@ -41,8 +41,8 @@ def send_campaign(lists_ids, campaign_id):
     # param
     unsubscription_template = template.Template('{% load newsletter_tags %}' + str(campaign.topic.unsubscription_text)) # noqa
     unsubscription_html_template = template.Template('{% load newsletter_tags %}' + str(campaign.topic.unsubscription_html_text)) # noqa
-    text_template = template.Template(campaign.plain_text)
-    html_template = template.Template(campaign.html_text)
+    text_template = template.Template('{% load newsletter_tags %}' + campaign.plain_text) # noqa
+    html_template = template.Template('{% load newsletter_tags %}' + campaign.html_text) # noqa
     from_header = "%s <%s>" % (
         campaign.topic.sending_name,
         campaign.topic.sending_address
@@ -71,6 +71,8 @@ def send_campaign(lists_ids, campaign_id):
             context = Context()
             context.update({'unsubscription_text': unsubscription_text})
             context.update(get_campaign_context(campaign))
+            context.update({'subscriber_id': subscriber.id})
+            context.update({'dispatch_id': dispatch.id})
             msg.app = dispatch.pk
             msg.subject = campaign.subject
             msg.to_address = subscriber.email

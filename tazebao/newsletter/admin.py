@@ -1,3 +1,5 @@
+import re
+
 from django.contrib import admin
 from django.utils.crypto import get_random_string
 from django.shortcuts import get_object_or_404, render
@@ -5,7 +7,6 @@ from django.utils.safestring import mark_safe
 from django.core.urlresolvers import reverse
 from django import forms
 from django.http.response import HttpResponseRedirect
-# from django.core.mail import EmailMultiAlternatives
 
 from .models import Client, SubscriberList, Subscriber
 from .models import Topic, Campaign, Dispatch, Tracking
@@ -92,7 +93,7 @@ admin.site.register(Dispatch, DispatchAdmin)
 
 class TrackingAdmin(admin.ModelAdmin):
     list_display = ('datetime', 'dispatch', 'subscriber', )
-    list_filter = ('dispatch__campaign__client',)
+    list_filter = ('dispatch__campaign__client', 'type', )
 
 admin.site.register(Tracking, TrackingAdmin)
 
@@ -424,7 +425,7 @@ admin.site.register(UserCampaign, UserCampaignAdmin)
 
 class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
     list_display = ('id', 'campaign', 'started_at', 'finished_at',
-                    'error', 'success', 'sent', 'tracking_rate', )
+                    'error', 'success', 'sent', 'tracking_rate', 'click_rate', ) # noqa
     list_filter = ('campaign', 'error', 'success', 'started_at', )
     readonly_fields = [f.name for f in UserDispatch._meta.fields] + ['lists', ]
 
@@ -449,11 +450,11 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
         return qs.filter(campaign__client__user=request.user)
 
     def tracking_rate(self, obj):
-        trackings = Tracking.objects.filter(dispatch=obj).count()
         if obj.error:
             return ''
         elif not obj.statistics:
             return 'N.D.'
+        trackings = Tracking.objects.filter(dispatch=obj, type=Tracking.OPEN_TYPE).count() # noqa
         perc = int(round(100 * trackings / obj.sent))
         return mark_safe(
             '<span style="font-weight: bold;color: %s">%s%%</span> (%s/%s)' %
@@ -464,11 +465,31 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
              obj.sent)) # noqa
     tracking_rate.short_description = 'percentuale apertura'
 
+    def click_rate(self, obj):
+        if obj.error:
+            return ''
+        elif not re.match('[^\$]*{% ?link[^\$]*?%}[^\$]*', obj.campaign.html_text): # noqa
+            return 'N.D.'
+        clicks = Tracking.objects.filter(dispatch=obj, type=Tracking.CLICK_TYPE).count() # noqa
+        clicks_s = Tracking.objects.filter(dispatch=obj, type=Tracking.CLICK_TYPE).values('subscriber').distinct().count() # noqa
+
+        perc = int(round(100 * clicks_s / obj.sent))
+
+        return mark_safe(
+            '<span style="font-weight: bold;color: %s">%s%%</span> (%s/%s), totali: %s' % # noqa
+            (
+            '#00aa00' if perc >= 50 else 'red',
+             perc,
+             clicks_s,
+             obj.sent,
+             clicks)) # noqa
+    click_rate.short_description = 'click'
+
 admin.site.register(UserDispatch, UserDispatchAdmin)
 
 
 class UserTrackingAdmin(DisplayOnlyIfHasClientAdmin):
-    list_display = ('datetime', 'dispatch', 'subscriber', )
+    list_display = ('datetime', 'type', 'dispatch', 'subscriber', 'notes', )
     list_filter = ('dispatch', 'datetime', )
     readonly_fields = [f.name for f in UserTracking._meta.fields]
 

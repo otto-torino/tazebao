@@ -1,6 +1,6 @@
 from django import template, http
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
@@ -49,13 +49,28 @@ def email_tracking(request, dispatch_id, subscriber_id):
     subscriber = get_object_or_404(Subscriber, id=subscriber_id)
     tracking, created = Tracking.objects.get_or_create(
         dispatch=dispatch,
-        subscriber=subscriber
+        subscriber=subscriber,
+        type=Tracking.OPEN_TYPE
     )
 
     PIXEL_GIF_DATA = """
     R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7
     """.strip().decode('base64')
     return HttpResponse(PIXEL_GIF_DATA, content_type='image/gif')
+
+
+# add url
+def link_tracking(request, dispatch_id, subscriber_id):
+    dispatch = get_object_or_404(Dispatch, id=dispatch_id)
+    subscriber = get_object_or_404(Subscriber, id=subscriber_id)
+    tracking, created = Tracking.objects.get_or_create(
+        dispatch=dispatch,
+        subscriber=subscriber,
+        type=Tracking.CLICK_TYPE,
+        notes=request.GET.get('url', '')
+    )
+
+    return HttpResponseRedirect(request.GET.get('url'))
 
 
 # API

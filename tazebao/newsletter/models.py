@@ -67,7 +67,7 @@ class Topic(models.Model):
         blank=True,
         null=True,
         help_text=mark_safe('''
-            <p><b>variabili</b> disponibili</p>
+            <p><b>Variabili</b> disponibili</p>
             - <code>{{ id }}</code> id iscritto<br />
             - <code>{{ email }}</code> e-mail iscritto<br />
             - <code>{{ subscription_datetime }}</code> data
@@ -83,7 +83,7 @@ class Topic(models.Model):
         blank=True,
         null=True,
         help_text=mark_safe('''
-            <p><b>variabili</b> disponibili</p>
+            <p><b>Variabili</b> disponibili</p>
             - <code>{{ id }}</code> id iscritto<br />
             - <code>{{ email }}</code> e-mail iscritto<br />
             - <code>{{ subscription_datetime }}</code> data
@@ -119,7 +119,7 @@ class Campaign(models.Model):
         blank=True,
         null=True,
         help_text=mark_safe('''
-            <p><b>variabili</b> disponibili per il testo e testo html:</p>
+            <p><b>Variabili</b> disponibili per il testo e testo html:</p>
             - <code>{{ id }}</code> id campagna<br />
             - <code>{{ unsubscription_text }}</code> testo cancellazione
                             sottoscrizione definito nel Topic<br />
@@ -129,12 +129,30 @@ class Campaign(models.Model):
                  protocollo<br />
             per ottenere l'url completo della newsletter online<br />
             <code>http://{{ site_url }}{{ view_online_url }}</code>
+            <p>Per creare un link con tracciamento del click:</p>
+            <code>{% link 'http://www.example.com' %}</code>
+            <p>genera un url che se visitato tiene traccia dell'evento e
+            ridirige su http://www.example.com.</p>
         '''))
     html_text = models.TextField(
         'testo html',
         blank=True,
         null=True,
-        help_text='''si possono utilizzare le stesse variabili definite sopra
+        help_text='''
+            <p><b>Variabili</b> disponibili per il testo e testo html:</p>
+            - <code>{{ id }}</code> id campagna<br />
+            - <code>{{ unsubscription_text }}</code> testo cancellazione
+                            sottoscrizione definito nel Topic<br />
+            - <code>{{ view_online_url }}</code> url relativo della newsletter
+                 online<br />
+            - <code>{{ site_url }}</code> url applicazione senza
+                 protocollo<br />
+            per ottenere l'url completo della newsletter online<br />
+            <code>http://{{ site_url }}{{ view_online_url }}</code>
+            <p>Per creare un link con tracciamento del click:</p>
+            <code>{% link 'http://www.example.com' %}</code>
+            <p>genera un url che se visitato tiene traccia dell'evento e
+            ridirige su http://www.example.com.</p>
         ''')
     view_online = models.BooleanField('visualizza online', default=True)
 
@@ -180,9 +198,17 @@ class Dispatch(models.Model):
 
 
 class Tracking(models.Model):
+    OPEN_TYPE = 1
+    CLICK_TYPE = 2
+    TYPE_CHOICES = (
+        (OPEN_TYPE, 'apertura'),
+        (CLICK_TYPE, 'click'),
+    )
     datetime = models.DateTimeField(auto_now_add=True)
+    type = models.IntegerField('tipo', choices=TYPE_CHOICES)
     dispatch = models.ForeignKey(Dispatch, verbose_name='invio')
     subscriber = models.ForeignKey(Subscriber, verbose_name='iscritto')
+    notes = models.CharField('note', max_length=255, blank=True, null=True)
 
     class Meta:
         verbose_name = "Tracking"

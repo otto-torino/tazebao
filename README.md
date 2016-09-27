@@ -33,6 +33,7 @@ Each __Campaign__ must belong to a __Topic__, which stores the information about
 The newsletter is sent creating a __Dispatch__, where the user chooses one or more lists of subscribers which will receive the e-mail.
 If the html template of the email contains the closing body tag, then a tracking code is added automatically in order to track if the user opens the e-mail.
 These statistics are inaccurate, because the tracking code works only if the user loads the e-mail images.
+Tazebao provides a __link__ templatetag which can be used to track user clicks (the destination url is transformed in a Tazebao url, which executes a view which detects the event and redirects the user to the original url).
 
 The __Subscriber__ has an __info__ text field which can be used to store additional information, for example in a json format.
 
