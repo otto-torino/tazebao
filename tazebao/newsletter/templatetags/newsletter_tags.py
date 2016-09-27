@@ -25,7 +25,7 @@ def encrypt(context, *args):
 def link(context, url):
     current_site = Site.objects.get_current()
     return ''.join([
-        'http',
+        'http://',
         current_site.domain,
         reverse('newsletter-click-tracking',
                 args=[
