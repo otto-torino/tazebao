@@ -85,11 +85,12 @@ def send_campaign(lists_ids, campaign_id):
                 # add tracking image
                 matches = re.match(r'[^\$]*(</body>)[^\$]*', html_content, re.I) # noqa
                 if matches:
+                    current_site = Site.objects.get_current()
                     tracking_image = '''
                     <img src="%s" />
                     ''' % ''.join([
                         'http://',
-                        str(Site.objects.get_current()),
+                        current_site.domain,
                         reverse('newsletter-email-tracking',
                                 kwargs={
                                     'dispatch_id': dispatch.id,

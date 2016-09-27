@@ -23,9 +23,10 @@ def encrypt(context, *args):
 
 @register.simple_tag(takes_context=True)
 def link(context, url):
+    current_site = Site.objects.get_current()
     return ''.join([
         'http',
-        Site.objects.get_current(),
+        current_site.domain,
         reverse('newsletter-click-tracking',
                 args=[
                     context['dispatch_id'],
