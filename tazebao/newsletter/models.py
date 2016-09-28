@@ -199,6 +199,30 @@ class Dispatch(models.Model):
     def __unicode__(self):
         return '%s - %s - %s' % (self.id, self.campaign, date_format(timezone.localtime(self.started_at), 'DATETIME_FORMAT')) # noqa
 
+    def open_rate(self):
+        if self.error or not self.open_statistics:
+            return None
+        trackings = Tracking.objects.filter(dispatch=self, type=Tracking.OPEN_TYPE).count() # noqa
+        perc = int(round(100 * trackings / self.sent))
+        return perc
+
+    def unopen_rate(self):
+        if self.open_rate() is None:
+            return None
+        return 100 - self.open_rate()
+
+    def click_rate(self):
+        if self.error or not self.click_statistics:
+            return None
+        clicks_s = Tracking.objects.filter(dispatch=self, type=Tracking.CLICK_TYPE).values('subscriber').distinct().count() # noqa
+        perc = int(round(100 * clicks_s / self.sent))
+        return perc
+
+    def unclick_rate(self):
+        if self.click_rate() is None:
+            return None
+        return 100 - self.click_rate()
+
 
 class Tracking(models.Model):
     OPEN_TYPE = 1
@@ -225,54 +249,54 @@ class Tracking(models.Model):
 class UserClient(Client):
     class Meta:
         proxy = True
-        verbose_name = 'User - Client'
-        verbose_name_plural = 'User - Client'
+        verbose_name = 'Client'
+        verbose_name_plural = 'Client'
 
 
 class UserSubscriberList(SubscriberList):
     class Meta:
         proxy = True
-        verbose_name = 'User - Lista iscritti'
-        verbose_name_plural = 'User - Liste iscritti'
+        verbose_name = 'Lista iscritti'
+        verbose_name_plural = 'Liste iscritti'
 
 
 class UserSubscriber(Subscriber):
     class Meta:
         proxy = True
-        verbose_name = 'User - Iscritto'
-        verbose_name_plural = 'User - Iscritti'
+        verbose_name = 'Iscritto'
+        verbose_name_plural = 'Iscritti'
 
 
 class UserTopic(Topic):
     class Meta:
         proxy = True
-        verbose_name = 'User - Topic'
-        verbose_name_plural = 'User - Topic'
+        verbose_name = 'Topic'
+        verbose_name_plural = 'Topic'
 
 
 class UserCampaign(Campaign):
     class Meta:
         proxy = True
-        verbose_name = 'User - Campagna'
-        verbose_name_plural = 'User - Campagne'
+        verbose_name = 'Campagna'
+        verbose_name_plural = 'Campagne'
 
 
 class UserDispatch(Dispatch):
     class Meta:
         proxy = True
-        verbose_name = 'User - Invio Campagna'
-        verbose_name_plural = 'User - Invii Campagne'
+        verbose_name = 'Invio Campagna'
+        verbose_name_plural = 'Invii Campagne'
 
 
 class UserTracking(Tracking):
     class Meta:
         proxy = True
-        verbose_name = 'User - Traking'
-        verbose_name_plural = 'User - Tracking'
+        verbose_name = 'Traking'
+        verbose_name_plural = 'Tracking'
 
 
 class UserMailerMessage(MailerMessage):
     class Meta:
         proxy = True
-        verbose_name = 'User - Log coda di invio'
-        verbose_name_plural = 'User - Log code di invio'
+        verbose_name = 'Log coda di invio'
+        verbose_name_plural = 'Log code di invio'

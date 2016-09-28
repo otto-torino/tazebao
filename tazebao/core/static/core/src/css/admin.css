@@ -1,23 +1,33 @@
-.header {
+#header {
     background: #d7dce2;
-    color: #000;
-    text-shadow: 0 0px #fff;
-    height: 50px;
 }
-i {
-    background-image: url('/static/core/img/glyphicons-halflings.png') !important;
+#user-tools {
+    color: #333 !important;
 }
-.header .header-content .time {
-    color: red;
+#user-tools strong {
+    color: #000 !important;
+    font-weight: bold !important;
 }
-.header a {
-    color: red;
-}
-.header #branding {
-    height: 50px;
+#user-tools a {
+    color: red !important;
 }
 
-.login #content-main h1 {
-    padding: 5px 0;
-    background: #d7dce2;
+#content {
+    background: #fff;
+}
+
+.breadcrumbs {
+    padding-bottom: 20px;
+}
+
+.object-tools + #changelist.filtered #toolbar {
+    margin-top: 0;
+}
+
+#login-form #id_username {
+    border: 1px solid #aaa;
+}
+
+#login-form #id_password {
+    border: 1px solid #aaa;
 }

@@ -58,7 +58,7 @@ DATABASES = {
 
 INSTALLED_APPS = (
     'core',
-    'suit',
+    'core.apps.SuitConfig',
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -254,11 +254,14 @@ PIPELINE = {
 # API
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-       'newsletter.auth.NewsletterAPISignatureAuthentication',
+        'newsletter.auth.NewsletterAPISignatureAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_RENDERER_CLASSES': (
+        'rest_framework.renderers.JSONRenderer',
+    )
 }
 
 # LOGGING

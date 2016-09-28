@@ -5,31 +5,19 @@
 {% block title %}Rimuovi iscritti da liste | {{ campaign }}{% endblock %}
 
   {% block breadcrumbs %}
-    <ul class="breadcrumb">
-      <li>
+    <div class="breadcrumbs">
         <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
-        <span class="divider">&raquo;</span>
-      </li>
-      <li>
+        ›
         <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{% firstof opts.app_config.verbose_name app_label|capfirst|escape %}</a>
-        <span class="divider">&raquo;</span>
-      </li>
-      <li>
-          <a href="{% url opts|admin_urlname:'changelist' %}">
-            {{ opts.verbose_name_plural|capfirst }}</a>
-          <span class="divider">&raquo;</span>
-      </li>
-      <li class="active">
-        {% if add %}{% trans 'Add' %} {{ opts.verbose_name }}{% else %}{{ original|truncatewords:"18" }}{% endif %}
-      </li>
-      <li class="active">
-          Rimuovi da liste
-      </li>
-    </ul>
+        ›
+        <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
+        ›
+        Rimuovi da liste
+    </div>
   {% endblock %}
 
 {% block submit_buttons_bottom %}
-    <input type="submit" name="send_submit" value="invia" class="btn btn-high btn-info" />
+    <input type="submit" name="send_submit" value="rimuovi" class="btn btn-high btn-info" />
 {% endblock %}
 {% block object-tools %}{% endblock %}
 

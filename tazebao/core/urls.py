@@ -25,6 +25,8 @@ from rest_framework.routers import DefaultRouter
 from newsletter.views import SubscriberListViewSet, SubscriberViewSet
 from newsletter.views import CampaignViewSet
 
+admin.site.site_header = 'Tazebao'
+
 # BEGIN API
 router = DefaultRouter()
 router.register(r'newsletter/subscriberlist', SubscriberListViewSet)

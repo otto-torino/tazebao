@@ -137,6 +137,7 @@ admin.site.register(UserSubscriberList, UserSubscriberListAdmin)
 class UserSubscriberAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
     list_display = ('email', 'subscription_datetime', 'lists_string', 'info', )
     list_filter = ('subscription_datetime', )
+
     readonly_fields = ('client', )
     search_fields = ('email', 'info', )
     actions = ['action_add_to_list', 'action_remove_from_list', ]
@@ -318,7 +319,9 @@ admin.site.register(UserTopic, UserTopicAdmin)
 class UserCampaignAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
     list_display = ('name', 'topic', 'last_edit_datetime', 'view_online',
                     'last_dispatch', 'send_campaign_btn', )
-    list_filter = ('topic', )
+    list_filter = (
+        ('topic', admin.RelatedOnlyFieldListFilter),
+    )
     readonly_fields = ('client', )
     search_fields = ('name', )
     prepopulated_fields = {'slug': ('name',), }
@@ -423,8 +426,13 @@ admin.site.register(UserCampaign, UserCampaignAdmin)
 
 class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
     list_display = ('id', 'campaign', 'started_at', 'finished_at',
-                    'error', 'success', 'sent', 'tracking_rate', 'click_rate', ) # noqa
-    list_filter = ('campaign', 'error', 'success', 'started_at', )
+                    'error', 'success', 'sent', 'open_rate', 'click_rate', ) # noqa
+    list_filter = (
+        ('campaign', admin.RelatedOnlyFieldListFilter),
+        'error',
+        'success',
+        'started_at',
+    )
     readonly_fields = [f.name for f in UserDispatch._meta.fields] + ['lists', ]
 
     def has_add_permission(self, request):
@@ -447,7 +455,7 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
         qs = super(UserDispatchAdmin, self).get_queryset(request)
         return qs.filter(campaign__client__user=request.user)
 
-    def tracking_rate(self, obj):
+    def open_rate(self, obj):
         if obj.error:
             return ''
         elif not obj.open_statistics:
@@ -461,7 +469,7 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
              perc,
              trackings,
              obj.sent)) # noqa
-    tracking_rate.short_description = 'percentuale apertura'
+    open_rate.short_description = 'percentuale apertura'
 
     def click_rate(self, obj):
         if obj.error:
@@ -488,7 +496,8 @@ admin.site.register(UserDispatch, UserDispatchAdmin)
 
 class UserTrackingAdmin(DisplayOnlyIfHasClientAdmin):
     list_display = ('datetime', 'type', 'dispatch', 'subscriber', 'notes', )
-    list_filter = ('dispatch', 'datetime', )
+    search_fields = ('dispatch__id', 'dispatch__campaign__name', )
+    list_filter = ('datetime', )
     readonly_fields = [f.name for f in UserTracking._meta.fields]
 
     def has_add_permission(self, request):
@@ -517,9 +526,9 @@ admin.site.register(UserTracking, UserTrackingAdmin)
 class UserMailerMessageAdmin(admin.ModelAdmin):
     list_display = ('subject', 'to_address', 'dispatch', 'sent',
                     'last_attempt', 'reply_to')
-    list_filter = ('app', 'sent', )
+    list_filter = ('sent', )
     search_fields = ['to_address', 'subject', 'app', 'bcc_address',
-                     'reply_to']
+                     'reply_to', 'app', ]
     readonly_fields = ('subject', 'to_address', 'bcc_address', 'from_address',
                        'reply_to', 'content', 'html_content', 'app', )
     actions = ['send_failed']
