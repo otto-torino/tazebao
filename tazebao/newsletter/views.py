@@ -69,7 +69,11 @@ def email_tracking(request, dispatch_id, subscriber_id):
 # add url
 def link_tracking(request, dispatch_id, subscriber_id):
     signer = Signer()
-    s = signer.sign('%s-%s' % (str(dispatch_id), str(subscriber_id))).split(':')[1] # noqa
+    s = signer.sign('%s-%s-%s' % (
+        str(dispatch_id),
+        str(subscriber_id),
+        request.GET.get('url', '')
+    )).split(':')[1]
     if s != request.GET.get('s', ''):
         raise http.Http404()
 

@@ -33,7 +33,11 @@ def link(context, url):
     current_site = Site.objects.get_current()
 
     signer = Signer()
-    s = signer.sign('%s-%s' % (str(context['dispatch_id']), str(context['subscriber_id']))).split(':')[1] # noqa
+    s = signer.sign('%s-%s-%s' % (
+        str(context['dispatch_id']),
+        str(context['subscriber_id']),
+        url
+    )).split(':')[1] # noqa
     return ''.join([
         'http://',
         current_site.domain,
