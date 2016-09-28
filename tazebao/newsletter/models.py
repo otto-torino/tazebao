@@ -188,7 +188,6 @@ class Dispatch(models.Model):
     click_statistics = models.BooleanField('statistiche click',
                                            default=False)
     sent = models.IntegerField('e-mail inviate', blank=True, null=True)
-    sent_recipients = models.TextField('indirizzi', blank=True, null=True)
     error_recipients = models.TextField('indirizzi in errore', blank=True,
                                         null=True)
 

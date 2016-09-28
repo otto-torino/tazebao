@@ -38,7 +38,6 @@ def send_campaign(lists_ids, campaign_id):
     dispatch.save()
     # send params
     sent = 0
-    used_addresses = []
     error_addresses = []
     # templates
     unsubscription_template = template.Template('{% load newsletter_tags %}' + str(campaign.topic.unsubscription_text)) # noqa
@@ -115,7 +114,6 @@ def send_campaign(lists_ids, campaign_id):
             try:
                 msg.save()
                 sent += 1
-                used_addresses.append(subscriber.email)
             except:
                 error_addresses.append(subscriber.email)
     dispatch.error = False
@@ -124,7 +122,6 @@ def send_campaign(lists_ids, campaign_id):
     dispatch.click_statistics = click_tracking
     dispatch.finished_at = timezone.now()
     dispatch.sent = sent
-    dispatch.sent_recipients = ','.join(used_addresses)
     dispatch.error_recipients = ','.join(error_addresses)
     dispatch.save()
     return sent
