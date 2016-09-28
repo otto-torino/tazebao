@@ -36,7 +36,7 @@ def link(context, url):
     s = signer.sign('%s-%s-%s' % (
         str(context['dispatch_id']),
         str(context['subscriber_id']),
-        url
+        url.replace(':', '')
     )).split(':')[1] # noqa
     return ''.join([
         'http://',
