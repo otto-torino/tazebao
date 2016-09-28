@@ -72,8 +72,8 @@ def link_tracking(request, dispatch_id, subscriber_id):
     s = signer.sign('%s-%s-%s' % (
         str(dispatch_id),
         str(subscriber_id),
-        request.GET.get('url', '').replace(':', '')
-    )).split(':')[1]
+        request.GET.get('url', '')
+    )).rsplit(':', 1)[1]
     if s != request.GET.get('s', ''):
         raise http.Http404()
 
