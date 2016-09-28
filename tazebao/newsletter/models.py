@@ -183,7 +183,10 @@ class Dispatch(models.Model):
     finished_at = models.DateTimeField('fine', blank=True, null=True)
     error = models.BooleanField('errore', default=False)
     success = models.BooleanField('successo', default=False)
-    statistics = models.BooleanField('statistiche', default=False)
+    open_statistics = models.BooleanField('statistiche apertura',
+                                          default=False)
+    click_statistics = models.BooleanField('statistiche click',
+                                           default=False)
     sent = models.IntegerField('e-mail inviate', blank=True, null=True)
     sent_recipients = models.TextField('indirizzi', blank=True, null=True)
     error_recipients = models.TextField('indirizzi in errore', blank=True,

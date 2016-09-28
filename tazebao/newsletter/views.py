@@ -1,6 +1,7 @@
 from django import template, http
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
+from django.core.signing import Signer
 
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
@@ -31,7 +32,7 @@ def campaign_detail_view(request, client_slug,
         if campaign.html_text is not None and \
                 campaign.html_text != u"" and \
                 not request.GET.get('txt', False):
-            tpl = template.Template(campaign.html_text)
+            tpl = template.Template('{% load newsletter_tags %}' + campaign.html_text) # noqa
             content_type = 'text/html; charset=utf-8'
         else:
             tpl = template.Template(campaign.plain_text)
@@ -45,6 +46,12 @@ def campaign_detail_view(request, client_slug,
 
 
 def email_tracking(request, dispatch_id, subscriber_id):
+    # check signature
+    signer = Signer()
+    s = signer.sign('%s-%s' % (str(dispatch_id), str(subscriber_id))).split(':')[1] # noqa
+    if s != request.GET.get('s', ''):
+        raise http.Http404()
+
     dispatch = get_object_or_404(Dispatch, id=dispatch_id)
     subscriber = get_object_or_404(Subscriber, id=subscriber_id)
     tracking, created = Tracking.objects.get_or_create(
@@ -61,6 +68,11 @@ def email_tracking(request, dispatch_id, subscriber_id):
 
 # add url
 def link_tracking(request, dispatch_id, subscriber_id):
+    signer = Signer()
+    s = signer.sign('%s-%s' % (str(dispatch_id), str(subscriber_id))).split(':')[1] # noqa
+    if s != request.GET.get('s', ''):
+        raise http.Http404()
+
     dispatch = get_object_or_404(Dispatch, id=dispatch_id)
     subscriber = get_object_or_404(Subscriber, id=subscriber_id)
     tracking, created = Tracking.objects.get_or_create(

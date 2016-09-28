@@ -1,5 +1,3 @@
-import re
-
 from django.contrib import admin
 from django.utils.crypto import get_random_string
 from django.shortcuts import get_object_or_404, render
@@ -452,7 +450,7 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
     def tracking_rate(self, obj):
         if obj.error:
             return ''
-        elif not obj.statistics:
+        elif not obj.open_statistics:
             return 'N.D.'
         trackings = Tracking.objects.filter(dispatch=obj, type=Tracking.OPEN_TYPE).count() # noqa
         perc = int(round(100 * trackings / obj.sent))
@@ -468,7 +466,7 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
     def click_rate(self, obj):
         if obj.error:
             return ''
-        elif not re.match('[^\$]*{% ?link[^\$]*?%}[^\$]*', obj.campaign.html_text): # noqa
+        elif not obj.click_statistics:
             return 'N.D.'
         clicks = Tracking.objects.filter(dispatch=obj, type=Tracking.CLICK_TYPE).count() # noqa
         clicks_s = Tracking.objects.filter(dispatch=obj, type=Tracking.CLICK_TYPE).values('subscriber').distinct().count() # noqa

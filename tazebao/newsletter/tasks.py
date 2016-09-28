@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.template import Context
 from django.core.urlresolvers import reverse
 from django.contrib.sites.models import Site
+from django.core.signing import Signer
 
 from core.celery import app
 from celery.utils.log import get_task_logger
@@ -18,12 +19,13 @@ from .context import get_campaign_context
 logger = get_task_logger('celery')
 
 
-@app.task
+@app.task # noqa
 def send_campaign(lists_ids, campaign_id):
     """ Dispatches the newsletter """
     logger.debug('running task: send_newsletter')
     campaign = Campaign.objects.get(pk=campaign_id)
     logger.debug('sending campaign: %s' % campaign)
+    # init the dispatch object
     dispatch = Dispatch(
         campaign=campaign,
         started_at=timezone.now(),
@@ -34,15 +36,16 @@ def send_campaign(lists_ids, campaign_id):
     lists_obj = [SubscriberList.objects.get(pk=x) for x in lists_ids]
     dispatch.lists = lists_obj
     dispatch.save()
-    # send
+    # send params
     sent = 0
     used_addresses = []
     error_addresses = []
-    # param
+    # templates
     unsubscription_template = template.Template('{% load newsletter_tags %}' + str(campaign.topic.unsubscription_text)) # noqa
     unsubscription_html_template = template.Template('{% load newsletter_tags %}' + str(campaign.topic.unsubscription_html_text)) # noqa
     text_template = template.Template('{% load newsletter_tags %}' + campaign.plain_text) # noqa
     html_template = template.Template('{% load newsletter_tags %}' + campaign.html_text) # noqa
+    # email from header
     from_header = "%s <%s>" % (
         campaign.topic.sending_name,
         campaign.topic.sending_address
@@ -78,13 +81,16 @@ def send_campaign(lists_ids, campaign_id):
             msg.to_address = subscriber.email
             msg.from_address = from_header
             msg.content = text_template.render(context)
-            tracking = False
+            open_tracking = False
+            click_tracking = False
             if campaign.html_text is not None and campaign.html_text != u"": # noqa
                 context.update({'unsubscription_text': unsubscription_html_text}) # noqa
                 html_content = html_template.render(context)
                 # add tracking image
                 matches = re.match(r'[^\$]*(</body>)[^\$]*', html_content, re.I) # noqa
                 if matches:
+                    signer = Signer()
+                    s = signer.sign('%s-%s' % (str(dispatch.id), str(subscriber.id))).split(':')[1] # noqa
                     current_site = Site.objects.get_current()
                     tracking_image = '''
                     <img src="%s" />
@@ -95,11 +101,15 @@ def send_campaign(lists_ids, campaign_id):
                                 kwargs={
                                     'dispatch_id': dispatch.id,
                                     'subscriber_id': subscriber.id
-                                })
+                                }),
+                        '?s=' + s
                     ])
                     rexp = re.compile(re.escape('</body>'), re.I)
                     html_content = rexp.sub(tracking_image + matches.group(1), html_content) # noqa
-                    tracking = True
+                    open_tracking = True
+
+                if re.match('[^\$]*{% ?link[^\$]*?%}[^\$]*', campaign.html_text): # noqa
+                    click_tracking = True
                 msg.html_content = html_content
 
             try:
@@ -110,7 +120,8 @@ def send_campaign(lists_ids, campaign_id):
                 error_addresses.append(subscriber.email)
     dispatch.error = False
     dispatch.success = True
-    dispatch.statistics = tracking
+    dispatch.open_statistics = open_tracking
+    dispatch.click_statistics = click_tracking
     dispatch.finished_at = timezone.now()
     dispatch.sent = sent
     dispatch.sent_recipients = ','.join(used_addresses)
