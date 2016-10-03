@@ -49,8 +49,10 @@
                                 'color': '#fff',
                                 'margin-top': '5px'
                             }));
-                            // hide save in browser
-                            // $('#toolbar .rightButtons a:first-child + a').hide();
+                            // hide test, download
+                            $('#toolbar .rightButtons a + a').hide();
+                            $('#toolbar .rightButtons a:first-child + a').show();
+                            $('#downloadForm').hide();
 
                             // add help layer
                             var layer = $('<div />', {id: 'help-layer'}).appendTo($(document.body));
