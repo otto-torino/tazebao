@@ -221,6 +221,19 @@ document.addEventListener('DOMContentLoaded',function(){
 
 {% block content %}
 
+<div class="content" style="background-color: white; padding-top: 15px; background-origin: border; padding-bottom: 2em">
+    <h3>Seleziona il template!</h3>
+    <div data-bind="foreach: templates">
+        <div class="template template-xx" style="" data-bind="attr: { class: 'template template-'+name }">
+            <div class="description" style="padding-bottom:5px"><b data-bind="text: name">xx</b>: <span data-bind="text: desc">xx</span></div>
+            <a href="#" data-bind="click: $root.newEdit.bind(undefined, name), attr: { href: 'editor.html#{% static 'mosaico/templates/' %}'+name+'/template-'+name+'.html' }">
+                <img src width="100%" alt="xx" data-bind="attr: { src: '{% static 'mosaico/templates/' %}'+name+'/edres/_full.png' }">
+            </a>
+        </div>
+    </div>
+</div>
+
+
 <!-- ko if: edits().length -->
 <div style="overflow-y: auto; max-height: 200px; z-index: 10; position: relative; padding: 1em; background-color: #fafafa;">
     <!-- ko ifnot: $root.showSaved --><span>Ci sono dei contenuti salvati nel browser! <a class="" href="#" data-bind="click: $root.showSaved.bind(undefined, true);"><i class="fa fa-plus-circle"></i> Mostra</a></span><!-- /ko -->
@@ -247,16 +260,6 @@ document.addEventListener('DOMContentLoaded',function(){
     <!-- /ko -->
 </div>
 <!-- /ko -->
-<div class="content" style="background-color: white; padding-top: 15px; background-origin: border; padding-bottom: 2em">
-    <h3>Seleziona il template!</h3>
-    <div data-bind="foreach: templates">
-        <div class="template template-xx" style="" data-bind="attr: { class: 'template template-'+name }">
-            <div class="description" style="padding-bottom:5px"><b data-bind="text: name">xx</b>: <span data-bind="text: desc">xx</span></div>
-            <a href="#" data-bind="click: $root.newEdit.bind(undefined, name), attr: { href: 'editor.html#{% static 'mosaico/templates/' %}'+name+'/template-'+name+'.html' }">
-                <img src width="100%" alt="xx" data-bind="attr: { src: '{% static 'mosaico/templates/' %}'+name+'/edres/_full.png' }">
-            </a>
-        </div>
-    </div>
-</div>
+
 {% endblock %}
 
