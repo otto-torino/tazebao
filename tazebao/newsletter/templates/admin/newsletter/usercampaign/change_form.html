@@ -1,0 +1,15 @@
+{% extends 'admin/change_form.html' %}
+
+{% block content %}{{ block.super }}
+<script>
+    var template_id = location.hash.substr(1);
+    console.log(template_id);
+    (function($) {
+        $.ajax({
+            url: '/mosaico/template/content/' + template_id + '/'
+        }).done(function(response) {
+            $('#id_html_text').val(response);
+        })
+    })(django.jQuery)
+</script>
+{% endblock %}

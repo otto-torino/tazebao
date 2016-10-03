@@ -62,10 +62,11 @@ class Topic(models.Model):
     name = models.CharField('nome', max_length=50)
     sending_address = models.EmailField('indirizzo invio')
     sending_name = models.CharField('nome invio', max_length=50)
-    unsubscription_text = models.TextField(
-        'testo cancellazione registrazione',
+    unsubscribe = models.CharField(
+        'url cancellazione registrazione',
         blank=True,
         null=True,
+        max_length=255,
         help_text=mark_safe('''
             <p><b>Variabili</b> disponibili</p>
             - <code>{{ id }}</code> id iscritto<br />
@@ -76,22 +77,6 @@ class Topic(models.Model):
             <code>{% encrypt id email %}</code>
             <p>genera una stringa criptata della concatenazione di id
                             e email.</p>
-        ''')
-    )
-    unsubscription_html_text = models.TextField(
-        'testo html cancellazione registrazione',
-        blank=True,
-        null=True,
-        help_text=mark_safe('''
-            <p><b>Variabili</b> disponibili</p>
-            - <code>{{ id }}</code> id iscritto<br />
-            - <code>{{ email }}</code> e-mail iscritto<br />
-            - <code>{{ subscription_datetime }}</code> data
-                            sottoscrizione<br />
-            <p>Per criptare utilizzando la SECRET_KEY:</p>
-            <code>{% encrypt id email %}</code>
-            <p>genera una stringa criptata ed url encoded della
-                            concatenazione di id e email.</p>
         ''')
     )
 
@@ -121,17 +106,14 @@ class Campaign(models.Model):
         help_text=mark_safe('''
             <p><b>Variabili</b> disponibili per il testo e testo html:</p>
             - <code>{{ id }}</code> id campagna<br />
-            - <code>{{ unsubscription_text }}</code> testo cancellazione
+            - <code>{{ unsubscribe_url }}</code> url cancellazione
                             sottoscrizione definito nel Topic<br />
-            - <code>{{ view_online_url }}</code> url relativo della newsletter
+            - <code>{{ view_online_url }}</code> url assoluto della newsletter
                  online<br />
-            - <code>{{ site_url }}</code> url applicazione senza
-                 protocollo<br />
-            per ottenere l'url completo della newsletter online<br />
-            <code>http://{{ site_url }}{{ view_online_url }}</code>
-            <p>Per creare un link con tracciamento del click:</p>
-            <code>{% link 'http://www.example.com' %}</code>
-            <p>genera un url che se visitato tiene traccia dell'evento e
+            - <code>{{ domain }}</code> dominio applicazione<br />
+            <p>Per creare un link con tracciamento del click:<br />
+            <code>{% link 'http://www.example.com' %}</code><br />
+            genera un url che se visitato tiene traccia dell'evento e
             ridirige su http://www.example.com.</p>
         '''))
     html_text = models.TextField(
@@ -141,17 +123,14 @@ class Campaign(models.Model):
         help_text='''
             <p><b>Variabili</b> disponibili per il testo e testo html:</p>
             - <code>{{ id }}</code> id campagna<br />
-            - <code>{{ unsubscription_text }}</code> testo cancellazione
+            - <code>{{ unsubscribe_url }}</code> url cancellazione
                             sottoscrizione definito nel Topic<br />
-            - <code>{{ view_online_url }}</code> url relativo della newsletter
+            - <code>{{ view_online_url }}</code> url assoluto della newsletter
                  online<br />
-            - <code>{{ site_url }}</code> url applicazione senza
-                 protocollo<br />
-            per ottenere l'url completo della newsletter online<br />
-            <code>http://{{ site_url }}{{ view_online_url }}</code>
-            <p>Per creare un link con tracciamento del click:</p>
-            <code>{% link 'http://www.example.com' %}</code>
-            <p>genera un url che se visitato tiene traccia dell'evento e
+            - <code>{{ domain }}</code> dominio applicazione</p>
+            <p>Per creare un link con tracciamento del click:<br />
+            <code>{% link 'http://www.example.com' %}</code><br />
+            genera un url che se visitato tiene traccia dell'evento e
             ridirige su http://www.example.com.</p>
         ''')
     view_online = models.BooleanField('visualizza online', default=True)

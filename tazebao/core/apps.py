@@ -27,6 +27,7 @@ class SuitConfig(DjangoSuitConfig):
             ChildItem(model='newsletter.usersubscriberlist'),
             ChildItem(model='newsletter.usersubscriber'),
             ChildItem(model='newsletter.usertopic'),
+            ChildItem('Template', model='mosaico.template'),
             ChildItem(model='newsletter.usercampaign'),
             ChildItem(model='newsletter.userdispatch'),
             ChildItem(model='newsletter.usertracking'),

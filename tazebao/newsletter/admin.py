@@ -195,7 +195,7 @@ class UserSubscriberAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
                 except Exception, e:
                     return render(
                         request,
-                        'admin/subscriber/add_to_list.html', {
+                        'admin/newsletter/subscriber/add_to_list.html', {
                             'form': form,
                             'error': True,
                             'exception': str(e),
@@ -215,7 +215,7 @@ class UserSubscriberAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
 
         return render(
             request,
-            'admin/subscriber/add_to_list.html', {
+            'admin/newsletter/subscriber/add_to_list.html', {
                 'form': form,
                 'error': False,
                 # just to extend change_list without problems
@@ -266,7 +266,7 @@ class UserSubscriberAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
                 except Exception, e:
                     return render(
                         request,
-                        'admin/subscriber/remove_from_list.html', {
+                        'admin/newsletter/subscriber/remove_from_list.html', {
                             'form': form,
                             'error': True,
                             'exception': str(e),
@@ -286,7 +286,7 @@ class UserSubscriberAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
 
         return render(
             request,
-            'admin/subscriber/remove_from_list.html', {
+            'admin/newsletter/subscriber/remove_from_list.html', {
                 'form': form,
                 'error': False,
                 # just to extend change_list without problems
@@ -408,7 +408,7 @@ class UserCampaignAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
 
         return render(
             request,
-            'admin/campaign/send.html', {
+            'admin/newsletter/campaign/send.html', {
                 'campaign': campaign,
                 'form': form,
                 # just to extend change_list without problems

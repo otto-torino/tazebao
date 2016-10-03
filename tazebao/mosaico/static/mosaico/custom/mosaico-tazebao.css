@@ -1,0 +1,54 @@
+body {
+    background-color: #3B404D;
+}
+#toolbar {
+    background-color: #3B404D;
+}
+#toolbar .ui-button, #preview-toolbar .ui-button {
+    background-color: #3B404D;
+}
+.mce-title {
+    color: #fff !important;
+}
+.help-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    display: inline-block;
+    color: #fff;
+    background: #666;
+}
+body > footer {
+
+}
+body > footer > i {
+    position: fixed;
+    color: #000;
+    display: inline-block;
+    right: 18px;
+    bottom: 10px;
+    z-index: 1000;
+}
+
+#help-layer {
+    max-height: calc(100% - 100px);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(235, 235, 235, 1);
+    padding: 20px;
+    line-height: 24px;
+    border: 5px solid #3B404D;
+    font-size: 14px;
+    display: none;
+    box-shadow: 0 0 800px 200px rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    color: #000;
+}
+#help-layer h2 {
+    color: #3B404D;
+}
+#help-layer code, #help-layer pre {
+    color: #444;
+}
