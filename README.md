@@ -8,6 +8,7 @@ Otto srl newsletter web application.
 * [REST Web Service](#rest-webservice)
     * [REST Service Authentication](#rest-authentication)
     * [REST resources](#rest-resources)
+* [Mosaico Integration](#mosaico-integration)
 * [Getting Started](#getting-started)
 * [Remote setup](#remote-setup)
 * [Deploy and Stuff](#deploy)
@@ -23,6 +24,7 @@ Tazebao provides the following entities:
 - subscriber
 - list of subscribers
 - topic
+- template
 - campaign
 - dispatch
 - dispatch queue log
@@ -30,6 +32,7 @@ Tazebao provides the following entities:
 
 Each __Subscriber__ must belong to one or more lists (__SubscriberList__). Subscriber's e-mail must be unique for each client.
 Each __Campaign__ must belong to a __Topic__, which stores the information about the sender name and address.
+Tazebao integrates [mosaico](https://github.com/voidlabs/mosaico/), a responsive e-mail template generator. The generated template can be included in the campaign.
 The newsletter is sent creating a __Dispatch__, where the user chooses one or more lists of subscribers which will receive the e-mail.
 If the html template of the email contains the closing body tag, then a tracking code is added automatically in order to track if the user opens the e-mail.
 These statistics are inaccurate, because the tracking code works only if the user loads the e-mail images.
@@ -241,6 +244,10 @@ returns the campaign object represented by CAMPAIGN_ID, i.e.:
     }
 
 
+## <a name="mosaico-integration"></a>Mosaico Integration
+
+Tazebao relies on [mosaico](https://github.com/voidlabs/mosaico/) in order to provide a template generator engine.
+The mosaico core lib is untouched, while the e-mail templates have been hacked in order to integrate some Tazebao functionalities.
 
 ## <a name="getting-started"></a>Getting Started
 

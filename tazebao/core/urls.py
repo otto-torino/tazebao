@@ -41,6 +41,8 @@ urlpatterns = [
     url(r'^newsletter/', include('newsletter.urls')),
     # ckeditor uploader
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),
+    # mosaico
+    url(r'^mosaico/', include('mosaico.urls')),
     # API
     url(r'^api/v1/', include(router.urls))
 

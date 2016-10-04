@@ -77,6 +77,8 @@ INSTALLED_APPS = (
     'rest_framework',
     'rest_framework_httpsignature',
     'mailqueue',
+    'jsonify',
+    'mosaico',
 
     'newsletter',
 )
@@ -144,6 +146,9 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # Uploaded files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# LOGIN
+LOGIN_URL = '/admin/'
 
 # ADMIN
 

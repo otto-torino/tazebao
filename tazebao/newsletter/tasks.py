@@ -40,8 +40,7 @@ def send_campaign(lists_ids, campaign_id):
     sent = 0
     error_addresses = []
     # templates
-    unsubscription_template = template.Template('{% load newsletter_tags %}' + str(campaign.topic.unsubscription_text)) # noqa
-    unsubscription_html_template = template.Template('{% load newsletter_tags %}' + str(campaign.topic.unsubscription_html_text)) # noqa
+    unsubscribe_url_template = template.Template('{% load newsletter_tags %}' + str(campaign.topic.unsubscribe_url)) # noqa
     text_template = template.Template('{% load newsletter_tags %}' + campaign.plain_text) # noqa
     html_template = template.Template('{% load newsletter_tags %}' + campaign.html_text) # noqa
     # email from header
@@ -53,25 +52,17 @@ def send_campaign(lists_ids, campaign_id):
         for subscriber in subscriber_list.subscriber_set.all():
             msg = MailerMessage()
             # unsubscribe text
-            unsubscription_text = ''
-            unsubscription_html_text = ''
-            if campaign.topic.unsubscription_text:
+            unsubscribe_url = ''
+            if campaign.topic.unsubscribe_url:
                 ctx = Context()
                 ctx.update({'client': campaign.client})
                 ctx.update({'id': subscriber.id})
                 ctx.update({'email': subscriber.email})
                 ctx.update({'subscription_datetime': subscriber.subscription_datetime}) # noqa
-                unsubscription_text = unsubscription_template.render(ctx)
-            if campaign.topic.unsubscription_html_text:
-                ctx = Context()
-                ctx.update({'client': campaign.client})
-                ctx.update({'id': subscriber.id})
-                ctx.update({'email': subscriber.email})
-                ctx.update({'subscription_datetime': subscriber.subscription_datetime}) # noqa
-                unsubscription_html_text = unsubscription_html_template.render(ctx) # noqa
+                unsubscribe_url = unsubscribe_url_template.render(ctx)
             # subject and body
             context = Context()
-            context.update({'unsubscription_text': unsubscription_text})
+            context.update({'unsubscribe_url': unsubscribe_url})
             context.update(get_campaign_context(campaign))
             context.update({'subscriber_id': subscriber.id})
             context.update({'dispatch_id': dispatch.id})
@@ -82,8 +73,7 @@ def send_campaign(lists_ids, campaign_id):
             msg.content = text_template.render(context)
             open_tracking = False
             click_tracking = False
-            if campaign.html_text is not None and campaign.html_text != u"": # noqa
-                context.update({'unsubscription_text': unsubscription_html_text}) # noqa
+            if campaign.html_text is not None and campaign.html_text != u"":
                 html_content = html_template.render(context)
                 # add tracking image
                 matches = re.match(r'[^\$]*(</body>)[^\$]*', html_content, re.I) # noqa
