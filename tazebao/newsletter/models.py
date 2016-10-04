@@ -62,7 +62,7 @@ class Topic(models.Model):
     name = models.CharField('nome', max_length=50)
     sending_address = models.EmailField('indirizzo invio')
     sending_name = models.CharField('nome invio', max_length=50)
-    unsubscribe = models.CharField(
+    unsubscribe_url = models.CharField(
         'url cancellazione registrazione',
         blank=True,
         null=True,
