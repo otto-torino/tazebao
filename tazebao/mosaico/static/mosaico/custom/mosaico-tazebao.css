@@ -46,6 +46,11 @@ body > footer > i {
     z-index: 10000;
     color: #000;
 }
+#help-layer code, #help-layer pre {
+    -moz-user-select: all;
+    -webkit-user-select: all;
+    user-select: all;
+}
 #help-layer h2 {
     color: #3B404D;
 }

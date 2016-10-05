@@ -247,7 +247,7 @@ returns the campaign object represented by CAMPAIGN_ID, i.e.:
 ## <a name="mosaico-integration"></a>Mosaico Integration
 
 Tazebao relies on [mosaico](https://github.com/voidlabs/mosaico/) in order to provide a template generator engine.
-The mosaico core lib is untouched, while the e-mail templates have been hacked in order to integrate some Tazebao functionalities.
+The mosaico core lib has been touched only to prevent url encoding of django template tags and variables. The e-mail templates have been hacked in order to integrate some Tazebao functionalities.
 
 ## <a name="getting-started"></a>Getting Started
 
