@@ -496,8 +496,8 @@ admin.site.register(UserDispatch, UserDispatchAdmin)
 
 class UserTrackingAdmin(DisplayOnlyIfHasClientAdmin):
     list_display = ('datetime', 'type', 'dispatch', 'subscriber', 'notes', )
-    search_fields = ('dispatch__id', 'dispatch__campaign__name', )
-    list_filter = ('datetime', )
+    search_fields = ('dispatch__id', 'dispatch__campaign__name', 'notes', )
+    list_filter = ('datetime', 'type', )
     readonly_fields = [f.name for f in UserTracking._meta.fields]
 
     def has_add_permission(self, request):
