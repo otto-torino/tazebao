@@ -105,6 +105,7 @@ class Campaign(models.Model):
         null=True,
         help_text=mark_safe('''
             <p><b>Variabili</b> disponibili per il testo e testo html:</p>
+            <p>
             - <code>{{ id }}</code> id campagna<br />
             - <code>{{ unsubscribe_url }}</code> url cancellazione
                             sottoscrizione definito nel Topic<br />
@@ -112,8 +113,10 @@ class Campaign(models.Model):
                  online<br />
             - <code>{{ domain }}</code> dominio applicazione<br />
             - <code>{{ email }}</code> e-mail iscritto<br />
-            <p>Per criptare utilizzando la SECRET_KEY:</p>
+            </p>
+            <p>Per criptare utilizzando la SECRET_KEY:<br />
             <code>{% encrypt email %}</code>
+            </p>
             <p>genera una stringa criptata della email.</p>
             <p>Per creare un link con tracciamento del click:<br />
             <code>{% link 'http://www.example.com' %}</code><br />
@@ -126,6 +129,7 @@ class Campaign(models.Model):
         null=True,
         help_text='''
             <p><b>Variabili</b> disponibili per il testo e testo html:</p>
+            <p>
             - <code>{{ id }}</code> id campagna<br />
             - <code>{{ unsubscribe_url }}</code> url cancellazione
                             sottoscrizione definito nel Topic<br />
@@ -133,8 +137,10 @@ class Campaign(models.Model):
                  online<br />
             - <code>{{ domain }}</code> dominio applicazione</p>
             - <code>{{ email }}</code> e-mail iscritto<br />
-            <p>Per criptare utilizzando la SECRET_KEY:</p>
+            </p>
+            <p>Per criptare utilizzando la SECRET_KEY:<br />
             <code>{% encrypt email %}</code>
+            </p>
             <p>genera una stringa criptata della email.</p>
             <p>Per creare un link con tracciamento del click:<br />
             <code>{% link 'http://www.example.com' %}</code><br />
