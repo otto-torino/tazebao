@@ -115,9 +115,8 @@ class Campaign(models.Model):
             - <code>{{ email }}</code> e-mail iscritto<br />
             </p>
             <p>Per criptare utilizzando la SECRET_KEY:<br />
-            <code>{% encrypt email %}</code>
-            </p>
-            <p>genera una stringa criptata della email.</p>
+            <code>{% encrypt email %}</code><br />
+            genera una stringa criptata della email.</p>
             <p>Per creare un link con tracciamento del click:<br />
             <code>{% link 'http://www.example.com' %}</code><br />
             genera un url che se visitato tiene traccia dell'evento e
@@ -139,9 +138,8 @@ class Campaign(models.Model):
             - <code>{{ email }}</code> e-mail iscritto<br />
             </p>
             <p>Per criptare utilizzando la SECRET_KEY:<br />
-            <code>{% encrypt email %}</code>
-            </p>
-            <p>genera una stringa criptata della email.</p>
+            <code>{% encrypt email %}</code><br />
+            genera una stringa criptata della email.</p>
             <p>Per creare un link con tracciamento del click:<br />
             <code>{% link 'http://www.example.com' %}</code><br />
             genera un url che se visitato tiene traccia dell'evento e
