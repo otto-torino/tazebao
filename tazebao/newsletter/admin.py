@@ -461,7 +461,7 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
         elif not obj.open_statistics:
             return 'N.D.'
         trackings = Tracking.objects.filter(dispatch=obj, type=Tracking.OPEN_TYPE).count() # noqa
-        perc = round(100 * trackings / obj.sent, 1)
+        perc = round(100 * trackings / float(obj.sent), 1)
         return mark_safe(
             '<span style="font-weight: bold;color: %s">%s%%</span> (%s/%s)' %
             (
@@ -479,7 +479,7 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
         clicks = Tracking.objects.filter(dispatch=obj, type=Tracking.CLICK_TYPE).count() # noqa
         clicks_s = Tracking.objects.filter(dispatch=obj, type=Tracking.CLICK_TYPE).values('subscriber').distinct().count() # noqa
 
-        perc = round(100 * clicks_s / obj.sent, 1)
+        perc = round(100 * clicks_s / float(obj.sent), 1)
 
         return mark_safe(
             '<span style="font-weight: bold;color: %s">%s%%</span> (%s/%s), totali: %s' % # noqa
