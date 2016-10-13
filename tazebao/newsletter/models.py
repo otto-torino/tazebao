@@ -111,6 +111,10 @@ class Campaign(models.Model):
             - <code>{{ view_online_url }}</code> url assoluto della newsletter
                  online<br />
             - <code>{{ domain }}</code> dominio applicazione<br />
+            - <code>{{ email }}</code> e-mail iscritto<br />
+            <p>Per criptare utilizzando la SECRET_KEY:</p>
+            <code>{% encrypt email %}</code>
+            <p>genera una stringa criptata della email.</p>
             <p>Per creare un link con tracciamento del click:<br />
             <code>{% link 'http://www.example.com' %}</code><br />
             genera un url che se visitato tiene traccia dell'evento e
@@ -128,6 +132,10 @@ class Campaign(models.Model):
             - <code>{{ view_online_url }}</code> url assoluto della newsletter
                  online<br />
             - <code>{{ domain }}</code> dominio applicazione</p>
+            - <code>{{ email }}</code> e-mail iscritto<br />
+            <p>Per criptare utilizzando la SECRET_KEY:</p>
+            <code>{% encrypt email %}</code>
+            <p>genera una stringa criptata della email.</p>
             <p>Per creare un link con tracciamento del click:<br />
             <code>{% link 'http://www.example.com' %}</code><br />
             genera un url che se visitato tiene traccia dell'evento e
