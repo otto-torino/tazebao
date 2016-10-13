@@ -39,6 +39,7 @@ def campaign_detail_view(request, client_slug,
             content_type = 'text/plain; charset=utf-8'
         context = template.Context({})
         context.update(get_campaign_context(campaign))
+        context.update({'client': campaign.client})
         return http.HttpResponse(tpl.render(context),
                                  content_type=content_type)
 
