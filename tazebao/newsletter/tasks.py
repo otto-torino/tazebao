@@ -65,6 +65,7 @@ def send_campaign(lists_ids, campaign_id):
                     unsubscribe_url = unsubscribe_url_template.render(ctx)
                 # subject and body
                 context = Context()
+                context.update({'client': campaign.client})
                 context.update({'unsubscribe_url': unsubscribe_url})
                 context.update(get_campaign_context(campaign))
                 context.update({'subscriber_id': subscriber.id})
