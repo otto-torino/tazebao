@@ -66,6 +66,7 @@ def send_campaign(lists_ids, campaign_id):
                 context.update({'unsubscribe_url': unsubscribe_url})
                 context.update(get_campaign_context(campaign))
                 context.update({'subscriber_id': subscriber.id})
+                context.update({'email': subscriber.email})
                 context.update({'dispatch_id': dispatch.id})
                 msg.app = dispatch.pk
                 msg.subject = campaign.subject

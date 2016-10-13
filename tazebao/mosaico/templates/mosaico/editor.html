@@ -65,7 +65,11 @@
 '<li><code>{% verbatim %}{{ unsubscribe_url }}{% endverbatim %}</code><br />url disiscrizione newsletter come definito nel Topic cui appartiene la campagna</li>' +
 '<li><code>{% verbatim %}{{ view_online_url }}{% endverbatim %}</code><br />url del contenuto disponibile online. Se la campagna non è impostata per essere visualizzata online, ritorna una pagina 404.</li>' +
 '<li><code>{% verbatim %}{{ domain }}{% endverbatim %}</code><br />dominio applicazione.</li>' +
+'<li><code>{% verbatim %}{{ email }}{% endverbatim %}</code><br />e-mail ricevente.</li>' +
 '</ul>' +
+'<p>Per criptare utilizzando la SECRET_KEY:</p>' +
+'<code>{% encrypt email %}</code>' +
+'<p>genera una stringa criptata della email del ricevente.</p>' +
 '<p><b>Tazebao fornisce la funzionalità di tracciamento dei link interni all\'e-mail</b>. Se il link viene tracciato, ogni evento di click da parte di un utente verrà registrato da Tazebao. <b>Puoi abilitare questa funzione selezionando l\'opzione \'traccia\' dalla tab di gestione del contenuto, oppure manualmente sostituendo all\'url il seguente costrutto</b>: (supponendo di voler tracciare il link a http://www.example.com)</p>' +
 '<pre>{% verbatim %}{% link \'http://www.example.com\' %}{% endverbatim %}</pre>' +
                             '');
