@@ -1,10 +1,12 @@
 from __future__ import unicode_literals
+import urllib
+import re
 import posixpath
 from urlparse import urlparse, urlunparse
 
 from django.db import models
-from django.contrib.sites.models import Site
 from django.conf import settings
+from django.contrib.sites.models import Site
 from sorl.thumbnail import ImageField
 from jsonfield import JSONField
 
@@ -56,4 +58,10 @@ class Template(models.Model):
 
     def save(self, *args, **kwargs):
         self.meta_data['name'] = self.name
+        if settings.HTTPS:
+            def url_fixer(m):
+                return urllib.unquote(m.group(1))
+            site = Site.objects.get_current()
+            regexp = r"https://" + re.escape(site.domain) + r"/mosaico/img/\?src=([^'\"]*)" # noqa
+            self.html = re.sub(regexp, url_fixer, self.html)
         super(Template, self).save(*args, **kwargs)
