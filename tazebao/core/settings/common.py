@@ -178,6 +178,9 @@ SUIT_CONFIG = {
              'campaign',
              'dispatch',
              'tracking',
+         )},
+        {'app': 'newsletter', 'label': 'Newsletter', 'icon':'icon-envelope',
+         'models': (
              {'model': 'userclient', 'label': 'Client'},
              {'model': 'usersubscriberlist', 'label': 'Liste iscritti'},
              {'model': 'usersubscriber', 'label': 'Iscritti'},
