@@ -129,14 +129,12 @@ def template(request):
     action = request.POST['action']
     if action == 'save':
         key = request.POST['key']
-        name = request.POST['name']
         html = request.POST['html']
         template_data = json.loads(request.POST['template_data'])
         meta_data = json.loads(request.POST['meta_data'])
         template, created = Template.objects.get_or_create(
             client=request.user.client,
-            key=key,
-            name=name
+            key=key
         )
         template.html = html
         template.template_data = template_data
