@@ -24,7 +24,7 @@ class Upload(models.Model):
         if parts.netloc == '':
             newparts = list(parts)
             domain = Site.objects.get_current().domain
-            newparts[0] = 'http'
+            newparts[0] = 'https'
             newparts[1] = domain
             url = urlunparse(newparts)
         data = {
