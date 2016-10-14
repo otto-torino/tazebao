@@ -30,6 +30,8 @@ ADMINS = (
     ('abidibo', 'abidibo@gmail.com'),
 )
 
+HTTPS = 'off'
+
 # SITE
 SITE_ID = 1
 

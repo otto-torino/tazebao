@@ -4,6 +4,7 @@ from urlparse import urlparse, urlunparse
 
 from django.db import models
 from django.contrib.sites.models import Site
+from django.conf import settings
 from sorl.thumbnail import ImageField
 from jsonfield import JSONField
 
@@ -24,7 +25,7 @@ class Upload(models.Model):
         if parts.netloc == '':
             newparts = list(parts)
             domain = Site.objects.get_current().domain
-            newparts[0] = 'https'
+            newparts[0] = 'https' if settings.HTTPS == 'on' else 'http'
             newparts[1] = domain
             url = urlunparse(newparts)
         data = {

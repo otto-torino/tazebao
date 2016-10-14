@@ -129,6 +129,7 @@ def template(request):
     action = request.POST['action']
     if action == 'save':
         key = request.POST['key']
+        name = request.POST['name']
         html = request.POST['html']
         template_data = json.loads(request.POST['template_data'])
         meta_data = json.loads(request.POST['meta_data'])
@@ -136,6 +137,7 @@ def template(request):
             client=request.user.client,
             key=key
         )
+        template.name = name
         template.html = html
         template.template_data = template_data
         template.meta_data = meta_data

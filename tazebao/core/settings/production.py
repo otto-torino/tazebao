@@ -9,6 +9,8 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['tazebao.sqrt64.it', ]
 
+HTTPS = 'on'
+
 # ssl
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_HTTPONLY = True
