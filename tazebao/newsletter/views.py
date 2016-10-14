@@ -41,8 +41,14 @@ def campaign_detail_view(request, client_slug,
                 encrypt({'client': campaign.client}, str(request.GET['subscriber']) + str(request.GET['dispatch'])) # noqa
             )
             if (sig == signature):
-                subscriber = Subscriber.objects.get(id=int(request.GET['subscriber'])) # noqa
-                dispatch = Dispatch.objects.get(id=int(request.GET['dispatch'])) # noqa
+                subscriber = get_object_or_404(
+                    Subscriber,
+                    id=int(request.GET['subscriber'])
+                )
+                dispatch = get_object_or_404(
+                    Dispatch,
+                    id=int(request.GET['dispatch'])
+                )
 
                 unsubscribe_url_template = template.Template(
                     '{% load newsletter_tags %}' + ('' if campaign.topic.unsubscribe_url is None else campaign.topic.unsubscribe_url) # noqa
