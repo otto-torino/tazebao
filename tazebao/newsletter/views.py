@@ -48,7 +48,7 @@ def campaign_detail_view(request, client_slug,
                     '{% load newsletter_tags %}' + ('' if campaign.topic.unsubscribe_url is None else campaign.topic.unsubscribe_url) # noqa
                 )
                 if campaign.topic.unsubscribe_url:
-                    ctx = Context()
+                    ctx = template.Context()
                     ctx.update({'client': campaign.client})
                     ctx.update({'id': subscriber.id})
                     ctx.update({'email': subscriber.email})
