@@ -60,7 +60,8 @@ class Template(models.Model):
         self.meta_data['name'] = self.name
         if settings.HTTPS:
             def url_fixer(m):
-                return urllib.unquote(m.group(1))
+                url = urllib.unquote(m.group(1))
+                return re.sub(r'&.*', '', url)
             site = Site.objects.get_current()
             regexp = r"https://" + re.escape(site.domain) + r"/mosaico/img/\?src=([^'\"]*)" # noqa
             self.html = re.sub(regexp, url_fixer, self.html)
