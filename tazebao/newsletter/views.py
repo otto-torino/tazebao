@@ -33,13 +33,27 @@ def campaign_detail_view(request, client_slug,
     if request.user == campaign.client.user or campaign.view_online:
 
         subscriber = None
-        if request.GET.get('subscriber', False) and request.GET.get('sig', False): # noqa
+        dispatch = None
+        unsubscribe_url = ''
+        if request.GET.get('subscriber', False) and request.GET.get('dispatch', False) and request.GET.get('sig', False): # noqa
             sig = request.GET['sig']
             signature = urllib.unquote(
-                encrypt({'client': campaign.client}, str(request.GET['subscriber'])) # noqa
+                encrypt({'client': campaign.client}, str(request.GET['subscriber']) + str(request.GET['dispatch'])) # noqa
             )
             if (sig == signature):
                 subscriber = Subscriber.objects.get(id=int(request.GET['subscriber'])) # noqa
+                dispatch = Dispatch.objects.get(id=int(request.GET['dispatch'])) # noqa
+
+                unsubscribe_url_template = template.Template(
+                    '{% load newsletter_tags %}' + ('' if campaign.topic.unsubscribe_url is None else campaign.topic.unsubscribe_url) # noqa
+                )
+                if campaign.topic.unsubscribe_url:
+                    ctx = Context()
+                    ctx.update({'client': campaign.client})
+                    ctx.update({'id': subscriber.id})
+                    ctx.update({'email': subscriber.email})
+                    ctx.update({'subscription_datetime': subscriber.subscription_datetime}) # noqa
+                    unsubscribe_url = unsubscribe_url_template.render(ctx)
 
         if campaign.html_text is not None and \
                 campaign.html_text != u"" and \
@@ -52,9 +66,13 @@ def campaign_detail_view(request, client_slug,
         context = template.Context({})
         context.update(get_campaign_context(campaign, subscriber))
         context.update({'client': campaign.client})
+        context.update({'unsubscribe_url': unsubscribe_url})
         if subscriber:
             context.update({'subscriber_id': subscriber.id})
             context.update({'email': subscriber.email})
+        if dispatch:
+            context.update({'dispatch_id': dispatch.id})
+
         return http.HttpResponse(tpl.render(context),
                                  content_type=content_type)
 
