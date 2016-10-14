@@ -1,3 +1,5 @@
+import urllib
+
 from django import template, http
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
@@ -10,6 +12,7 @@ from .models import Campaign, SubscriberList, Subscriber, Tracking, Dispatch
 from .serializers import SubscriberListSerializer, SubscriberSerializer, CampaignSerializer # noqa
 from .context import get_campaign_context
 from .permissions import IsClient
+from .templatetags.newsletter_tags import encrypt
 
 
 def campaign_detail_view(request, client_slug,
@@ -29,6 +32,15 @@ def campaign_detail_view(request, client_slug,
 
     if request.user == campaign.client.user or campaign.view_online:
 
+        subscriber = None
+        if request.GET.get('subscriber', False) and request.GET.get('sig', False): # noqa
+            sig = request.GET['sig']
+            signature = urllib.unquote(
+                encrypt({'client': campaign.client}, str(request.GET['subscriber'])) # noqa
+            )
+            if (sig == signature):
+                subscriber = Subscriber.objects.get(id=int(request.GET['subscriber'])) # noqa
+
         if campaign.html_text is not None and \
                 campaign.html_text != u"" and \
                 not request.GET.get('txt', False):
@@ -38,8 +50,11 @@ def campaign_detail_view(request, client_slug,
             tpl = template.Template(campaign.plain_text)
             content_type = 'text/plain; charset=utf-8'
         context = template.Context({})
-        context.update(get_campaign_context(campaign))
+        context.update(get_campaign_context(campaign, subscriber))
         context.update({'client': campaign.client})
+        if subscriber:
+            context.update({'subscriber_id': subscriber.id})
+            context.update({'email': subscriber.email})
         return http.HttpResponse(tpl.render(context),
                                  content_type=content_type)
 
