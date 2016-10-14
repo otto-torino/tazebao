@@ -23,14 +23,13 @@ SECRET_KEY = env('SECRET_KEY', '49saa%ruey1&!nveiz*f(cu$)0pje8wz7u++y-0ljd2)9r)j
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
+HTTPS = False
 
 ALLOWED_HOSTS = []
 
 ADMINS = (
     ('abidibo', 'abidibo@gmail.com'),
 )
-
-HTTPS = False
 
 # SITE
 SITE_ID = 1
