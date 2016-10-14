@@ -25,7 +25,7 @@ class Upload(models.Model):
         if parts.netloc == '':
             newparts = list(parts)
             domain = Site.objects.get_current().domain
-            newparts[0] = 'https' if settings.HTTPS == 'on' else 'http'
+            newparts[0] = 'https' if settings.HTTPS else 'http'
             newparts[1] = domain
             url = urlunparse(newparts)
         data = {
@@ -53,3 +53,7 @@ class Template(models.Model):
 
     def __unicode__(self):
         return "%s - %s" % (self.name, self.key)
+
+    def save(self, *args, **kwargs):
+        self.meta_data['name'] = self.name
+        super(Template, self).save(*args, **kwargs)
