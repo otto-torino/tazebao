@@ -439,16 +439,6 @@ class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
         """ User can't create dispatches """
         return False
 
-    def has_delete_permission(self, request, obj=None):
-        """ User can't delete dispatches """
-        return False
-
-    def get_actions(self, request):
-        actions = super(UserDispatchAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
-
     def get_queryset(self, request):
         """ Let the user see only related dispatches
         """
@@ -503,16 +493,6 @@ class UserTrackingAdmin(DisplayOnlyIfHasClientAdmin):
     def has_add_permission(self, request):
         """ User can't create trackings """
         return False
-
-    def has_delete_permission(self, request, obj=None):
-        """ User can't delete trackings """
-        return False
-
-    def get_actions(self, request):
-        actions = super(UserTrackingAdmin, self).get_actions(request)
-        if 'delete_selected' in actions:
-            del actions['delete_selected']
-        return actions
 
     def get_queryset(self, request):
         """ Let the user see only related trackings
