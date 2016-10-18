@@ -235,6 +235,56 @@ class Tracking(models.Model):
         return 'tracking ID %s' % str(self.id)
 
 
+# proxies
+class UserClient(Client):
+    class Meta:
+        proxy = True
+        verbose_name = 'Client'
+        verbose_name_plural = 'Client'
+
+
+class UserSubscriberList(SubscriberList):
+    class Meta:
+        proxy = True
+        verbose_name = 'Lista iscritti'
+        verbose_name_plural = 'Liste iscritti'
+
+
+class UserSubscriber(Subscriber):
+    class Meta:
+        proxy = True
+        verbose_name = 'Iscritto'
+        verbose_name_plural = 'Iscritti'
+
+
+class UserTopic(Topic):
+    class Meta:
+        proxy = True
+        verbose_name = 'Topic'
+        verbose_name_plural = 'Topic'
+
+
+class UserCampaign(Campaign):
+    class Meta:
+        proxy = True
+        verbose_name = 'Campagna'
+        verbose_name_plural = 'Campagne'
+
+
+class UserDispatch(Dispatch):
+    class Meta:
+        proxy = True
+        verbose_name = 'Invio Campagna'
+        verbose_name_plural = 'Invii Campagne'
+
+
+class UserTracking(Tracking):
+    class Meta:
+        proxy = True
+        verbose_name = 'Traking'
+        verbose_name_plural = 'Tracking'
+
+
 class UserMailerMessage(MailerMessage):
     class Meta:
         proxy = True

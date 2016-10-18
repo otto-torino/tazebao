@@ -132,10 +132,15 @@ def template(request):
         html = request.POST['html']
         template_data = json.loads(request.POST['template_data'])
         meta_data = json.loads(request.POST['meta_data'])
-        template, created = Template.objects.get_or_create(
-            client=request.user.client,
-            key=key
-        )
+        if request.user.is_superuser:
+            template, created = Template.objects.get_or_create(
+                key=key
+            )
+        else:
+            template, created = Template.objects.get_or_create(
+                client=request.user.client,
+                key=key
+            )
         template.name = name
         template.html = html
         template.template_data = template_data
@@ -174,5 +179,8 @@ def size(size_txt):
 
 @user_passes_test(lambda u: u.is_staff)
 def template_content(request, template_id):
-    template = get_object_or_404(Template, id=template_id, client__user=request.user) # noqa
+    if request.user.is_superuser:
+        template = get_object_or_404(Template, id=template_id)
+    else:
+        template = get_object_or_404(Template, id=template_id, client__user=request.user) # noqa
     return HttpResponse(template.html, status=200)

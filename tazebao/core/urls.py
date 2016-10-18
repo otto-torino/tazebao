@@ -26,6 +26,7 @@ from newsletter.views import SubscriberListViewSet, SubscriberViewSet
 from newsletter.views import CampaignViewSet
 
 admin.site.site_header = 'Tazebao'
+admin.site.site_title = 'Tazebao'
 
 # BEGIN API
 router = DefaultRouter()

@@ -151,50 +151,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # LOGIN
 LOGIN_URL = '/admin/'
 
-# ADMIN
-
-SUIT_CONFIG = {
-    'ADMIN_NAME': 'Tazebao',
-    'MENU': (
-
-        '-',
-
-        {'app': 'auth', 'label': 'Autenticazione', 'icon':'icon-lock'},
-        {'app': 'sites', 'label': 'Siti', 'icon':'icon-leaf'},
-
-
-        '-',
-
-        {'app': 'flatpages', 'label': 'Pagine', 'icon':'icon-book'},
-
-        '-',
-
-        {'app': 'newsletter', 'label': 'Newsletter', 'icon':'icon-envelope',
-         'models': (
-             'client',
-             'subscriberlist',
-             'subscriber',
-             'topic',
-             'campaign',
-             'dispatch',
-             'tracking',
-         )},
-        {'app': 'newsletter', 'label': 'Newsletter', 'icon':'icon-envelope',
-         'models': (
-             {'model': 'userclient', 'label': 'Client'},
-             {'model': 'usersubscriberlist', 'label': 'Liste iscritti'},
-             {'model': 'usersubscriber', 'label': 'Iscritti'},
-             {'model': 'usertopic', 'label': 'Topic'},
-             {'model': 'usercampaign', 'label': 'Campagne'},
-             {'model': 'userdispatch', 'label': 'Invii'},
-             {'model': 'usermailermessage', 'label': 'Log code invio'},
-             {'model': 'usertracking', 'label': 'Tracking'},
-         )},
-        {'app': 'mailqueue', 'label': 'Log invio e-mail', 'icon':'icon-list'},
-    )
-}
-
-
 # CKEDITOR
 CKEDITOR_UPLOAD_PATH = 'ckeditor/'
 CKEDITOR_JQUERY_URL = ''

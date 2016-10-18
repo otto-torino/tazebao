@@ -3,7 +3,7 @@ from suit.menu import ParentItem, ChildItem
 
 
 class SuitConfig(DjangoSuitConfig):
-    admin_name = 'cippa'
+    admin_name = 'Tazebao'
     menu = (
         ParentItem('Autenticazione', children=[
             ChildItem(model='auth.user'),
@@ -20,17 +20,10 @@ class SuitConfig(DjangoSuitConfig):
             ChildItem(model='newsletter.subscriberlist'),
             ChildItem(model='newsletter.subscriber'),
             ChildItem(model='newsletter.topic'),
+            ChildItem('Template', model='mosaico.template'),
             ChildItem(model='newsletter.campaign'),
             ChildItem(model='newsletter.dispatch'),
             ChildItem(model='newsletter.tracking'),
-            ChildItem(model='newsletter.userclient'),
-            ChildItem(model='newsletter.usersubscriberlist'),
-            ChildItem(model='newsletter.usersubscriber'),
-            ChildItem(model='newsletter.usertopic'),
-            ChildItem('Template', model='mosaico.template'),
-            ChildItem(model='newsletter.usercampaign'),
-            ChildItem(model='newsletter.userdispatch'),
-            ChildItem(model='newsletter.usertracking'),
             ChildItem(model='newsletter.usermailermessage'),
         ]),
         ParentItem('Aiuto!', url='/help/', align_right=True),

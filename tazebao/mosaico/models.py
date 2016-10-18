@@ -44,7 +44,8 @@ class Upload(models.Model):
 
 
 class Template(models.Model):
-    client = models.ForeignKey(Client, verbose_name='client')
+    client = models.ForeignKey(Client, verbose_name='client',
+                               blank=True, null=True)
     key = models.CharField('chiave', max_length=10)
     name = models.CharField('nome', max_length=200)
     html = models.TextField()

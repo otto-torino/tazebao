@@ -5,6 +5,8 @@
   {{ block.super }}
 {% endblock %}
 
+{% block title %}Amministrazione | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
 {% block coltype %}colMS{% endblock %}
 
 {% block bodyclass %}dashboard{% endblock %}

@@ -11,12 +11,14 @@ class TemplateAdmin(admin.ModelAdmin):
         """ Let the user see only related templates
         """
         qs = super(TemplateAdmin, self).get_queryset(request)
+        if request.user.is_superuser:
+            return qs
         return qs.filter(client__user=request.user)
 
     def create_campaign(self, obj):
         return mark_safe(
             '<a class="btn btn-success" href="%s">crea campagna</a>' % (
-                '/admin/newsletter/usercampaign/add/#' + str(obj.id)
+                '/admin/newsletter/campaign/add/#' + str(obj.id)
             )
         )
     create_campaign.short_description = 'Azioni'

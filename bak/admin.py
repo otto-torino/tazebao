@@ -8,91 +8,35 @@ from django.http.response import HttpResponseRedirect
 
 from .models import Client, SubscriberList, Subscriber
 from .models import Topic, Campaign, Dispatch, Tracking
-from .models import UserMailerMessage
+from .models import UserClient, UserSubscriberList, UserSubscriber, UserTracking # noqa
+from .models import UserTopic, UserCampaign, UserDispatch, UserMailerMessage
 from .tasks import send_campaign
 
 
-class DisplayOnlyIfAdminOrHasClient(admin.ModelAdmin):
+class DisplayOnlyIfHasClientAdmin(admin.ModelAdmin):
+    """ Hides the model if user has no clients """
     def get_model_perms(self, request):
-        """ Hides the model if user has no clients and is not admin """
         has_clients = Client.objects.filter(user=request.user).count()
 
-        if not has_clients and not request.user.is_superuser:
+        if not has_clients:
             return {}
 
-        return super(DisplayOnlyIfAdminOrHasClient, self).get_model_perms(request) # noqa
+        return super(DisplayOnlyIfHasClientAdmin, self).get_model_perms(request) # noqa
 
 
-class ManageOnlyClientsRows(admin.ModelAdmin):
-    def get_queryset(self, request):
-        """ Let no admin user see only related clients """
-        qs = super(ManageOnlyClientsRows, self).get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(client__user=request.user)
-
-
-class ClientReadOnly(admin.ModelAdmin):
-    def get_readonly_fields(self, request, obj=None):
-        """ Let no admin user only read client field """
-        if request.user.is_superuser:
-            return super(ClientReadOnly, self).get_readonly_fields(request, obj) # noqa
-        else:
-            return super(ClientReadOnly, self).get_readonly_fields(request, obj) + ('client', ) # noqa
-
-
-class ClientOnlyAdminListDisplay(admin.ModelAdmin):
-    def get_list_display(self, request):
-        list_display = super(ClientOnlyAdminListDisplay, self).get_list_display(request) # noqa
-        if request.user.is_superuser:
-            list_display += ('client', )
-        return list_display
-
-
-class SaveClientFromUser(admin.ModelAdmin):
+class SaveClientAdmin(admin.ModelAdmin):
+    """ Saves the client field automatically """
     def save_model(self, request, obj, form, change):
-        """ Automatically saves the client if no admin """
-        if not change and not request.user.is_superuser:
+        """ Automatically saves the client """
+        if not change:
             obj.client = request.user.client
         obj.save()
 
 
-class ClientAdmin(DisplayOnlyIfAdminOrHasClient):
+class ClientAdmin(admin.ModelAdmin):
     list_display = ('name', 'user', 'domain', 'id_key', )
     readonly_fields = ('id_key', 'secret_key', )
     prepopulated_fields = {'slug': ('name',), }
-
-    def get_actions(self, request):
-        # Disable delete
-        actions = super(ClientAdmin, self).get_actions(request)
-        if not request.user.is_superuser:
-            del actions['delete_selected']
-        return actions
-
-    def has_delete_permission(self, request, obj=None):
-        # Disable delete
-        if request.user.is_superuser:
-            return True
-        return False
-
-    def has_add_permission(self, request):
-        """ User can't create new clients """
-        if request.user.is_superuser:
-            return True
-        return False
-
-    def get_queryset(self, request):
-        """ Let the user see only related clients """
-        qs = super(ClientAdmin, self).get_queryset(request)
-        if request.user.is_superuser:
-            return qs
-        return qs.filter(user=request.user)
-
-    def get_readonly_fields(self, request, obj=None):
-        if request.user.is_superuser:
-            return super(ClientAdmin, self).get_readonly_fields(request, obj)
-        else:
-            return ('user', 'id_key', 'secret_key', )
 
     def save_model(self, request, obj, form, change):
         """ Generates an id key and a secret key """
@@ -104,60 +48,117 @@ class ClientAdmin(DisplayOnlyIfAdminOrHasClient):
 admin.site.register(Client, ClientAdmin)
 
 
-class SubscriberListAdmin(DisplayOnlyIfAdminOrHasClient,
-                          ManageOnlyClientsRows,
-                          ClientReadOnly,
-                          ClientOnlyAdminListDisplay,
-                          SaveClientFromUser):
-    list_display = ('name', )
-    list_filter = (
-        ('client', admin.RelatedOnlyFieldListFilter),
-    )
+class SubscriberListAdmin(admin.ModelAdmin):
+    list_display = ('name', 'client', )
+    list_filter = ('client', )
 
 admin.site.register(SubscriberList, SubscriberListAdmin)
 
 
-class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
-                      ManageOnlyClientsRows,
-                      ClientReadOnly,
-                      ClientOnlyAdminListDisplay,
-                      SaveClientFromUser):
-    list_display = ('email', 'subscription_datetime',
-                    'lists_string', 'info', )
-    list_filter = (
-        ('client', admin.RelatedOnlyFieldListFilter),
-        'subscription_datetime',
-    )
-    search_fields = ('email', 'info', )
-    actions = ['action_add_to_list', 'action_remove_from_list', ]
-
-    def get_actions(self, request):
-        """ admin cant add to lists or remove to lists because
-            could mix clients lists and subscribers """
-        actions = super(SubscriberAdmin, self).get_actions(request)
-        if request.user.is_superuser:
-            del actions['action_add_to_list']
-            del actions['action_remove_from_list']
-        return actions
+class SubscriberAdmin(admin.ModelAdmin):
+    list_display = ('email', 'client', 'subscription_datetime', 'lists_string')
+    list_filter = ('client', 'subscription_datetime', )
 
     def lists_string(self, obj):
         return ', '.join([x.name for x in obj.lists.all()])
     lists_string.short_description = 'liste'
 
-    def get_raw_id_fields(self, request):
-        fields = CampaignAdmin.raw_id_fields
-        if request.user.is_superuser:
-            fields += ('lists', )
-        return fields
+admin.site.register(Subscriber, SubscriberAdmin)
+
+
+class TopicAdmin(admin.ModelAdmin):
+    list_display = ('name', 'client', )
+    list_filter = ('client', )
+
+admin.site.register(Topic, TopicAdmin)
+
+
+class CampaignAdmin(admin.ModelAdmin):
+    list_display = ('name', 'topic', 'last_edit_datetime', 'client', )
+    list_filter = ('client', 'topic', )
+    prepopulated_fields = {'slug': ('name',), }
+
+admin.site.register(Campaign, CampaignAdmin)
+
+
+class DispatchAdmin(admin.ModelAdmin):
+    list_display = ('campaign', 'started_at', 'finished_at',
+                    'error', 'success', 'sent', )
+    list_filter = ('campaign__client',)
+
+admin.site.register(Dispatch, DispatchAdmin)
+
+
+class TrackingAdmin(admin.ModelAdmin):
+    list_display = ('datetime', 'dispatch', 'subscriber', )
+    list_filter = ('dispatch__campaign__client', 'type', )
+
+admin.site.register(Tracking, TrackingAdmin)
+
+
+class UserClientAdmin(DisplayOnlyIfHasClientAdmin):
+    list_display = ('name', 'domain', 'id_key', 'secret_key', )
+    readonly_fields = ('user', 'id_key', 'secret_key', )
+
+    def has_add_permission(self, request):
+        """ User can't create new clients, onrtoone relationship """
+        return False
+
+    def get_queryset(self, request):
+        """ Let the user see only related clients
+        """
+        qs = super(UserClientAdmin, self).get_queryset(request)
+        return qs.filter(user=request.user)
+
+    def save_model(self, request, obj, form, change):
+        """ Generates an id key and a secret key """
+        if not change:
+            obj.user = request.user
+            obj.id_key = get_random_string(length=8)
+            obj.secret_key = get_random_string(length=32)
+        obj.save()
+
+admin.site.register(UserClient, UserClientAdmin)
+
+
+class UserSubscriberListAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
+    list_display = ('name', )
+    readonly_fields = ('client', )
+
+    def get_queryset(self, request):
+        """ Let the user see only related clients
+        """
+        qs = super(UserSubscriberListAdmin, self).get_queryset(request)
+        return qs.filter(client__user=request.user)
+
+admin.site.register(UserSubscriberList, UserSubscriberListAdmin)
+
+
+class UserSubscriberAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
+    list_display = ('email', 'subscription_datetime', 'lists_string', 'info', )
+    list_filter = ('subscription_datetime', )
+
+    readonly_fields = ('client', )
+    search_fields = ('email', 'info', )
+    actions = ['action_add_to_list', 'action_remove_from_list', ]
+
+    def lists_string(self, obj):
+        return ', '.join([x.name for x in obj.lists.all()])
+    lists_string.short_description = 'liste'
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
-        """ No admin user can select only its lists """
-        self.raw_id_fields = self.get_raw_id_fields(request)
-        if db_field.name == "lists" and not request.user.is_superuser:
+        """ User can select only its lists """
+        if db_field.name == "lists":
             kwargs["queryset"] = SubscriberList.objects.filter(
                 client__user=request.user)
-        return super(SubscriberAdmin, self).formfield_for_manytomany(
+        return super(UserSubscriberAdmin, self).formfield_for_manytomany(
             db_field, request, **kwargs)
+
+    def get_queryset(self, request):
+        """ Let the user see only related clients
+        """
+        qs = super(UserSubscriberAdmin, self).get_queryset(request)
+        return qs.filter(client__user=request.user)
 
     def action_add_to_list(self, request, queryset):
         """ Adds selected subscribers to choosen lists
@@ -226,7 +227,7 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
                 'has_add_permission': False,
                 'has_change_permission': False,
             })
-    action_add_to_list.short_description = 'Aggiungi Iscritti a liste'
+    action_add_to_list.short_description = 'Aggiungi a liste'
 
     def action_remove_from_list(self, request, queryset):
         """ Removes selected subscribers to choosen lists
@@ -249,6 +250,9 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
             )
 
         form = _make_remove_from_list_form()(request.POST or None)
+
+        print 'STOCAZZO'
+        print request.POST
 
         if 'send_submit' in request.POST:
             if form.is_valid():
@@ -294,56 +298,46 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
                 'has_add_permission': False,
                 'has_change_permission': False,
             })
-    action_remove_from_list.short_description = 'Rimuovi Iscritti da liste'
+    action_remove_from_list.short_description = 'Rimuovi da liste'
 
-admin.site.register(Subscriber, SubscriberAdmin)
+admin.site.register(UserSubscriber, UserSubscriberAdmin)
 
 
-class TopicAdmin(DisplayOnlyIfAdminOrHasClient,
-                 ManageOnlyClientsRows,
-                 ClientReadOnly,
-                 ClientOnlyAdminListDisplay,
-                 SaveClientFromUser):
+class UserTopicAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
     list_display = ('name', 'sending_name', 'sending_address', )
-    list_filter = (
-        ('client', admin.RelatedOnlyFieldListFilter),
-    )
+    readonly_fields = ('client', )
 
-admin.site.register(Topic, TopicAdmin)
+    def get_queryset(self, request):
+        """ Let the user see only related topics
+        """
+        qs = super(UserTopicAdmin, self).get_queryset(request)
+        return qs.filter(client__user=request.user)
+
+admin.site.register(UserTopic, UserTopicAdmin)
 
 
-class CampaignAdmin(DisplayOnlyIfAdminOrHasClient,
-                    ManageOnlyClientsRows,
-                    ClientReadOnly,
-                    ClientOnlyAdminListDisplay,
-                    SaveClientFromUser):
+class UserCampaignAdmin(SaveClientAdmin, DisplayOnlyIfHasClientAdmin):
     list_display = ('name', 'topic', 'last_edit_datetime', 'view_online',
-                    'last_dispatch', )
+                    'last_dispatch', 'send_campaign_btn', )
     list_filter = (
-        ('client', admin.RelatedOnlyFieldListFilter),
         ('topic', admin.RelatedOnlyFieldListFilter),
     )
+    readonly_fields = ('client', )
     search_fields = ('name', )
     prepopulated_fields = {'slug': ('name',), }
 
-    def get_list_display(self, request):
-        list_display = super(CampaignAdmin, self).get_list_display(request);
-        list_display += ('send_campaign_btn', )
-        return list_display
-
-    def get_raw_id_fields(self, request):
-        fields = CampaignAdmin.raw_id_fields
-        if request.user.is_superuser:
-            fields += ('topic', )
-        return fields
+    def get_queryset(self, request):
+        """ Let the user see only related campaigns
+        """
+        qs = super(UserCampaignAdmin, self).get_queryset(request)
+        return qs.filter(client__user=request.user)
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        """ No admin user can select only its topics """
-        self.raw_id_fields = self.get_raw_id_fields(request)
-        if db_field.name == "topic" and not request.user.is_superuser:
+        """ User can select only its topics """
+        if db_field.name == "topic":
             kwargs["queryset"] = Topic.objects.filter(
                 client__user=request.user)
-        return super(CampaignAdmin, self).formfield_for_foreignkey(
+        return super(UserCampaignAdmin, self).formfield_for_foreignkey(
             db_field, request, **kwargs)
 
     def last_dispatch(self, obj):
@@ -363,13 +357,13 @@ class CampaignAdmin(DisplayOnlyIfAdminOrHasClient,
                 'admin:%s_%s_send_campaign' % info, args=[obj.id, ]
             )
         )
-    send_campaign_btn.short_description = 'invio'
+    send_campaign_btn.short_description = 'azioni'
 
     def get_urls(self):
         """ adds the url to send the campaign
         """
         from django.conf.urls import url
-        original_urls = super(CampaignAdmin, self).get_urls()
+        original_urls = super(UserCampaignAdmin, self).get_urls()
 
         info = self.model._meta.app_label, self.model._meta.model_name
 
@@ -390,7 +384,7 @@ class CampaignAdmin(DisplayOnlyIfAdminOrHasClient,
             fields = {
                 'lists': forms.ModelMultipleChoiceField(
                     queryset=SubscriberList.objects.filter(
-                        client=campaign.client
+                        client__user=request.user
                     ),
                     label=u'liste iscritti'
                 ),
@@ -427,35 +421,28 @@ class CampaignAdmin(DisplayOnlyIfAdminOrHasClient,
                 'has_change_permission': False,
             })
 
-admin.site.register(Campaign, CampaignAdmin)
+admin.site.register(UserCampaign, UserCampaignAdmin)
 
 
-class DispatchAdmin(DisplayOnlyIfAdminOrHasClient):
+class UserDispatchAdmin(DisplayOnlyIfHasClientAdmin):
     list_display = ('id', 'campaign', 'started_at', 'finished_at',
                     'error', 'success', 'sent', 'open_rate', 'click_rate', ) # noqa
     list_filter = (
-        ('campaign__client', admin.RelatedOnlyFieldListFilter),
-        'campaign',
+        ('campaign', admin.RelatedOnlyFieldListFilter),
+        'error',
+        'success',
+        'started_at',
     )
-    readonly_fields = [f.name for f in Dispatch._meta.fields] + ['lists', ] # noqa
+    readonly_fields = [f.name for f in UserDispatch._meta.fields] + ['lists', ]
 
     def has_add_permission(self, request):
         """ User can't create dispatches """
         return False
 
-    def get_list_display(self, request):
-        if request.user.is_superuser:
-            return self.list_display + ('client', )
-        return self.list_display
-
-    def client(self, obj):
-        return obj.campaign.client
-
     def get_queryset(self, request):
-        """ Let no admin user see only related dispatches """
-        qs = super(DispatchAdmin, self).get_queryset(request)
-        if request.user.is_superuser:
-            return qs
+        """ Let the user see only related dispatches
+        """
+        qs = super(UserDispatchAdmin, self).get_queryset(request)
         return qs.filter(campaign__client__user=request.user)
 
     def open_rate(self, obj):
@@ -494,19 +481,14 @@ class DispatchAdmin(DisplayOnlyIfAdminOrHasClient):
              clicks)) # noqa
     click_rate.short_description = 'click'
 
-admin.site.register(Dispatch, DispatchAdmin)
+admin.site.register(UserDispatch, UserDispatchAdmin)
 
 
-class TrackingAdmin(DisplayOnlyIfAdminOrHasClient):
+class UserTrackingAdmin(DisplayOnlyIfHasClientAdmin):
     list_display = ('datetime', 'type', 'dispatch', 'subscriber', 'notes', )
     search_fields = ('dispatch__id', 'dispatch__campaign__name', 'notes', )
-    list_filter = (
-        ('dispatch__campaign__client', admin.RelatedOnlyFieldListFilter),
-        ('dispatch__campaign', admin.RelatedOnlyFieldListFilter),
-        'datetime',
-        'type',
-    )
-    readonly_fields = [f.name for f in Tracking._meta.fields]
+    list_filter = ('datetime', 'type', )
+    readonly_fields = [f.name for f in UserTracking._meta.fields]
 
     def has_add_permission(self, request):
         """ User can't create trackings """
@@ -515,20 +497,10 @@ class TrackingAdmin(DisplayOnlyIfAdminOrHasClient):
     def get_queryset(self, request):
         """ Let the user see only related trackings
         """
-        qs = super(TrackingAdmin, self).get_queryset(request)
-        if request.user.is_superuser:
-            return qs
+        qs = super(UserTrackingAdmin, self).get_queryset(request)
         return qs.filter(dispatch__campaign__client__user=request.user)
 
-    def get_list_display(self, request):
-        if request.user.is_superuser:
-            return self.list_display + ('client', )
-        return self.list_display
-
-    def client(self, obj):
-        return obj.dispatch.campaign.client
-
-admin.site.register(Tracking, TrackingAdmin)
+admin.site.register(UserTracking, UserTrackingAdmin)
 
 
 class UserMailerMessageAdmin(admin.ModelAdmin):
