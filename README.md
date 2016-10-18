@@ -5,6 +5,7 @@ Otto srl newsletter web application.
 ## Table of Contents
 
 * [What?](#what)
+* [Setup](#setup)
 * [REST Web Service](#rest-webservice)
     * [REST Service Authentication](#rest-authentication)
     * [REST resources](#rest-resources)
@@ -47,6 +48,39 @@ Just set a crontab which calls
 
 Tazebao provides a REST webservice in order to retrieve, create, edit and delete subscribers and lists. Each Client can then implement its own registration form and use the provided API to update Tazebao DB. Also the unsubscription feature must be implemented by the Client, which will then use the API to delete the record from Tazebao. Tazebao provides a functionality which can be used to create a signed string of subscriber's data used to generate the unsubscription url.
 Unsubscription text is managed in the Topic section of Tazebao. For example you can generate a URL which includes a signature of the ID and EMAIL of the subscriber, then you can check the signature in your own application, and if matches call the delete action of the API.
+
+## <a name="setup"></a>Setup
+
+As superuser you can create clients, which are users that receive a set of keys necessary for communicating with the REST Web Service.
+You should also create a Client's Group, associated with each Client user, with the following permissions:
+
+- mosaico | template | Can add template
+- mosaico | template | Can change template
+- mosaico | template | Can delete template
+- mosaico | upload | Can add upload
+- mosaico | upload | Can change upload
+- mosaico | upload | Can delete upload
+- newsletter | Campagna | Can add Campagna
+- newsletter | Campagna | Can change Campagna
+- newsletter | Campagna | Can delete Campagna
+- newsletter | Client | Can change Client
+- newsletter | Invio | Can change Invio
+- newsletter | Invio | Can delete Invio
+- newsletter | Iscritto | Can add Iscritto
+- newsletter | Iscritto | Can change Iscritto
+- newsletter | Iscritto | Can delete Iscritto
+- newsletter | Lista iscritti | Can add Lista iscritti
+- newsletter | Lista iscritti | Can change Lista iscritti
+- newsletter | Lista iscritti | Can delete Lista iscritti
+- newsletter | Topic | Can add Topic
+- newsletter | Topic | Can change Topic
+- newsletter | Topic | Can delete Topic
+- newsletter | Tracking | Can change Tracking
+- newsletter | Tracking | Can delete Tracking
+- newsletter | Log coda di invio | Can change Log coda di invio
+- newsletter | Log coda di invio | Can delete Log coda di invio
+
+so that clients can manage their account through the admin interface.
 
 ## <a name="rest-webservice"></a>REST Web Service
 
