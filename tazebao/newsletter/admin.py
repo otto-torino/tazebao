@@ -226,7 +226,7 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
                 'has_add_permission': False,
                 'has_change_permission': False,
             })
-    action_add_to_list.short_description = 'Aggiungi Iscritti a liste'
+    action_add_to_list.short_description = 'Aggiungi Iscritti selezionati a liste' # noqa
 
     def action_remove_from_list(self, request, queryset):
         """ Removes selected subscribers to choosen lists
@@ -294,7 +294,7 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
                 'has_add_permission': False,
                 'has_change_permission': False,
             })
-    action_remove_from_list.short_description = 'Rimuovi Iscritti da liste'
+    action_remove_from_list.short_description = 'Rimuovi Iscritti selezionati da liste' # noqa
 
 admin.site.register(Subscriber, SubscriberAdmin)
 
@@ -327,7 +327,7 @@ class CampaignAdmin(DisplayOnlyIfAdminOrHasClient,
     prepopulated_fields = {'slug': ('name',), }
 
     def get_list_display(self, request):
-        list_display = super(CampaignAdmin, self).get_list_display(request);
+        list_display = super(CampaignAdmin, self).get_list_display(request)
         list_display += ('send_campaign_btn', )
         return list_display
 
