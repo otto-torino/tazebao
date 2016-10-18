@@ -193,7 +193,7 @@ class Dispatch(models.Model):
         if self.error or not self.open_statistics:
             return None
         trackings = Tracking.objects.filter(dispatch=self, type=Tracking.OPEN_TYPE).count() # noqa
-        perc = int(round(100 * trackings / float(self.sent), 1))
+        perc = round(100 * trackings / float(self.sent), 1)
         return perc
 
     def unopen_rate(self):
@@ -205,7 +205,7 @@ class Dispatch(models.Model):
         if self.error or not self.click_statistics:
             return None
         clicks_s = Tracking.objects.filter(dispatch=self, type=Tracking.CLICK_TYPE).values('subscriber').distinct().count() # noqa
-        perc = int(round(100 * clicks_s / float(self.sent), 1))
+        perc = round(100 * clicks_s / float(self.sent), 1)
         return perc
 
     def unclick_rate(self):
