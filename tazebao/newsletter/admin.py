@@ -9,6 +9,7 @@ from django.http.response import HttpResponseRedirect
 from .models import Client, SubscriberList, Subscriber
 from .models import Topic, Campaign, Dispatch, Tracking
 from .models import UserMailerMessage
+# send campaign
 from .tasks import send_campaign
 
 
