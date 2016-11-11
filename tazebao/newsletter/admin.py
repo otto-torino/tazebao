@@ -196,6 +196,7 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
                         request,
                         'admin/newsletter/subscriber/add_to_list.html', {
                             'form': form,
+                            'queryset': queryset,
                             'error': True,
                             'exception': str(e),
                             # just to extend change_list without problems
@@ -216,6 +217,7 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
             request,
             'admin/newsletter/subscriber/add_to_list.html', {
                 'form': form,
+                'queryset': queryset,
                 'error': False,
                 # just to extend change_list without problems
                 'opts': self.model._meta,
@@ -264,6 +266,7 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
                         request,
                         'admin/newsletter/subscriber/remove_from_list.html', {
                             'form': form,
+                            'queryset': queryset,
                             'error': True,
                             'exception': str(e),
                             # just to extend change_list without problems
@@ -284,6 +287,7 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
             request,
             'admin/newsletter/subscriber/remove_from_list.html', {
                 'form': form,
+                'queryset': queryset,
                 'error': False,
                 # just to extend change_list without problems
                 'opts': self.model._meta,
