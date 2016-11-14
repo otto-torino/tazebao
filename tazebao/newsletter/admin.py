@@ -110,10 +110,14 @@ class SubscriberListAdmin(DisplayOnlyIfAdminOrHasClient,
                           ClientReadOnly,
                           ClientOnlyAdminListDisplay,
                           SaveClientFromUser):
-    list_display = ('name', )
+    list_display = ('name', 'subscribers', )
     list_filter = (
         ('client', admin.RelatedOnlyFieldListFilter),
     )
+
+    def subscribers(self, obj):
+        return obj.subscriber_set.all().count()
+    subscribers.short_description = 'numero iscritti'
 
 admin.site.register(SubscriberList, SubscriberListAdmin)
 
