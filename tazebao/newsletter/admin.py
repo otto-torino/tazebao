@@ -444,8 +444,9 @@ class DispatchAdmin(DisplayOnlyIfAdminOrHasClient):
                     'error', 'success', 'sent', 'open_rate', 'click_rate', ) # noqa
     list_filter = (
         ('campaign__client', admin.RelatedOnlyFieldListFilter),
-        'campaign',
+        ('campaign', admin.RelatedOnlyFieldListFilter),
     )
+
     readonly_fields = [f.name for f in Dispatch._meta.fields] + ['lists', ] # noqa
 
     def has_add_permission(self, request):
@@ -571,7 +572,7 @@ class UserMailerMessageAdmin(admin.ModelAdmin):
         emails = queryset.filter(sent=False)
         for email in emails:
             email.send_mail()
-        self.message_user(request, "Emails queued.")
-    send_failed.short_description = "Send failed"
+        self.message_user(request, "E-mails accodate.")
+    send_failed.short_description = "Invia e-mail fallite"
 
 admin.site.register(UserMailerMessage, UserMailerMessageAdmin)
