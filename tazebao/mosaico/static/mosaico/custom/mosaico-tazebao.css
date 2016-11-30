@@ -45,6 +45,7 @@ body > footer > i {
     box-shadow: 0 0 800px 200px rgba(0, 0, 0, 0.9);
     z-index: 10000;
     color: #000;
+    overflow: auto;
 }
 #help-layer code, #help-layer pre {
     -moz-user-select: all;

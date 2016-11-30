@@ -8,6 +8,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.sites.models import Site
 from premailer import transform
 from PIL import Image, ImageDraw
 
@@ -83,6 +84,11 @@ def upload(request):
 @csrf_exempt
 def image(request):
     logger.debug("request.method: %r", request.method)
+    domain = Site.objects.get_current().domain
+    base_url = ''.join([
+        'https://' if settings.HTTPS else 'http://',
+        domain
+    ])
     if request.method == 'GET':
         method = request.GET['method']
         logger.debug("method: %r", method)
@@ -97,7 +103,7 @@ def image(request):
             src = request.GET['src']
             width, height = [size(p) for p in params]
             for upload in Upload.objects.all():
-                if upload.image.url == src:
+                if base_url + upload.image.url == src:
                     break
             image = Image.open(upload.image.file)
             if width is not None and height is not None:
