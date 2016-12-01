@@ -59,6 +59,11 @@ class Template(models.Model):
 
     def save(self, *args, **kwargs):
         self.meta_data['name'] = self.name
+        """
+        uncomment this if you want to have images served directly as static
+        files from media folder. The drawback is images are not resized on
+        the fly if served statically, causing rendering problems on some
+        clients
         if settings.HTTPS:
             def url_fixer(m):
                 url = urllib.unquote(m.group(1))
@@ -66,4 +71,5 @@ class Template(models.Model):
             site = Site.objects.get_current()
             regexp = r"https://" + re.escape(site.domain) + r"/mosaico/img/\?src=([^'\"]*)" # noqa
             self.html = re.sub(regexp, url_fixer, self.html)
+        """
         super(Template, self).save(*args, **kwargs)
