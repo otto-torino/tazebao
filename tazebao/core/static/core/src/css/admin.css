@@ -1,33 +1,19 @@
-#header {
-    background: #d7dce2;
-}
-#user-tools {
-    color: #333 !important;
-}
-#user-tools strong {
-    color: #000 !important;
-    font-weight: bold !important;
-}
-#user-tools a {
-    color: red !important;
+html,
+body {
+    font-family: 'Roboto';
+    font-weight: 300;
+    font-size: 14px;
+    line-height: 26px;
 }
 
-#content {
-    background: #fff;
+.content-main-index li {
+    line-height: 26px;
 }
 
-.breadcrumbs {
-    padding-bottom: 20px;
+.content-main-index {
+    width: 60%;
 }
 
-.object-tools + #changelist.filtered #toolbar {
-    margin-top: 0;
-}
-
-#login-form #id_username {
-    border: 1px solid #aaa;
-}
-
-#login-form #id_password {
-    border: 1px solid #aaa;
+#footer {
+    font-weight: 400;
 }

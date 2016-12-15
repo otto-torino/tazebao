@@ -238,5 +238,5 @@ class Tracking(models.Model):
 class UserMailerMessage(MailerMessage):
     class Meta:
         proxy = True
-        verbose_name = 'Log coda di invio'
-        verbose_name_plural = 'Log code di invio'
+        verbose_name = 'Log invio'
+        verbose_name_plural = 'Log invii'

@@ -128,10 +128,6 @@ document.addEventListener('DOMContentLoaded',function(){
         font-size: 13.6px;
     }
 
-    a, a:link, a:visited {
-        color: #A00000;
-        text-decoration: none;
-    }
     .template {
         margin: 10px;
         display: inline-block;
@@ -151,9 +147,6 @@ document.addEventListener('DOMContentLoaded',function(){
     }
     #savedTable tbody tr:nth-child(odd) td {
         background-color: white;
-    }
-    #savedTable td {
-        padding: 2px 5px ;
     }
     .operationButton, .resumeButton {
         background-color: #333332;
@@ -235,7 +228,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
 
 <!-- ko if: edits().length -->
-<div style="overflow-y: auto; max-height: 200px; z-index: 10; position: relative; padding: 1em; background-color: #fafafa;">
+<div style="overflow-y: auto; max-height: 400px; z-index: 10; position: relative; padding: 1em; background-color: #fafafa;">
     <!-- ko ifnot: $root.showSaved --><span>Ci sono dei contenuti salvati nel browser! <a class="" href="#" data-bind="click: $root.showSaved.bind(undefined, true);"><i class="fa fa-plus-circle"></i> Mostra</a></span><!-- /ko -->
     <!-- ko if: $root.showSaved -->
     <table id="savedTable" class="table table-striped table-bordered" cellspacing="0" cellpadding="8" style="padding: 5px; ">

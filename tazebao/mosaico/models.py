@@ -15,8 +15,8 @@ from newsletter.models import Client
 
 class Upload(models.Model):
     client = models.ForeignKey(Client, verbose_name='client')
-    name = models.CharField(max_length=200)
-    image = ImageField(upload_to="uploads")
+    name = models.CharField('nome', max_length=200)
+    image = ImageField('immagine', upload_to="uploads")
 
     def __unicode__(self):
         return posixpath.basename(self.image.name)

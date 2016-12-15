@@ -7,10 +7,11 @@ import os
 from dotenv import load_dotenv
 from getenv import env
 
-here = lambda *x: os.path.join(os.path.dirname(
+here = lambda *x: os.path.join(os.path.dirname( # noqa
                                os.path.realpath(__file__)), *x)
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+BASE_DIR = os.path.dirname(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 dotenv_path = here('..', '..', '.env')
 load_dotenv(dotenv_path)
@@ -19,7 +20,9 @@ load_dotenv(dotenv_path)
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env('SECRET_KEY', '49saa%ruey1&!nveiz*f(cu$)0pje8wz7u++y-0ljd2)9r)j8h')
+SECRET_KEY = env(
+    'SECRET_KEY',
+    '49saa%ruey1&!nveiz*f(cu$)0pje8wz7u++y-0ljd2)9r)j8h')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -59,7 +62,7 @@ DATABASES = {
 
 INSTALLED_APPS = (
     'core',
-    'core.apps.SuitConfig',
+    'suit',
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -151,6 +154,41 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # LOGIN
 LOGIN_URL = '/admin/'
 
+# MENU
+SUIT_CONFIG = {
+    'ADMIN_NAME': 'Tazebao',
+    'MENU': (
+
+        '-',
+
+        {'app': 'auth', 'label': 'Autenticazione', 'icon': 'fa fa-lock'},
+        {'app': 'sites', 'label': 'Siti', 'icon': 'fa fa-leaf'},
+
+
+        '-',
+
+        {'app': 'flatpages', 'label': 'Pagine', 'icon': 'fa fa-book'},
+
+        '-',
+
+        {'app': 'mosaico', 'label': 'Mosaico', 'icon': 'fa fa-th', 'models': (
+            {'model': 'template', 'label': 'Template'},
+            {'model': 'upload', 'label': 'Upload'},
+        )},
+        {'app': 'newsletter', 'label': 'Newsletter', 'icon':'fa fa-envelope', 'models': ( # noqa
+            'client',
+            'subscriberlist',
+            'subscriber',
+            'topic',
+            'campaign',
+            'dispatch',
+            'tracking',
+            'usermailermessage',
+        )},
+        {'label': 'Aiuto!', 'icon': 'fa fa-life-ring', 'url': '/help/'},
+    ),
+}
+
 # CKEDITOR
 CKEDITOR_UPLOAD_PATH = 'ckeditor/'
 CKEDITOR_JQUERY_URL = ''
@@ -162,12 +200,13 @@ CKEDITOR_CONFIGS = {
                 ['Source', '-', 'Bold', 'Italic']
         ],
         'toolbar_Full': [
-                ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike', 'SpellChecker', 'Undo', 'Redo'],
-                ['NumberedList','BulletedList'],
-                ['Link','Unlink','Anchor'],
-                ['Image', 'Flash', 'Table', 'HorizontalRule'],
-                ['TextColor', 'BGColor'],
-                ['SpecialChar'], ['PasteFromWord'], ['Source']
+            ['Styles', 'Format', 'Bold', 'Italic', 'Underline', 'Strike',
+             'SpellChecker', 'Undo', 'Redo'],
+            ['NumberedList', 'BulletedList'],
+            ['Link', 'Unlink', 'Anchor'],
+            ['Image', 'Flash', 'Table', 'HorizontalRule'],
+            ['TextColor', 'BGColor'],
+            ['SpecialChar'], ['PasteFromWord'], ['Source']
         ],
         'toolbar': 'Full',
         'height': 291,
@@ -189,7 +228,7 @@ PIPELINE = {
             ),
             'output_filename': 'core/css/vendor.min.css',
         },
-        'tazebao': { # bootstrap + custom
+        'tazebao': {  # bootstrap + custom
             'source_filenames': (
                 'core/src/scss/styles.scss',
             ),
@@ -242,36 +281,40 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'verbose': {
-            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s' # noqa
         },
         'simple': {
             'format': '%(levelname)s %(message)s'
         },
     },
     'handlers': {
-       'null': {
+        'null': {
             'level': 'DEBUG',
-            'class':'logging.NullHandler',
+            'class': 'logging.NullHandler',
         },
-        'console':{
+        'console': {
             'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },
         # configure the log to be rotated daily
-        # see https://docs.python.org/2.7/library/logging.handlers.html#logging.handlers.TimedRotatingFileHandler
+        # see
+        # https://docs.python.org/2.7/library/logging.handlers.html#logging.handlers.TimedRotatingFileHandler
+        # noqa
         'file': {
             'level': 'DEBUG',
             'formatter': 'verbose',
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': here('..', '..', '..', os.path.join('logs', 'debug.log')),
+            'filename': here('..', '..', '..',
+                             os.path.join('logs', 'debug.log')),
             'when':     'midnight',
         },
         'celery_logger': {
             'level': 'DEBUG',
             'filters': None,
             'class': 'logging.handlers.TimedRotatingFileHandler',
-            'filename': here('..', '..', '..', os.path.join('logs', 'celery.log')),
+            'filename': here('..', '..', '..',
+                             os.path.join('logs', 'celery.log')),
             'formatter': 'verbose'
         },
         'mail_admins': {
@@ -287,15 +330,16 @@ LOGGING = {
             'propagate': True,
         },
         'django.request': {
-            'handlers': ['mail_admins', 'console', 'file',],
+            'handlers': ['mail_admins', 'console', 'file', ],
             'level': 'ERROR',
             'propagate': False,
         },
         # http://stackoverflow.com/questions/7768027/turn-off-sql-logging-while-keeping-settings-debug
+        # noqa
        'django.db.backends': {
             'handlers': ['null'],  # Quiet by default!
             'propagate': False,
-            'level':'DEBUG',
+            'level': 'DEBUG',
         },
         'celery': {
             'handlers': ['celery_logger'],
@@ -303,6 +347,6 @@ LOGGING = {
             'propagate': True,
         },
         'core': LOGGING_DEFAULT,
-        '':                             LOGGING_DEFAULT,# root logger
+        '': LOGGING_DEFAULT,  # root logger
     },
 }

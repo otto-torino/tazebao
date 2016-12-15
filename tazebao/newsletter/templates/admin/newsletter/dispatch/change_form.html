@@ -10,13 +10,13 @@
 {% block submit_buttons_bottom %}{% endblock %}
 
 {% block after_field_sets %}
-<h2>Statistiche</h2>
+<h2 style="margin: 20px 0">Statistiche</h2>
 {% if not original.open_statistics %}
 <p class="alert alert-danger">
     Non sono disponibili statistiche di apertura delle e-mail. Il corpo html dell'e-mail inviata non conteneva il tag di chiusura &lt;/body&gt;
 </p>
 {% else %}
-<div id="open-chart" style="float: left; width: 35%;"></div>
+<div id="open-chart" style="float: left; width: 49%;"></div>
 <script>
 (function ($) {
     var openChart = new Highcharts.Chart({
@@ -69,7 +69,7 @@
     Non sono disponibili statistiche sui click a link interni all'e-mail. L'e-mail inviata non conteneva link tracciati.
 </p>
 {% else %}
-<div id="click-chart" style="float: right; width: 35%;"></div>
+<div id="click-chart" style="float: right; width: 49%;"></div>
 <script>
 (function ($) {
     var clickChart = new Highcharts.Chart({

@@ -2,10 +2,10 @@
 {% load i18n admin_urls admin_static admin_list %}
 
 {% block object-tools-items %}
-  <li>
-    <a href="{% url "mosaico:index" %}" class="addlink">
-      {% blocktrans with cl.opts.verbose_name as name %}Aggiungi {{ name }} da Mosaico{% endblocktrans %}
-    </a>
-  </li>
-{{ block.super }}
+{% if has_add_permission %}
+<a href="{% url "mosaico:index" %}" class="btn btn-success">
+    <i class="icon-plus-sign icon-white"></i>&nbsp;
+    {% blocktrans with cl.opts.verbose_name as name %}Add {{ name }}{% endblocktrans %}
+</a>
+{% endif %}
 {% endblock %}

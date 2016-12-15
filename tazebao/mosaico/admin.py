@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
+from newsletter.admin import DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows, ClientReadOnly, SaveClientFromUser # noqa
+
 from .models import Upload, Template
 
 
@@ -17,7 +19,7 @@ class TemplateAdmin(admin.ModelAdmin):
 
     def create_campaign(self, obj):
         return mark_safe(
-            '<a class="btn btn-success" href="%s">crea campagna</a>' % (
+            '<a class="btn btn-primary" href="%s">crea campagna</a>' % (
                 '/admin/newsletter/campaign/add/#' + str(obj.id)
             )
         )
@@ -25,4 +27,16 @@ class TemplateAdmin(admin.ModelAdmin):
 
 admin.site.register(Template, TemplateAdmin)
 
-admin.site.register(Upload)
+
+class UploadAdmin(DisplayOnlyIfAdminOrHasClient,
+                  ManageOnlyClientsRows,
+                  ClientReadOnly,
+                  SaveClientFromUser,):
+    list_display = ('name', 'url', )
+
+    def url(self, obj):
+        return mark_safe(
+            '<a href="%s" target="_blank">%s</a>' % (obj.image.url, obj.image.url) # noqa
+        )
+
+admin.site.register(Upload, UploadAdmin)
