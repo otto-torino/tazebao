@@ -131,6 +131,7 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
                     'lists_string', 'info', )
     list_filter = (
         ('client', admin.RelatedOnlyFieldListFilter),
+        ('lists', admin.RelatedOnlyFieldListFilter),
         'subscription_datetime',
     )
     search_fields = ('email', 'info', )

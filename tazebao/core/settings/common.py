@@ -157,6 +157,7 @@ LOGIN_URL = '/admin/'
 # MENU
 SUIT_CONFIG = {
     'ADMIN_NAME': 'Tazebao',
+    'SEARCH_URL': 'admin:newsletter_subscriber_changelist',
     'MENU': (
 
         '-',
