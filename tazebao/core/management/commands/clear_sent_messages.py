@@ -12,7 +12,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--offset',
             action='store',
-            type='int',
+            type=int,
             dest='offset',
             help='Only clear messages that are more than this many hours old'
         )
