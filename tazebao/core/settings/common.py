@@ -310,6 +310,14 @@ LOGGING = {
                              os.path.join('logs', 'debug.log')),
             'when':     'midnight',
         },
+        'file_email': {
+            'level': 'DEBUG',
+            'formatter': 'verbose',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': here('..', '..', '..',
+                             os.path.join('logs', 'mail.log')),
+            'when':     'midnight',
+        },
         'celery_logger': {
             'level': 'DEBUG',
             'filters': None,
@@ -341,6 +349,11 @@ LOGGING = {
             'handlers': ['null'],  # Quiet by default!
             'propagate': False,
             'level': 'DEBUG',
+        },
+        'newsletter': {
+            'handlers': ['file_email'],
+            'level': 'DEBUG',
+            'propagate': True,
         },
         'celery': {
             'handlers': ['celery_logger'],

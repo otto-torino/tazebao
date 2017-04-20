@@ -16,7 +16,10 @@ from mailqueue.models import MailerMessage
 from .models import Dispatch, SubscriberList, Campaign
 from .context import get_campaign_context
 
+import logging
+
 logger = get_task_logger('celery')
+log_email_file = logging.getLogger('newsletter')
 
 
 @app.task # noqa
@@ -40,6 +43,7 @@ def send_campaign(lists_ids, campaign_id):
         # send params
         sent = 0
         error_addresses = []
+        sent_addresses = []
         # templates
         unsubscribe_url_template = template.Template(
             '{% load newsletter_tags %}' + ('' if campaign.topic.unsubscribe_url is None else campaign.topic.unsubscribe_url) # noqa
@@ -108,6 +112,7 @@ def send_campaign(lists_ids, campaign_id):
 
                 try:
                     msg.save()
+                    sent_addresses.append(subscriber.email)
                     sent += 1
                 except:
                     error_addresses.append(subscriber.email)
@@ -119,6 +124,7 @@ def send_campaign(lists_ids, campaign_id):
         dispatch.sent = sent
         dispatch.error_recipients = ','.join(error_addresses)
         dispatch.save()
+        log_email_file.debug("\n".join(sent_addresses))
     except:
         dispatch.error = True
         dispatch.success = False

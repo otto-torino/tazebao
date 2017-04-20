@@ -21,7 +21,7 @@ MEDIA_ROOT = '/home/tazebao/www/tazebao/media'
 
 # MAIL
 MAILQUEUE_QUEUE_UP = True
-MAILQUEUE_LIMIT = 500
+MAILQUEUE_LIMIT = 50
 
 # CKEDITOR
 CKEDITOR_CONFIGS['default']['contentsCss'] = [
