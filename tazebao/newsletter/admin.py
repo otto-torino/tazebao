@@ -518,6 +518,8 @@ class TrackingAdmin(DisplayOnlyIfAdminOrHasClient):
         'type',
     )
     readonly_fields = [f.name for f in Tracking._meta.fields]
+    # avoid performance shit with large tables!
+    show_full_result_count = False
 
     def has_add_permission(self, request):
         """ User can't create trackings """
