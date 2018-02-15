@@ -519,7 +519,7 @@ class TrackingAdmin(DisplayOnlyIfAdminOrHasClient):
     )
     readonly_fields = [f.name for f in Tracking._meta.fields]
     # avoid performance shit with large tables!
-    show_full_result_count = False
+    # show_full_result_count = False
     list_select_related = ('dispatch', 'subscriber', )
 
     def has_add_permission(self, request):
