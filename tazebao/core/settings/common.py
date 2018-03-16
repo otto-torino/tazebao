@@ -31,7 +31,7 @@ HTTPS = False
 ALLOWED_HOSTS = []
 
 ADMINS = (
-    ('abidibo', 'abidibo@gmail.com'),
+    ('abidibo', 'web.sites.logs@gmail.com'),
 )
 
 # SITE
