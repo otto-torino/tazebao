@@ -355,8 +355,8 @@ LOGGING = {
             'level': 'DEBUG',
             'propagate': True,
         },
-        'celery': {
-            'handlers': ['celery_logger'],
+        'celery_newsletter': {
+            'handlers': ['mail_admins', 'celery_logger', 'console'],
             'level': 'DEBUG',
             'propagate': True,
         },

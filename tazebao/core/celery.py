@@ -14,7 +14,7 @@ def here(*x):
 dotenv_path = here('..', '.env')
 load_dotenv(dotenv_path)
 
-app = Celery('tazebao', broker='amqp://guest@localhost//')
+app = Celery('tazebao', broker='redis://localhost:6379/0')
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', env('DJANGO_SETTINGS_MODULE'))

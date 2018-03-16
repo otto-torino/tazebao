@@ -16,8 +16,8 @@ SESSION_COOKIE_HTTPONLY = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
 SESSION_COOKIE_SECURE = True
 
-STATIC_ROOT = '/home/tazebao/www/tazebao/static/'
-MEDIA_ROOT = '/home/tazebao/www/tazebao/media'
+STATIC_ROOT = '/home/otto/www/tazebao/static/'
+MEDIA_ROOT = '/home/otto/www/tazebao/media'
 
 # MAIL
 MAILQUEUE_QUEUE_UP = True

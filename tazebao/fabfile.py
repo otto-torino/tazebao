@@ -36,8 +36,8 @@ def remote_virtualenv(path):
 def production():
     """Production server settings"""
     env.settings = 'production'
-    env.user = 'tazebao'
-    env.path = '/home/tazebao/www/tazebao'
+    env.user = 'otto'
+    env.path = '/home/otto/www/tazebao'
     env.hosts = ['tazebao.sqrt64.it']
 
 @task

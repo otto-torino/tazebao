@@ -18,7 +18,7 @@ from .context import get_campaign_context
 
 import logging
 
-logger = get_task_logger('celery')
+logger = get_task_logger('celery_newsletter')
 log_email_file = logging.getLogger('newsletter')
 
 

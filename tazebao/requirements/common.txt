@@ -1,8 +1,8 @@
-amqp==1.4.9
+amqp==2.2.2
 ansible==2.1.1.0
 anyjson==0.3.3
-billiard==3.3.0.23
-celery==3.1.23
+billiard==3.5.0.3
+celery==4.1.0
 cffi==1.8.2
 click==6.6
 cryptography==1.5
@@ -33,7 +33,7 @@ httpsig==1.1.2
 idna==2.1
 ipaddress==1.0.17
 Jinja2==2.8
-kombu==3.0.35
+kombu==4.1.0
 lxml==3.6.4
 Markdown==2.6.6
 MarkupSafe==0.23
@@ -49,9 +49,11 @@ pyasn1==0.1.9
 pycparser==2.14
 pycrypto==2.6.1
 python-dotenv==0.5.1
-pytz==2016.6.1
+pytz==2018.3
 PyYAML==3.12
+redis==2.10.6
 requests==2.11.1
 six==1.10.0
 sorl-thumbnail==12.3
 supervisor==3.3.1
+vine==1.1.4
