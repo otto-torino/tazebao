@@ -36,7 +36,7 @@ class SubscriberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscriber
         fields = ('id', 'client', 'email', 'subscription_datetime',
-                  'info', 'lists', )
+                  'info', 'lists', 'opt_in', 'opt_in_datetime', )
         read_only_fields = ('client', )
 
 

@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models
 from django.contrib.auth.models import User
-from django.utils.safestring import mark_safe
-from django.utils.formats import date_format
+from django.db import models
 from django.utils import timezone
-
+from django.utils.formats import date_format
+from django.utils.safestring import mark_safe
 from mailqueue.models import MailerMessage
 
 
@@ -15,10 +14,10 @@ class Client(models.Model):
     name = models.CharField('nome', max_length=50)
     slug = models.SlugField('slug')
     domain = models.CharField('dominio', max_length=100)
-    id_key = models.CharField('id key', max_length=8, unique=True,
-                              blank=True, null=True)
-    secret_key = models.CharField('secret key', max_length=32, unique=True,
-                                  blank=True, null=True)
+    id_key = models.CharField(
+        'id key', max_length=8, unique=True, blank=True, null=True)
+    secret_key = models.CharField(
+        'secret key', max_length=32, unique=True, blank=True, null=True)
 
     class Meta:
         verbose_name = "Client"
@@ -43,15 +42,21 @@ class SubscriberList(models.Model):
 class Subscriber(models.Model):
     client = models.ForeignKey(Client, verbose_name='client')
     email = models.EmailField('e-mail')
-    subscription_datetime = models.DateTimeField('data sottoscrizione',
-                                                 auto_now_add=True)
+    subscription_datetime = models.DateTimeField(
+        'data sottoscrizione', auto_now_add=True)
     info = models.TextField('info', blank=True, null=True)
     lists = models.ManyToManyField(SubscriberList, verbose_name='liste')
+    opt_in = models.BooleanField('accettazione GDPR', default=False)
+    opt_in_datetime = models.DateTimeField(
+        'data accettazione GDPR', blank=True, null=True)
 
     class Meta:
         verbose_name = "Iscritto"
         verbose_name_plural = "Iscritti"
-        unique_together = ('client', 'email', )
+        unique_together = (
+            'client',
+            'email',
+        )
 
     def __unicode__(self):
         return self.email
@@ -77,8 +82,7 @@ class Topic(models.Model):
             <code>{% encrypt id email %}</code>
             <p>genera una stringa criptata della concatenazione di id
                             e email.</p>
-        ''')
-    )
+        '''))
 
     class Meta:
         verbose_name = "Topic"
@@ -93,10 +97,10 @@ class Campaign(models.Model):
     name = models.CharField('nome', max_length=50)
     slug = models.SlugField('slug')
     topic = models.ForeignKey(Topic)
-    insertion_datetime = models.DateTimeField(auto_now_add=True,
-                                              verbose_name='inserimento')
-    last_edit_datetime = models.DateTimeField(auto_now=True,
-                                              verbose_name='ultima modifica')
+    insertion_datetime = models.DateTimeField(
+        auto_now_add=True, verbose_name='inserimento')
+    last_edit_datetime = models.DateTimeField(
+        auto_now=True, verbose_name='ultima modifica')
 
     subject = models.CharField('oggetto', max_length=255)
     plain_text = models.TextField(
@@ -162,8 +166,7 @@ class Campaign(models.Model):
                 self.client.slug,
                 str(self.insertion_datetime.year),
                 self.insertion_datetime.strftime("%m"),
-                self.insertion_datetime.strftime("%d"),
-                self.slug
+                self.insertion_datetime.strftime("%d"), self.slug
             ])
 
 
@@ -174,25 +177,28 @@ class Dispatch(models.Model):
     finished_at = models.DateTimeField('fine', blank=True, null=True)
     error = models.BooleanField('errore', default=False)
     success = models.BooleanField('successo', default=False)
-    open_statistics = models.BooleanField('statistiche apertura',
-                                          default=False)
-    click_statistics = models.BooleanField('statistiche click',
-                                           default=False)
+    open_statistics = models.BooleanField(
+        'statistiche apertura', default=False)
+    click_statistics = models.BooleanField('statistiche click', default=False)
     sent = models.IntegerField('e-mail inviate', blank=True, null=True)
-    error_recipients = models.TextField('indirizzi in errore', blank=True,
-                                        null=True)
+    error_recipients = models.TextField(
+        'indirizzi in errore', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Invio'
         verbose_name_plural = 'Invii'
 
     def __unicode__(self):
-        return '%s - %s - %s' % (self.id, self.campaign, date_format(timezone.localtime(self.started_at), 'DATETIME_FORMAT')) # noqa
+        return '%s - %s - %s' % (self.id, self.campaign,
+                                 date_format(
+                                     timezone.localtime(self.started_at),
+                                     'DATETIME_FORMAT'))  # noqa
 
     def open_rate(self):
         if self.error or not self.open_statistics:
             return None
-        trackings = Tracking.objects.filter(dispatch=self, type=Tracking.OPEN_TYPE).count() # noqa
+        trackings = Tracking.objects.filter(
+            dispatch=self, type=Tracking.OPEN_TYPE).count()  # noqa
         perc = round(100 * trackings / float(self.sent), 1)
         return perc
 
@@ -204,7 +210,9 @@ class Dispatch(models.Model):
     def click_rate(self):
         if self.error or not self.click_statistics:
             return None
-        clicks_s = Tracking.objects.filter(dispatch=self, type=Tracking.CLICK_TYPE).values('subscriber').distinct().count() # noqa
+        clicks_s = Tracking.objects.filter(
+            dispatch=self, type=Tracking.CLICK_TYPE).values(
+                'subscriber').distinct().count()  # noqa
         perc = round(100 * clicks_s / float(self.sent), 1)
         return perc
 

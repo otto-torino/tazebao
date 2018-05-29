@@ -128,7 +128,7 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
                       ClientOnlyAdminListDisplay,
                       SaveClientFromUser):
     list_display = ('email', 'subscription_datetime',
-                    'lists_string', 'info', )
+                    'lists_string', 'info', 'opt_in', )
     list_filter = (
         ('client', admin.RelatedOnlyFieldListFilter),
         ('lists', admin.RelatedOnlyFieldListFilter),
