@@ -133,6 +133,7 @@ class SubscriberAdmin(DisplayOnlyIfAdminOrHasClient,
         ('client', admin.RelatedOnlyFieldListFilter),
         ('lists', admin.RelatedOnlyFieldListFilter),
         'subscription_datetime',
+        'opt_in',
     )
     search_fields = ('email', 'info', )
     actions = ['action_add_to_list', 'action_remove_from_list', ]
