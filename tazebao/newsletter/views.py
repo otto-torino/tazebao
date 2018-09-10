@@ -199,4 +199,8 @@ class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """ Retrieves only clients campaigns
         """
-        return Campaign.objects.filter(client__user__id=self.request.user.id)
+        qs = Campaign.objects.filter(client__user__id=self.request.user.id)
+        view_online = self.request.query_params.get('view_online', None)
+        if view_online is not None:
+            qs = qs.filter(view_online=True if int(view_online) else False)
+        return qs
