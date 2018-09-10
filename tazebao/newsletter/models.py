@@ -154,6 +154,7 @@ class Campaign(models.Model):
     class Meta:
         verbose_name = "Campagna"
         verbose_name_plural = "Campagne"
+        ordering = ('-id', )
 
     def __unicode__(self):
         return self.name
