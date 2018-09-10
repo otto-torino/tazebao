@@ -131,7 +131,7 @@ def link_tracking(request, dispatch_id, subscriber_id):
 
 # API
 class ResultsSetPagination(PageNumberPagination):
-    page_size = 1
+    page_size = 20
 
 
 class LargeResultsSetPagination(PageNumberPagination):
