@@ -68,7 +68,7 @@ class CampaignSerializer(serializers.ModelSerializer):
         return tpl.render(context)
 
     def html_text_fn(self, obj):
-        tpl = template.Template(obj.html_text)
+        tpl = template.Template('{% load newsletter_tags %}' + obj.html_text) # noqa
         context = template.Context({})
         context.update(get_campaign_context(obj))
         return tpl.render(context)
