@@ -220,7 +220,7 @@ class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
         if subject is not None:
             qs = qs.filter(subject__icontains=subject)
         if text is not None:
-            qs = qs.filter(html_text__iregex=r"\y{0}\y".format(text))
+            qs = qs.filter(html_text__icontains=text)
         if date_from is not None:
             qs = qs.filter(
                 last_edit_datetime__gte=datetime.datetime.strptime(
