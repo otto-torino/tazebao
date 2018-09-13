@@ -257,6 +257,17 @@ returns a paginated (20 for page) list of campaigns associated to the authentica
         ]
     }
 
+additional filters can be used to retrieve campaigns:
+
+- `date_from` in the format `YYYY-MM-DD`
+- `date_to` in the format `YYYY-MM-DD`
+- `subject`
+- `text`
+
+just add them in the query string, i.e.
+
+    http://localhost:8000/api/v1/newsletter/campaign/?subject=foo&date_from=2018-09-12
+
 ##### Get a campaign
 
     GET http://localhost:8000/api/v1/newsletter/campaign/<CAMPAIGN_ID>/
