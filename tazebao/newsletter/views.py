@@ -212,7 +212,7 @@ class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
         qs = Campaign.objects.filter(client__user__id=self.request.user.id)
         view_online = self.request.query_params.get('view_online', None)
         subject = self.request.query_params.get('subject', None)
-        text = self.request.query_params.get('content', None)
+        text = self.request.query_params.get('text', None)
         date_from = self.request.query_params.get('date_from', None)
         date_to = self.request.query_params.get('date_to', None)
         if view_online is not None:
@@ -220,7 +220,7 @@ class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
         if subject is not None:
             qs = qs.filter(subject__icontains=subject)
         if text is not None:
-            qs = qs.filter(text__icontains=text)
+            qs = qs.filter(html_text__iregex=r"\y{0}\y".format(text))
         if date_from is not None:
             qs = qs.filter(
                 last_edit_datetime__gte=datetime.datetime.strptime(
