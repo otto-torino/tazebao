@@ -1,87 +1,63 @@
-{% extends "admin/base_site.html" %}
-{% load i18n admin_static %}
+{% extends 'admin/index.html' %}
+{% load newsletter_tags %}
 
-{% block extrastyle %}
-{{ block.super }}
-{% endblock %}
-
-{% block coltype %}colMS{% endblock %}
-
-{% block bodyclass %}dashboard{% endblock %}
-
-{% block breadcrumbs %}{% endblock %}
+{% block extrahead %}{{ block.super }}
+    <style>
+.dispatches-badge {
+    width: 184px;
+    height: 184px;
+    background: #ffc107;
+    border-radius: 50%;
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.8rem;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 66px auto 0;
+}
+    </style>
+{% endblock extrahead %}
 
 {% block content %}
-<div id="content-main" class="content-main-index">
-    <h1>Tazebao</h1>
-    <p>Tazebao consente di gestire in autonomia una newsletter. Gli iscritti possono essere categorizzati in liste, le campagne sono organizzate in topics, e ciascuna campagna può essere inviata alle liste di iscritti desiderate.<br />
-        Le e-mail vengono poi gestite in un sistema di code che garantisce un invio scaglionato nel tempo.</p>
-    <p>Tazebao implementa un Web Service REST che consente di gestire le sottoscrizioni, le liste di iscritti e di visualizzare le campagne. Questo consente di implementare i form di iscrizione e disiscrizione direttamente sul proprio sito.</p>
-    <p>L'autenticazione avviene tramite HMAC, ulteriori dettagli sulla <a href="http://github.com/otto-torino/tazebao">pagina del progetto</a>.</p>
-    <p>Rispetto a quanto indicato nella pagina del progetto, sostituire alle chiamate <b>localhost:8000</b> con <b>tazebao.sqrt64.it</b>.</p>
-    <h2 style="margin-left: 0; margin-bottom: 10px;">Mosaico</h2>
-    <p>Tazebao integra l'applicazione <a href="https://github.com/voidlabs/mosaico">Mosaico</a> per la creazione di template responsive multi-dispositivo.</p>
-    <ul>
-        <li><strong>Templates</strong><br />Gestione di template responsive e multidispositivo utilizzabile per creare una campagna newsletter</li>
-        <li><strong>Uploads</strong><br />Gestione delle immagini caricate in Mosaico</li>
-    </ul>
-    <h2 style="margin-left: 0; margin-bottom: 10px;">Newsletter</h2>
-    <ul>
-        <li><b>Client</b><br />Account legato all'utenza, riporta l'ID_KEY e la SECRET_KEY da utilizzare per autenticare le request al web service.</li>
-        <li><b>Liste iscritti</b><br />Gli iscritti devono essere organizzati in liste, gestibili anche da web service.</li>
-        <li><b>Iscritti</b><br />Iscritti alla newsletter. Esiste un campo <b>info</b> che può essere utilizzato per salvare informazioni in qualunque formato (json?)</li>
-        <li><b>Topic</b><br />Ciascuna campagna di invii appartiene ad un Topic, che conserva le informazioni di invio from_name, from_address e unsubscribe link.</li>
-        <li><b>Campagne</b><br />In questa sezione si crea una newsletter e si effettua l'invio a liste di iscritti. C'è la possibilità di inserire un contenuto in plain text ed uno in html.</li>
-        <li><b>Invii</b><br />Resoconto degli invii delle campagne</li>
-        <li><b>Log invii</b><br />Gli invii vengono accodati e spediti in scaglioni, qui si vedono i log degli invii effettuati e non.</li>
-        <li><b>Tracking</b><br />Quando un iscritto apre l'email (con il caricamento immagini attivo), l'apertura viene registrata. I link creati attraverso la funzionalità messa a disposizione da Tazebao vengono tracciati, e sono disponibili statistiche sui click effettuati dagli utenti.</li>
-    </ul>
-    <p><b>N.B.</b>Le statistiche di apertura e-mail sono inaccurate, e funzionano solamente se l'iscritto visualizza le immagini contenute nell'email html. Inoltre per funzionare il contenuto html dell'email deve contenere il tag di chiusura del body: &lt;/body&gt;</p>
-    <h2 style="margin-left: 0; margin-bottom: 10px;">Supporto</h2>
-    <p>Se hai bisogno di supporto, o vuoi segnalare un malfunzionamento utilizza i link a fondo pagina.</p>
-    <ul>
-</div>
-{% endblock %}
-
-
-{% block sidebar %}
-<div id="content-related">
-    <div class="module" id="recent-actions-module">
-        <h4 class="italic-title">{% trans 'My Actions' %}</h4>
-
-        {% load log %}
-        {% get_admin_log 10 as admin_log for_user user %}
-        {% if not admin_log %}
-        <p>{% trans 'None available' %}</p>
-        {% else %}
-        <ul class="actionlist">
-            {% for entry in admin_log %}
-            <li class="{% if entry.is_addition %}addlink{% endif %}{% if entry.is_change %}changelink{% endif %}{% if entry.is_deletion %}text-error{% endif %}">
-
-                <i class="{% if entry.is_addition %}icon-plus{% endif %}{% if entry.is_change %}icon-pencil{% endif %}{% if entry.is_deletion %}icon-trash{% endif %} icon-alpha5"></i>
-
-                {% spaceless %}
-                {% if entry.is_addition %}{% trans 'added'|capfirst %}{% endif %}
-                {% if entry.is_change %}{% trans 'changed'|capfirst %}{% endif %}
-                {% if entry.is_deletion %}{% trans 'deleted'|capfirst %}{% endif %}
-
-                {% if entry.content_type %}
-                <span class="mini quiet">{% filter capfirst %}
-                    {% trans entry.content_type.name %}{% endfilter %}</span>
+    {% if request.path == '/admin/' %}
+        <div id="content-main">
+            <div class="module" style="background: #fff; border: 1px solid #ccc;flex: 1; max-width: 100%; margin: 0 15px;padding-top: 10px;">
+                {% if request.user.client %}
+                    {% dashboard request.user.client %}
                 {% else %}
-                <span class="mini quiet">{% trans 'Unknown content' %}</span>
+                    <h1>Tazebao</h1>
+                    <p>Tazebao consente di gestire in autonomia una newsletter. Gli iscritti possono essere categorizzati in liste, le campagne sono organizzate in topics, e ciascuna campagna può essere inviata alle liste di iscritti desiderate.<br />
+                    Le e-mail vengono poi gestite in un sistema di code che garantisce un invio scaglionato nel tempo.</p>
+                    <p>Tazebao implementa un Web Service REST che consente di gestire le sottoscrizioni, le liste di iscritti e di visualizzare le campagne. Questo consente di implementare i form di iscrizione e disiscrizione direttamente sul proprio sito.</p>
+                    <p>L'autenticazione avviene tramite HMAC, ulteriori dettagli sulla <a href="http://github.com/otto-torino/tazebao">pagina del progetto</a>.</p>
+                    <p>Rispetto a quanto indicato nella pagina del progetto, sostituire alle chiamate <b>localhost:8000</b> con <b>tazebao.sqrt64.it</b>.</p>
+                    <h2 style="margin-left: 0; margin-bottom: 10px;">Mosaico</h2>
+                    <p>Tazebao integra l'applicazione <a href="https://github.com/voidlabs/mosaico">Mosaico</a> per la creazione di template responsive multi-dispositivo.</p>
+                    <ul>
+                        <li><strong>Templates</strong><br />Gestione di template responsive e multidispositivo utilizzabile per creare una campagna newsletter</li>
+                        <li><strong>Uploads</strong><br />Gestione delle immagini caricate in Mosaico</li>
+                    </ul>
+                    <h2 style="margin-left: 0; margin-bottom: 10px;">Newsletter</h2>
+                    <ul>
+                        <li><b>Client</b><br />Account legato all'utenza, riporta l'ID_KEY e la SECRET_KEY da utilizzare per autenticare le request al web service.</li>
+                        <li><b>Liste iscritti</b><br />Gli iscritti devono essere organizzati in liste, gestibili anche da web service.</li>
+                        <li><b>Iscritti</b><br />Iscritti alla newsletter. Esiste un campo <b>info</b> che può essere utilizzato per salvare informazioni in qualunque formato (json?)</li>
+                        <li><b>Topic</b><br />Ciascuna campagna di invii appartiene ad un Topic, che conserva le informazioni di invio from_name, from_address e unsubscribe link.</li>
+                        <li><b>Campagne</b><br />In questa sezione si crea una newsletter e si effettua l'invio a liste di iscritti. C'è la possibilità di inserire un contenuto in plain text ed uno in html.</li>
+                        <li><b>Invii</b><br />Resoconto degli invii delle campagne</li>
+                        <li><b>Log invii</b><br />Gli invii vengono accodati e spediti in scaglioni, qui si vedono i log degli invii effettuati e non.</li>
+                        <li><b>Tracking</b><br />Quando un iscritto apre l'email (con il caricamento immagini attivo), l'apertura viene registrata. I link creati attraverso la funzionalità messa a disposizione da Tazebao vengono tracciati, e sono disponibili statistiche sui click effettuati dagli utenti.</li>
+                    </ul>
+                    <p><b>N.B.</b>Le statistiche di apertura e-mail sono inaccurate, e funzionano solamente se l'iscritto visualizza le immagini contenute nell'email html. Inoltre per funzionare il contenuto html dell'email deve contenere il tag di chiusura del body: &lt;/body&gt;</p>
+                    <h2 style="margin-left: 0; margin-bottom: 10px;">Supporto</h2>
+                    <p>Se hai bisogno di supporto, o vuoi segnalare un malfunzionamento utilizza i link a fondo pagina.</p>
+                    <ul>
                 {% endif %}
-                {% endspaceless %}&nbsp;
-
-                {% if entry.is_deletion or not entry.get_admin_url %}
-                <span class="color-grey">{{ entry.object_repr }}</span>
-                {% else %}
-                <a href="{{ entry.get_admin_url }}">{{ entry.object_repr }}</a>
-                {% endif %}
-            </li>
-            {% endfor %}
-        </ul>
-        {% endif %}
-    </div>
-</div>
+            </div>
+        </div>
+    {% else %}
+        {{ block.super }}
+    {% endif %}
 {% endblock %}

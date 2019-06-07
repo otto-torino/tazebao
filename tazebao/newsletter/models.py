@@ -10,7 +10,8 @@ from mailqueue.models import MailerMessage
 
 
 class Client(models.Model):
-    user = models.OneToOneField(User, verbose_name='utente')
+    user = models.OneToOneField(
+        User, verbose_name='utente', on_delete=models.CASCADE)
     name = models.CharField('nome', max_length=50)
     slug = models.SlugField('slug')
     domain = models.CharField('dominio', max_length=100)
@@ -23,24 +24,26 @@ class Client(models.Model):
         verbose_name = "Client"
         verbose_name_plural = "Client"
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
 class SubscriberList(models.Model):
-    client = models.ForeignKey(Client, verbose_name='client')
+    client = models.ForeignKey(
+        Client, verbose_name='client', on_delete=models.CASCADE)
     name = models.CharField('nome', max_length=50)
 
     class Meta:
         verbose_name = "Lista iscritti"
         verbose_name_plural = "Liste iscritti"
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s (%s iscritti)' % (self.name, self.subscriber_set.count())
 
 
 class Subscriber(models.Model):
-    client = models.ForeignKey(Client, verbose_name='client')
+    client = models.ForeignKey(
+        Client, verbose_name='client', on_delete=models.CASCADE)
     email = models.EmailField('e-mail')
     subscription_datetime = models.DateTimeField(
         'data sottoscrizione', auto_now_add=True)
@@ -58,12 +61,13 @@ class Subscriber(models.Model):
             'email',
         )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.email
 
 
 class Topic(models.Model):
-    client = models.ForeignKey(Client, verbose_name='client')
+    client = models.ForeignKey(
+        Client, verbose_name='client', on_delete=models.CASCADE)
     name = models.CharField('nome', max_length=50)
     sending_address = models.EmailField('indirizzo invio')
     sending_name = models.CharField('nome invio', max_length=50)
@@ -88,15 +92,16 @@ class Topic(models.Model):
         verbose_name = "Topic"
         verbose_name_plural = "Topic"
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
 class Campaign(models.Model):
-    client = models.ForeignKey(Client, verbose_name='client')
+    client = models.ForeignKey(
+        Client, verbose_name='client', on_delete=models.CASCADE)
     name = models.CharField('nome', max_length=50)
     slug = models.SlugField('slug')
-    topic = models.ForeignKey(Topic)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
     insertion_datetime = models.DateTimeField(
         auto_now_add=True, verbose_name='inserimento')
     last_edit_datetime = models.DateTimeField(
@@ -156,11 +161,11 @@ class Campaign(models.Model):
         verbose_name_plural = "Campagne"
         ordering = ('-id', )
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
     def get_absolute_url(self):
-        from django.core.urlresolvers import reverse
+        from django.urls import reverse
         return reverse(
             'newsletter-campaign-detail',
             args=[
@@ -171,12 +176,30 @@ class Campaign(models.Model):
             ])
 
 
+class Planning(models.Model):
+    campaign = models.ForeignKey(
+        Campaign, verbose_name='campagna', on_delete=models.CASCADE)
+    lists = models.ManyToManyField(SubscriberList, verbose_name='liste')
+    schedule = models.DateTimeField('data e ora')
+    sent = models.BooleanField('inviata', default=False)
+
+    class Meta:
+        verbose_name = "Planning"
+        verbose_name_plural = "Planning"
+
+    def __str__(self):
+        return 'Planngin %s' % self.campaign.name
+
+
 class Dispatch(models.Model):
-    campaign = models.ForeignKey(Campaign, verbose_name='campagna')
+    campaign = models.ForeignKey(
+        Campaign, verbose_name='campagna', on_delete=models.CASCADE)
     lists = models.ManyToManyField(SubscriberList, verbose_name='liste')
     started_at = models.DateTimeField('inizio')
     finished_at = models.DateTimeField('fine', blank=True, null=True)
     error = models.BooleanField('errore', default=False)
+    error_message = models.TextField('messaggio di errore', blank=True,
+                                     null=True)
     success = models.BooleanField('successo', default=False)
     open_statistics = models.BooleanField(
         'statistiche apertura', default=False)
@@ -189,7 +212,7 @@ class Dispatch(models.Model):
         verbose_name = 'Invio'
         verbose_name_plural = 'Invii'
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s - %s - %s' % (self.id, self.campaign,
                                  date_format(
                                      timezone.localtime(self.started_at),
@@ -232,15 +255,17 @@ class Tracking(models.Model):
     )
     datetime = models.DateTimeField(auto_now_add=True)
     type = models.IntegerField('tipo', choices=TYPE_CHOICES)
-    dispatch = models.ForeignKey(Dispatch, verbose_name='invio')
-    subscriber = models.ForeignKey(Subscriber, verbose_name='iscritto')
+    dispatch = models.ForeignKey(
+        Dispatch, verbose_name='invio', on_delete=models.CASCADE)
+    subscriber = models.ForeignKey(
+        Subscriber, verbose_name='iscritto', on_delete=models.CASCADE)
     notes = models.CharField('note', max_length=255, blank=True, null=True)
 
     class Meta:
         verbose_name = "Tracking"
         verbose_name_plural = "Tracking"
 
-    def __unicode__(self):
+    def __str__(self):
         return 'tracking ID %s' % str(self.id)
 
 

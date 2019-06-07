@@ -4,7 +4,7 @@ import re
 from django import template
 from django.utils import timezone
 from django.template import Context
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.sites.models import Site
 from django.core.signing import Signer
 
@@ -36,12 +36,12 @@ def send_campaign(lists_ids, campaign_id):
         success=False
     )
     dispatch.save()
+    sent = 0
     try:
         lists_obj = [SubscriberList.objects.get(pk=x) for x in lists_ids]
-        dispatch.lists = lists_obj
+        dispatch.lists.set(lists_obj)
         dispatch.save()
         # send params
-        sent = 0
         error_addresses = []
         sent_addresses = []
         # templates
@@ -110,7 +110,6 @@ def send_campaign(lists_ids, campaign_id):
                     if re.match('[^\$]*{% ?link[^\$]*?%}[^\$]*', campaign.html_text): # noqa
                         click_tracking = True
                     msg.html_content = html_content
-
                 try:
                     msg.save()
                     sent_addresses.append(subscriber.email)
@@ -125,9 +124,10 @@ def send_campaign(lists_ids, campaign_id):
         dispatch.sent = sent
         dispatch.error_recipients = ','.join(error_addresses)
         dispatch.save()
-        log_email_file.debug("\n".join(sent_addresses))
-    except:
+        # log_email_file.debug("\n".join(sent_addresses))
+    except Exception as e:
         dispatch.error = True
+        dispatch.error_message = str(e)
         dispatch.success = False
         dispatch.save()
 

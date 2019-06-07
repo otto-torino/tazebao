@@ -4,10 +4,19 @@
 from .common import * # noqa
 
 DEBUG = True
+INTERNAL_IPS = ('127.0.0.1', )  # debug toolbar
+
+ALLOWED_HOSTS = ['192.168.1.62', '127.0.0.1', 'localhost',  ]
 
 INSTALLED_APPS += (
     'debug_toolbar',
 )
+
+TEMPLATES[0]['OPTIONS']['debug'] = True
+
+MIDDLEWARE = (
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+) + MIDDLEWARE
 
 # MAIL
 # send to console in dev mode

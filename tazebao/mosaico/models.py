@@ -1,20 +1,21 @@
 from __future__ import unicode_literals
-import urllib
-import re
-import posixpath
-from urlparse import urlparse, urlunparse
 
-from django.db import models
+import posixpath
+import re
+import urllib
+from urllib.parse import urlparse, urlunparse
+
 from django.conf import settings
 from django.contrib.sites.models import Site
-from sorl.thumbnail import ImageField
+from django.db import models
 from jsonfield import JSONField
-
 from newsletter.models import Client
+from sorl.thumbnail import ImageField
 
 
 class Upload(models.Model):
-    client = models.ForeignKey(Client, verbose_name='client')
+    client = models.ForeignKey(
+        Client, verbose_name='client', on_delete=models.CASCADE)
     name = models.CharField('nome', max_length=200)
     image = ImageField('immagine', upload_to="uploads")
 
@@ -44,8 +45,12 @@ class Upload(models.Model):
 
 
 class Template(models.Model):
-    client = models.ForeignKey(Client, verbose_name='client',
-                               blank=True, null=True)
+    client = models.ForeignKey(
+        Client,
+        verbose_name='client',
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL)
     key = models.CharField('chiave', max_length=10)
     name = models.CharField('nome', max_length=200)
     html = models.TextField()

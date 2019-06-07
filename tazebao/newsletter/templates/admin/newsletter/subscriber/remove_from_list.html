@@ -1,7 +1,7 @@
 {% extends "admin/change_form.html" %}
-{% load i18n l10n admin_static admin_modify suit_tags admin_urls %}
+{% load i18n l10n admin_static admin_modify admin_urls %}
 
-{% block extrahead %}<meta charset="utf-8" />{% endblock %}
+{% block extrahead %}<meta charset="utf-8" />{{ block.super }}{% endblock %}
 {% block title %}Rimuovi iscritti da liste | {{ campaign }}{% endblock %}
 
   {% block breadcrumbs %}
@@ -17,9 +17,13 @@
   {% endblock %}
 
 {% block submit_buttons_bottom %}
-    <input type="submit" name="send_submit" value="rimuovi" class="btn btn-high btn-info" />
+    <div class="submit-row">
+        <input type="submit" name="send_submit" value="rimuovi" />
+    </div>
 {% endblock %}
 {% block object-tools %}{% endblock %}
+
+{% block content_title %}<h1>Rimuovi gli iscritti dalle liste selezionate</h1>{% endblock content_title %}
 
 {% block after_field_sets %}
     {% csrf_token %}
@@ -30,14 +34,11 @@
     {% endif %}
     <fieldset class="module aligned first">
         {% for field in form.visible_fields %}
-        <div class="control-group form-row field-sede ">
+        <div class="form-row field-lists">
             <div>
-                <div class="control-label">
-                    {{ field.label_tag }}
-                </div>
-                <div class="controls">
-                    {{ field }}
-                </div>
+                {{ field.label_tag }}
+                {{ field }}
+                <div class="help">Tieni premuto "Control", o "Command" su Mac, per selezionarne più di uno.</div>
             </div>
         </div>
         {% endfor %}
