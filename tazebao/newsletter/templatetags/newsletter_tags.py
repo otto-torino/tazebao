@@ -1,7 +1,6 @@
 import base64
 import hashlib
 import hmac
-import urllib
 from urllib.parse import quote_plus
 
 from django import template
@@ -58,9 +57,9 @@ def dashboard(client):
 @register.simple_tag(takes_context=True)
 def encrypt(context, *args):
     try:
-        bs = ''.join([str(x) for x in args])
+        bs = ''.join([str(x) for x in args]).encode('utf-8')
         dig = hmac.new(
-            str(context['client'].secret_key), bs,
+            bytes(context['client'].secret_key, 'latin-1'), bs,
             digestmod=hashlib.sha256).digest()
         signature = base64.b64encode(dig).decode()
         return quote_plus(signature)
