@@ -2,6 +2,7 @@ import base64
 import hashlib
 import hmac
 import urllib
+from urllib.parse import quote_plus
 
 from django import template
 from django.contrib.sites.models import Site
@@ -62,7 +63,7 @@ def encrypt(context, *args):
             str(context['client'].secret_key), bs,
             digestmod=hashlib.sha256).digest()
         signature = base64.b64encode(dig).decode()
-        return urllib.quote_plus(signature)
+        return quote_plus(signature)
     except:
         return ''
 
