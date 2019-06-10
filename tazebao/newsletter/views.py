@@ -103,8 +103,15 @@ def email_tracking(request, dispatch_id, subscriber_id):
 
     dispatch = get_object_or_404(Dispatch, id=dispatch_id)
     subscriber = get_object_or_404(Subscriber, id=subscriber_id)
-    tracking, created = Tracking.objects.get_or_create(
+    tracking = Tracking.objects.filter(
         dispatch=dispatch, subscriber=subscriber, type=Tracking.OPEN_TYPE)
+    if not tracking.count():
+        new_tracking = Tracking(
+            dispatch=dispatch,
+            subscriber=subscriber,
+            type=Tracking.OPEN_TYPE
+        )
+        new_tracking.save()
 
     PIXEL_GIF_DATA = base64.b64decode("""
     R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7
