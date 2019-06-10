@@ -1,4 +1,5 @@
 import datetime
+import base64
 from urllib.parse import unquote
 
 from django import http, template
@@ -105,9 +106,9 @@ def email_tracking(request, dispatch_id, subscriber_id):
     tracking, created = Tracking.objects.get_or_create(
         dispatch=dispatch, subscriber=subscriber, type=Tracking.OPEN_TYPE)
 
-    PIXEL_GIF_DATA = """
+    PIXEL_GIF_DATA = base64.b64decode("""
     R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7
-    """.strip().decode('base64')
+    """.strip())
     return HttpResponse(PIXEL_GIF_DATA, content_type='image/gif')
 
 
