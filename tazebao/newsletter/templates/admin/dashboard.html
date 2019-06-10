@@ -110,28 +110,30 @@
     <span>Ultimi invii</span>
     <span class="badge badge-pill badge-info">{{ tot_subscribers }} iscritti totali</span>
 </h4>
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Campagna</th>
-            <th>Invio</th>
-            <th>Email</th>
-            <th>Aperture</th>
-            <th>Click</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for d in last_dispatches %}
+<div class="table-responsive">
+    <table class="table table-bordered table-striped">
+        <thead>
             <tr>
-                <td>{{ d.campaign.name }}</td>
-                <td>{{ d.started_at }}</td>
-                <td>{{ d.sent }}</td>
-                <td>{% if d.open_rate %}<span class="badge badge-pill badge-warning" style="font-size: 1.1rem;">{{ d.open_rate }}%</span>{% endif %}</td>
-                <td>{% if d.click_rate %}<span class="badge badge-pill badge-primary" style="font-size: 1.1rem;">{{ d.click_rate }}%</span>{% endif %}</td>
+                <th>Campagna</th>
+                <th>Invio</th>
+                <th>Email</th>
+                <th>Aperture</th>
+                <th>Click</th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for d in last_dispatches %}
+                <tr>
+                    <td>{{ d.campaign.name }}</td>
+                    <td>{{ d.started_at }}</td>
+                    <td>{{ d.sent }}</td>
+                    <td>{% if d.open_rate %}<span class="badge badge-pill badge-warning" style="font-size: 1.1rem;">{{ d.open_rate }}%</span>{% endif %}</td>
+                    <td>{% if d.click_rate %}<span class="badge badge-pill badge-primary" style="font-size: 1.1rem;">{{ d.click_rate }}%</span>{% endif %}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
 <p class="text-center"><i class="text-muted">N.B. vengono considerati solo gli invii a più di {{ threshold }} indirizzi (per scartare i test)</i></p>
 
