@@ -19,7 +19,7 @@ class TemplateAdmin(admin.ModelAdmin):
 
     def create_campaign(self, obj):
         return mark_safe(
-            '<a class="btn btn-primary" href="%s">crea campagna</a>' % (
+            '<a class="btn btn-primary btn-sm" href="%s">crea campagna</a>' % (
                 '/admin/newsletter/campaign/add/#' + str(obj.id)
             )
         )

@@ -630,8 +630,8 @@ admin.site.register(Tracking, TrackingAdmin)
 
 
 class UserMailerMessageAdmin(admin.ModelAdmin):
-    list_display = ('subject', 'to_address', 'dispatch', 'sent',
-                    'last_attempt', 'reply_to')
+    list_display = ('it_subject', 'it_to_address', 'dispatch', 'it_sent',
+                    'it_last_attempt', 'reply_to')
     list_filter = ('sent', )
     search_fields = [
         'to_address',
@@ -653,9 +653,27 @@ class UserMailerMessageAdmin(admin.ModelAdmin):
     )
     actions = ['send_failed']
 
+    def it_subject(self, instance):
+        return instance.subject
+    it_subject.short_description = 'Oggetto'
+
+    def it_to_address(self, instance):
+        return instance.to_address
+    it_to_address.short_description = 'Indirizzo'
+
+    def it_sent(self, instance):
+        if instance.sent:
+            return mark_safe('<img src="/static/admin/img/icon-yes.svg" alt="True">')
+        else:
+            return mark_safe('<img src="/static/admin/img/icon-no.svg" alt="False">')
+    it_sent.short_description = 'Inviata'
+
+    def it_last_attempt(self, instance):
+        return instance.last_attempt
+    it_last_attempt.short_description = 'Ultimo tentativo'
+
     def dispatch(self, obj):
         return '%s' % (Dispatch.objects.get(pk=int(obj.app)))
-
     dispatch.short_description = 'App: Invio ID - DATA CAMPAGNA'
 
     def has_add_permission(self, request):
