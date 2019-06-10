@@ -1,0 +1,37 @@
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.main-content-container {
+  flex: 1;
+}
+
+.footer {
+  align-items: center;
+  background-color: darken(#f50e02, 15%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  justify-content: center;
+  width: 100%;
+
+  a {
+    color: #ffaa00;
+  }
+}
+
+pre {
+  background: #f7f7f7;
+  color: #444;
+  border: 1px solid #ccc;
+  padding: .5rem;
+  margin: 1rem 0;
+}

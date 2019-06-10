@@ -1,0 +1,158 @@
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+
+  // Load the Visualization API and the corechart package.
+  google.charts.load('current', {'packages':['corechart']});
+
+  // Set a callback to run when the Google Visualization API is loaded.
+  google.charts.setOnLoadCallback(drawCharts);
+
+  // Callback that creates and populates a data table,
+  // instantiates the pie chart, passes in the data and
+  // draws it.
+  function drawCharts() {
+    listsChart();
+    openingChart();
+    clickChart();
+  }
+
+  function listsChart () {
+
+    // Create the data table.
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Lista');
+    data.addColumn('number', 'Iscritti');
+    var rows = [];
+    {% for l in lists %}
+        rows.push(['{{ l.name }}', {{ l.subscriber_set.count }}]);
+    {% endfor %}
+    data.addRows(rows);
+
+    // Set chart options
+    var options = {'width':'100%',
+                   'height':300};
+
+    // Instantiate and draw our chart, passing in some options.
+    var chart = new google.visualization.PieChart(document.getElementById('lists-chart'));
+    chart.draw(data, options);
+  }
+
+  function openingChart () {
+        var data = new google.visualization.DataTable();
+        data.addColumn('date', 'Data');
+        data.addColumn('number', 'Aperture');
+        data.addColumn({type:'string',role:'tooltip'});
+
+        var rows = [];
+        {% for d in opening_data %}
+            rows.push([new Date({{ d.dt.year }}, {{ d.dt.month }} - 1, {{ d.dt.day }}), {{ d.num }}, '{{ d.name }}']);
+        {% endfor %}
+
+        data.addRows(rows);
+
+
+        var options = {
+          width: '100%',
+          height: 500,
+          legend: {position: 'bottom'},
+          colors: ['#ffc107'],
+          hAxis: {
+            format: 'd/M/yy',
+            gridlines: {count: 15}
+          },
+          vAxis: {
+            gridlines: {color: 'none'},
+            minValue: 0
+          }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('opening-chart'));
+
+        chart.draw(data, options);
+  }
+
+  function clickChart () {
+        var data = new google.visualization.DataTable();
+        data.addColumn('date', 'Data');
+        data.addColumn('number', 'Click');
+        data.addColumn({type:'string',role:'tooltip'});
+
+        var rows = [];
+        {% for d in click_data %}
+            rows.push([new Date({{ d.dt.year }}, {{ d.dt.month }} - 1, {{ d.dt.day }}), {{ d.num }}, '{{ d.name }}']);
+        {% endfor %}
+
+        data.addRows(rows);
+
+
+        var options = {
+          width: '100%',
+          height: 500,
+          legend: {position: 'bottom'},
+          colors: ['#c32f00'],
+          hAxis: {
+            format: 'd/M/yy',
+            gridlines: {count: 15}
+          },
+          vAxis: {
+            gridlines: {color: 'none'},
+            minValue: 0
+          }
+        };
+
+        var chart = new google.visualization.LineChart(document.getElementById('click-chart'));
+
+        chart.draw(data, options);
+  }
+</script>
+
+<h4 class="d-flex justify-content-between mb-4">
+    <span>Ultimi invii</span>
+    <span class="badge badge-pill badge-info">{{ tot_subscribers }} iscritti totali</span>
+</h4>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Campagna</th>
+            <th>Invio</th>
+            <th>Email</th>
+            <th>Aperture</th>
+            <th>Click</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in last_dispatches %}
+            <tr>
+                <td>{{ d.campaign.name }}</td>
+                <td>{{ d.started_at }}</td>
+                <td>{{ d.sent }}</td>
+                <td>{% if d.open_rate %}<span class="badge badge-pill badge-warning" style="font-size: 1.1rem;">{{ d.open_rate }}%</span>{% endif %}</td>
+                <td>{% if d.click_rate %}<span class="badge badge-pill badge-primary" style="font-size: 1.1rem;">{{ d.click_rate }}%</span>{% endif %}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p class="text-center"><i class="text-muted">N.B. vengono considerati solo gli invii a più di {{ threshold }} indirizzi (per scartare i test)</i></p>
+
+<div class="row">
+    <div class="col-lg-6">
+        <h4 class="text-center" style="position: relative; top: 30px;z-index: 10;">Iscritti per lista</h4>
+        <div id="lists-chart"></div>
+    </div>
+    <div class="col-lg-6">
+        <h4 class="text-center" style="position: relative; top: 30px;z-index: 10;">Campagne inviate</h4>
+        <div class="dispatches-badge">
+            {{ dispatches.count }}
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-12">
+        <h4 class="text-center" style="position: relative; top: 30px;z-index: 10;">Apertura e-mail</h4>
+        <div id="opening-chart"></div>
+        <h4 class="text-center" style="position: relative; top: 30px;z-index: 10;">Click</h4>
+        <div id="click-chart"></div>
+    </div>
+</div>

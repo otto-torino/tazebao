@@ -1,5 +1,5 @@
 import datetime
-import urllib
+from urllib.parse import unquote
 
 from django import http, template
 from django.core.signing import Signer
@@ -38,7 +38,7 @@ def campaign_detail_view(request, client_slug, year, month, day,
         if request.GET.get('subscriber', False) and request.GET.get(
                 'dispatch', False) and request.GET.get('sig', False):  # noqa
             sig = request.GET['sig']
-            signature = urllib.unquote(
+            signature = unquote(
                 encrypt({
                     'client': campaign.client
                 },

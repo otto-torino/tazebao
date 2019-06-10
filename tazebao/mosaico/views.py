@@ -1,6 +1,6 @@
 import logging
 import json
-from urlparse import urlsplit
+from urllib.parse import urlsplit
 
 from django.shortcuts import render, get_object_or_404
 from django.core.mail import send_mail
@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.sites.models import Site
+from django.utils.safestring import mark_safe
 from premailer import transform
 from PIL import Image, ImageDraw
 
@@ -27,7 +28,8 @@ def index(request):
         'save_as': False,
         'has_delete_permission': False,
         'has_add_permission': False,
-        'has_change_permission': False
+        'has_change_permission': False,
+        'site_header': mark_safe(settings.BATON.get('SITE_HEADER'))
     }
     return render(request, 'mosaico/index.html', dict)
 
@@ -64,7 +66,7 @@ def download(request):
 @csrf_exempt
 def upload(request):
     if request.method == 'POST':
-        file = request.FILES.values()[0]
+        file = list(request.FILES.values())[0]
         upload = Upload(
             name=file.name,
             image=file,

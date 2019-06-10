@@ -62,7 +62,7 @@ DATABASES = {
 
 INSTALLED_APPS = (
     'core',
-    'suit',
+    'baton',
     'django.contrib.sites',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -75,6 +75,7 @@ INSTALLED_APPS = (
     'ckeditor_uploader',
     'pipeline',
     'django_cleanup',
+    'export_action',
     'captcha',
     'easy_thumbnails',
     'taggit',
@@ -83,16 +84,15 @@ INSTALLED_APPS = (
     'mailqueue',
     'jsonify',
     'mosaico',
-
     'newsletter',
+    'baton.autodiscover',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -155,39 +155,40 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGIN_URL = '/admin/'
 
 # MENU
-SUIT_CONFIG = {
-    'ADMIN_NAME': 'Tazebao',
-    'SEARCH_URL': 'admin:newsletter_subscriber_changelist',
+BATON = {
+    'SITE_HEADER': '<img src="/static/core/img/logo-sm.png" /> <span style="font-size: 36px !important; position: relative; top: 8px;">Tazebao</span>',
+    'SITE_TITLE': 'Tazebao',
+    'INDEX_TITLE': 'Dashboard',
     'MENU': (
+        {'type': 'title', 'label': 'Sistema',  'apps': ('auth', 'sites', 'newsletter', )},
+        {'type': 'app', 'name': 'auth', 'label': 'Autenticazione', 'icon':'fa fa-lock'},
+        {'type': 'model', 'app': 'sites', 'name': 'site', 'label': 'Siti', 'icon':'fa fa-leaf'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'client', 'label': 'Client', 'icon':'fa fa-laptop-code'},
+        {'type': 'model', 'app': 'flatpages', 'name': 'flatpage', 'label': 'Pagine', 'icon':'fa fa-book'},
 
-        '-',
+        {'type': 'title', 'label': 'Iscrizioni',  'apps': ('newsletter', )},
+        {'type': 'model', 'app': 'newsletter', 'name': 'subscriberlist', 'label': 'Liste iscritti', 'icon':'fa fa-list'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'subscriber', 'label': 'Iscritti', 'icon':'fa fa-user-tie'},
 
-        {'app': 'auth', 'label': 'Autenticazione', 'icon': 'fa fa-lock'},
-        {'app': 'sites', 'label': 'Siti', 'icon': 'fa fa-leaf'},
 
+        {'type': 'title', 'label': 'Newsletter',  'apps': ('newsletter', )},
+        {'type': 'model', 'app': 'mosaico', 'name': 'template', 'label': 'Template', 'icon':'fa fa-th'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'topic', 'label': 'Topic', 'icon':'fa fa-tag'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'campaign', 'label': 'Campagne', 'icon':'fa fa-envelope'},
+        {'type': 'model', 'app': 'mosaico', 'name': 'upload', 'label': 'Upload', 'icon':'fa fa-upload'},
+        {'type': 'free', 'url': '/help/', 'label': 'Aiuto', 'icon':'fa fa-question-circle'},
 
-        '-',
+        {'type': 'title', 'label': 'Invii',  'apps': ('newsletter', )},
+        {'type': 'model', 'app': 'newsletter', 'name': 'planning', 'label': 'Planning', 'icon':'fa fa-clock'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'dispatch', 'label': 'Report', 'icon':'fa fa-paper-plane'},
 
-        {'app': 'flatpages', 'label': 'Pagine', 'icon': 'fa fa-book'},
-
-        '-',
-
-        {'app': 'mosaico', 'label': 'Mosaico', 'icon': 'fa fa-th', 'models': (
-            {'model': 'template', 'label': 'Template'},
-            {'model': 'upload', 'label': 'Upload'},
-        )},
-        {'app': 'newsletter', 'label': 'Newsletter', 'icon':'fa fa-envelope', 'models': ( # noqa
-            'client',
-            'subscriberlist',
-            'subscriber',
-            'topic',
-            'campaign',
-            'dispatch',
-            'tracking',
-            'usermailermessage',
-        )},
-        {'label': 'Aiuto!', 'icon': 'fa fa-life-ring', 'url': '/help/'},
+        {'type': 'title', 'label': 'Statistiche',  'apps': ('newsletter', )},
+        {'type': 'model', 'app': 'newsletter', 'name': 'tracking', 'label': 'Tracking', 'icon':'fa fa-chart-pie'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'usermailermessage', 'label': 'Log invii', 'icon':'fa fa-stethoscope'},
     ),
+    'COPYRIGHT': '© 2016-2019 otto.to.it',
+    'SUPPORT_HREF': 'mailto:stefano.contini@otto.to.it',
+    'POWERED_BY': '<a href="https://www.otto.to.it">Otto srl</a>'
 }
 
 # CKEDITOR
@@ -294,7 +295,7 @@ LOGGING = {
             'class': 'logging.NullHandler',
         },
         'console': {
-            'level': 'DEBUG',
+            'level': 'ERROR',
             'class': 'logging.StreamHandler',
             'formatter': 'verbose'
         },

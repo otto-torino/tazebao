@@ -27,6 +27,7 @@ Tazebao provides the following entities:
 - topic
 - template
 - campaign
+- planning
 - dispatch
 - dispatch queue log
 - tracking
@@ -34,7 +35,7 @@ Tazebao provides the following entities:
 Each __Subscriber__ must belong to one or more lists (__SubscriberList__). Subscriber's e-mail must be unique for each client.
 Each __Campaign__ must belong to a __Topic__, which stores the information about the sender name and address.
 Tazebao integrates [mosaico](https://github.com/voidlabs/mosaico/), a responsive e-mail template generator. The generated template can be included in the campaign.
-The newsletter is sent creating a __Dispatch__, where the user chooses one or more lists of subscribers which will receive the e-mail.
+The newsletter is sent creating a __Dispatch__, where the user chooses one or more lists of subscribers which will receive the e-mail. Newsletter can be scheduled, planning the effective dispatch.
 If the html template of the email contains the closing body tag, then a tracking code is added automatically in order to track if the user opens the e-mail.
 These statistics are inaccurate, because the tracking code works only if the user loads the e-mail images.
 Tazebao provides a __link__ templatetag which can be used to track user clicks (the destination url is transformed in a Tazebao url, which executes a view which detects the event and redirects the user to the original url).
@@ -72,6 +73,9 @@ You should also create a Client's Group, associated with each Client user, with 
 - newsletter | Lista iscritti | Can add Lista iscritti
 - newsletter | Lista iscritti | Can change Lista iscritti
 - newsletter | Lista iscritti | Can delete Lista iscritti
+- newsletter | Planning | Can add Planning
+- newsletter | Planning | Can change Planning
+- newsletter | Planning | Can delete Planning
 - newsletter | Topic | Can add Topic
 - newsletter | Topic | Can change Topic
 - newsletter | Topic | Can delete Topic

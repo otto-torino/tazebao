@@ -13,20 +13,17 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.conf.urls import include, url
-from django.contrib import admin
+from django.urls import include, path, re_path
+from baton.autodiscover import admin
 from django.conf import settings
-from django.views.static import serve
-from django.contrib.staticfiles import views as staticfiles_views
+from django.views import static
+from django.contrib.staticfiles.views import serve
 from django.views.generic import TemplateView
 
 from rest_framework.routers import DefaultRouter
 
 from newsletter.views import SubscriberListViewSet, SubscriberViewSet
 from newsletter.views import CampaignViewSet
-
-admin.site.site_header = 'Tazebao'
-admin.site.site_title = 'Tazebao'
 
 # BEGIN API
 router = DefaultRouter()
@@ -36,23 +33,33 @@ router.register(r'newsletter/campaign', CampaignViewSet)
 # END API
 
 urlpatterns = [
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^$', TemplateView.as_view(template_name='home.html'), name='home'),
+    path(r'admin/', admin.site.urls),
+    path('baton/', include('baton.urls')),
+    path('', TemplateView.as_view(template_name='home.html'), name='home'),
     # newsletter
-    url(r'^newsletter/', include('newsletter.urls')),
+    path('newsletter/', include('newsletter.urls')),
     # ckeditor uploader
-    url(r'^ckeditor/', include('ckeditor_uploader.urls')),
+    path('ckeditor/', include('ckeditor_uploader.urls')),
     # mosaico
-    url(r'^mosaico/', include('mosaico.urls')),
+    path('mosaico/', include('mosaico.urls')),
+    path('export_action/', include("export_action.urls",
+                                   namespace="export_action")),
     # API
-    url(r'^api/v1/', include(router.urls))
+    path('api/v1/', include(router.urls))
 
 ]
 
 if settings.DEBUG:
     urlpatterns += [
-        url(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}), # noqa
+        re_path(r'^media/(?P<path>.*)$',
+                static.serve,
+                {'document_root': settings.MEDIA_ROOT}),
     ]
     urlpatterns += [
-        url(r'^static/(?P<path>.*)$', staticfiles_views.serve),
+        re_path(r'^static/(?P<path>.*)$', serve),
+    ]
+    # debug toolbar
+    import debug_toolbar
+    urlpatterns += [
+        re_path(r'^__debug__/', include(debug_toolbar.urls)),
     ]

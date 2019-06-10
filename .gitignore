@@ -10,3 +10,4 @@ provisioning/playbooks/roles/webapp/templates/env
 releases
 logs
 tazebao/.ropeproject
+tags

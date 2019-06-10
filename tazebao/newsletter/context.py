@@ -21,5 +21,6 @@ def get_campaign_context(campaign, subscriber=None, dispatch=None):
     return {
         'id': campaign.pk,
         'view_online_url': view_online_url,
-        'domain': Site.objects.get_current().domain
+        'domain': Site.objects.get_current().domain,
+        'title': campaign.name
     }

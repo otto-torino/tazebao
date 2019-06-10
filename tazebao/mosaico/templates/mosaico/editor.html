@@ -50,7 +50,7 @@
                                 'margin-top': '5px'
                             }));
                             // hide test, download
-                            $('#toolbar .rightButtons a + a').hide();
+                            // $('#toolbar .rightButtons a + a').hide();
                             $('#toolbar .rightButtons a:first-child + a').show();
                             $('#downloadForm').hide();
 
@@ -62,6 +62,7 @@
 '<p>Puoi utilizzare alcune variabili messe a disposizione da Tazebao:</p>' +
 '<ul>' +
 '<li><code>{% verbatim %}{{ id }}{% endverbatim %}</code><br />id della campagna</li>' +
+'<li><code>{% verbatim %}{{ title }}{% endverbatim %}</code><br />Nome della campagna</li>' +
 '<li><code>{% verbatim %}{{ unsubscribe_url }}{% endverbatim %}</code><br />url disiscrizione newsletter come definito nel Topic cui appartiene la campagna</li>' +
 '<li><code>{% verbatim %}{{ view_online_url }}{% endverbatim %}</code><br />url del contenuto disponibile online. Se la campagna non è impostata per essere visualizzata online, ritorna una pagina 404.</li>' +
 '<li><code>{% verbatim %}{{ domain }}{% endverbatim %}</code><br />dominio applicazione.</li>' +
@@ -166,7 +167,8 @@
                         "File upload aborted": "Caricamento del file annullato",
                         "Failed to resize image": "Impossibile ridimensionare l'immagine",
                         "Unexpected upload error": "Errore inaspettato durante il caricamento",
-                        "Unexpected error listing files": "Errore inaspettato caricando la lista dei file"
+                        "Unexpected error listing files": "Errore inaspettato caricando la lista dei file",
+                        "Successfully saved.": "Salvataggio avvenuto con successo"
                     },
                     imgProcessorBackend: basePath+'/img/',
                     emailProcessorBackend: basePath+'/dl/',

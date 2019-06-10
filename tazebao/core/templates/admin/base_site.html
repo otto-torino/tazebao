@@ -1,30 +1,40 @@
 {% extends "admin/base.html" %}
-{% load suit_tags %}
+{% load static baton_tags %}
 
-{% block extrastyle %}
-<link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,400i,500,700" rel="stylesheet"> 
-<link rel="stylesheet" type="text/css" href="/static/core/src/css/admin.css">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block extrahead %}
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <link href="https://fonts.googleapis.com/css?family=Dosis:300,400,700" rel="stylesheet">
+    <script src="{% static 'baton/app/dist/baton.min.js' %}"></script>
+    <!-- <script src="http://localhost:8080/dist/baton.min.js"></script> -->
+    <script>
+        {% baton_config 'CONFIRM_UNSAVED_CHANGES' as confirm_unsaved_changes %}
+        {% baton_config 'SHOW_MULTIPART_UPLOADING' as show_multipart_uploading %}
+        {% baton_config 'ENABLE_IMAGES_PREVIEW' as enable_images_preview %}
+        (function ($, undefined) {
+            $(window).on('load', function () {
+                Baton.init({
+                    api: {
+                        app_list: '{% url 'baton-app-list-json' %}'
+                    },
+                    confirmUnsavedChanges: {% if confirm_unsaved_changes %}true{% else%}false{% endif %},
+                    showMultipartUploading: {% if show_multipart_uploading %}true{% else%}false{% endif %},
+                    enableImagesPreview: {% if enable_images_preview %}true{% else%}false{% endif %}
+                });
+            })
+        })(jQuery, undefined)
+    </script>
+    <script>window.CKEDITOR_BASEPATH = '/static/ckeditor/ckeditor/';</script>
 {% endblock %}
 
-{% block quick-search %}
-{% with 'SEARCH_URL'|suit_conf as search_url %}
-    {% if search_url %}
-    <form class="form-search nav-quick-search" autocomplete="off" action="{% if '/' in search_url %}{{ search_url }}{% else %}{% url search_url %}{% endif %}" method="GET">
-        <input type="text" name="q" class="input-medium search-query" id="quick-search" placeholder="cerca iscritto..." />
-        <i class="input-icon icon-search"></i>
-        <input type="submit" class="submit" value="">
-    </form>
-    {% endif %}
-{% endwith %}
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">{{ site_header|default:_('Django administration') }}</a></h1>
 {% endblock %}
 
-{% block footer_links %}
-<a href="mailto:stefano.contini@otto.to.it?subject=Supporto Tazebao" target="_blank" class="icon"><i class="icon-question-sign"></i>Supporto</a>
-<a href="http://github.com/otto-torino/tazebao/issues" target="_blank" class="icon"><i class="icon-comment"></i>Segnala un bug</a>
+{% block nav-global %}{% endblock %}
+
+{% block footer %}
+    {% footer %}
 {% endblock %}
 
-
-{% block copyright %}
-Copyright &copy; 2016 Otto srl<br>Developed by <a href="http://www.otto.to.it" target="_blank">otto.to.it</a>
-{% endblock %}
