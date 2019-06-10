@@ -211,7 +211,7 @@ the POST data should be a json of the following format:
 
     "{"email":"xxx@abidibo.net","info":"\"firstname=\"meow\"\"","lists":["1"]}" 
 
-email and lists fields are required.
+email and lists fields are required. If you try to add a subscriber with an email address already associated to the client, you get a 400 response describing the error.
 
 ##### Edit a subscriber
 

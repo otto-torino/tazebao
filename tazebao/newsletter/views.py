@@ -3,10 +3,12 @@ import base64
 from urllib.parse import unquote
 
 from django import http, template
+from django.db import IntegrityError
 from django.core.signing import Signer
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 
 from .context import get_campaign_context
@@ -196,7 +198,10 @@ class SubscriberViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
-        serializer.save(client=self.request.user.client)
+        try:
+            serializer.save(client=self.request.user.client)
+        except IntegrityError:
+            raise ValidationError(detail={'email': 'Esiste già un utente iscritto con questo indirizzo e-mail'})
 
 
 class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
