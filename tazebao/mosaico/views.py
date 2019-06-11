@@ -149,7 +149,7 @@ def template(request):
                 client=request.user.client,
                 key=key
             )
-        template.name = name
+        template.name = template.name if template.id else name
         template.html = html
         template.template_data = template_data
         template.meta_data = meta_data
