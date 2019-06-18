@@ -183,7 +183,7 @@ BATON = {
         {'type': 'title', 'label': 'Invii',  'apps': ('newsletter', )},
         {'type': 'model', 'app': 'newsletter', 'name': 'planning', 'label': 'Planning', 'icon':'fa fa-clock'},
         {'type': 'model', 'app': 'newsletter', 'name': 'dispatch', 'label': 'Report', 'icon':'fa fa-paper-plane'},
-        {'type': 'model', 'app': 'newsletter', 'name': 'failedemail', 'label': 'E-mail fallite', 'icon':'fa fa-ban'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'failedemail', 'label': 'Bounces', 'icon':'fa fa-ban'},
 
         {'type': 'title', 'label': 'Statistiche',  'apps': ('newsletter', )},
         {'type': 'model', 'app': 'newsletter', 'name': 'tracking', 'label': 'Tracking', 'icon':'fa fa-chart-pie'},

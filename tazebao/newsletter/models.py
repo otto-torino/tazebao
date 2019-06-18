@@ -21,8 +21,8 @@ class Client(models.Model):
         'secret key', max_length=32, unique=True, blank=True, null=True)
 
     class Meta:
-        verbose_name = "Client"
-        verbose_name_plural = "Client"
+        verbose_name = "client"
+        verbose_name_plural = "client"
 
     def __str__(self):
         return self.name
@@ -34,8 +34,8 @@ class SubscriberList(models.Model):
     name = models.CharField('nome', max_length=50)
 
     class Meta:
-        verbose_name = "Lista iscritti"
-        verbose_name_plural = "Liste iscritti"
+        verbose_name = "lista iscritti"
+        verbose_name_plural = "liste iscritti"
 
     def __str__(self):
         return '%s (%s iscritti)' % (self.name, self.subscriber_set.count())
@@ -54,8 +54,8 @@ class Subscriber(models.Model):
         'data accettazione GDPR', blank=True, null=True)
 
     class Meta:
-        verbose_name = "Iscritto"
-        verbose_name_plural = "Iscritti"
+        verbose_name = "iscritto"
+        verbose_name_plural = "iscritti"
         unique_together = (
             'client',
             'email',
@@ -90,8 +90,8 @@ class Topic(models.Model):
         '''))
 
     class Meta:
-        verbose_name = "Topic"
-        verbose_name_plural = "Topic"
+        verbose_name = "topic"
+        verbose_name_plural = "topic"
 
     def __str__(self):
         return self.name
@@ -158,8 +158,8 @@ class Campaign(models.Model):
     view_online = models.BooleanField('visualizza online', default=True)
 
     class Meta:
-        verbose_name = "Campagna"
-        verbose_name_plural = "Campagne"
+        verbose_name = "campagna"
+        verbose_name_plural = "campagne"
         ordering = ('-id', )
 
     def __str__(self):
@@ -185,8 +185,8 @@ class Planning(models.Model):
     sent = models.BooleanField('inviata', default=False)
 
     class Meta:
-        verbose_name = "Planning"
-        verbose_name_plural = "Planning"
+        verbose_name = "planning"
+        verbose_name_plural = "planning"
 
     def __str__(self):
         return 'Planngin %s' % self.campaign.name
@@ -210,8 +210,8 @@ class Dispatch(models.Model):
         'indirizzi in errore', blank=True, null=True)
 
     class Meta:
-        verbose_name = 'Invio'
-        verbose_name_plural = 'Invii'
+        verbose_name = 'invio'
+        verbose_name_plural = 'invii'
 
     def __str__(self):
         return '%s - %s - %s' % (self.id, self.campaign,
@@ -263,8 +263,8 @@ class Tracking(models.Model):
     notes = models.CharField('note', max_length=255, blank=True, null=True)
 
     class Meta:
-        verbose_name = "Tracking"
-        verbose_name_plural = "Tracking"
+        verbose_name = "tracking"
+        verbose_name_plural = "tracking"
 
     def __str__(self):
         return 'tracking ID %s' % str(self.id)
@@ -273,8 +273,8 @@ class Tracking(models.Model):
 class UserMailerMessage(MailerMessage):
     class Meta:
         proxy = True
-        verbose_name = 'Log invio'
-        verbose_name_plural = 'Log invii'
+        verbose_name = 'log invio'
+        verbose_name_plural = 'log invii'
 
 
 class FailedEmail(models.Model):
@@ -299,8 +299,8 @@ class FailedEmail(models.Model):
     email_id = models.CharField('id email', max_length=50)
 
     class Meta:
-        verbose_name = "E-mail fallita"
-        verbose_name_plural = "E-mail fallite"
+        verbose_name = "bounce"
+        verbose_name_plural = "bounces"
 
     def __str__(self):
         return super(FailedEmail, self).__str__()
