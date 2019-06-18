@@ -264,7 +264,7 @@ class FailedEmailApiView(View):
     def post(self, request):
         authentication = PostfixNewsletterAPISignatureAuthentication()
         if (authentication.authenticate(request)):
-            data = json.loads(request.body)
+            data = json.loads(request.body.decode('utf-8'))
             datetime_string = data.get('datetime')
             from_email = data.get('from_email')
             email = data.get('email')
