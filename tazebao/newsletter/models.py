@@ -296,7 +296,7 @@ class FailedEmail(models.Model):
         related_name='failedemails')
     message = models.TextField(blank=True, null=True)
     status = models.CharField('status', max_length=50, blank=True, null=True)
-    email_id = models.CharField('id email', max_length=50)
+    email_id = models.CharField('id email', max_length=50, unique=True)
 
     class Meta:
         verbose_name = "bounce"
