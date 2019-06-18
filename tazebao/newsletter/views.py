@@ -264,7 +264,10 @@ class FailedEmailApiView(View):
     def post(self, request):
         authentication = PostfixNewsletterAPISignatureAuthentication()
         if (authentication.authenticate(request)):
-            data = json.loads(request.body.decode('utf-8'))
+            try:
+                data = json.loads(request.body.decode('utf-8'))  # remote
+            except Exception as e:
+                data = json.loads(request.body)  # local
             datetime_string = data.get('datetime')
             from_email = data.get('from_email')
             email = data.get('email')
@@ -293,17 +296,20 @@ class FailedEmailApiView(View):
             subscriber = Subscriber.objects.filter(
                 client=client, email=email).first()
 
-            failed_email = FailedEmail(
-                datetime=dt,
-                client=client,
-                dispatch=dispatch,
-                from_email=from_email,
-                subscriber=subscriber,
-                status=status,
-                message=message,
-                email_id=email_id,
-            )
-            failed_email.save()
+            try:
+                failed_email = FailedEmail(
+                    datetime=dt,
+                    client=client,
+                    dispatch=dispatch,
+                    from_email=from_email,
+                    subscriber=subscriber,
+                    status=status,
+                    message=message,
+                    email_id=email_id,
+                )
+                failed_email.save()
+            except Exception as e:
+                return HttpResponse('Error: %s' % str(e))
             return HttpResponse('failed email correctly inserted')
         else:
             return http.HttpResponseForbidden()
