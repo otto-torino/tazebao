@@ -507,6 +507,10 @@ class DispatchAdmin(DisplayOnlyIfAdminOrHasClient):
         ('campaign', admin.RelatedOnlyFieldListFilter),
     )
 
+    def changelist_view(self, request, extra_context=None):
+        extra_context = {'title': 'Scegli report da visualizzare'}
+        return super(DispatchAdmin, self).changelist_view(request, extra_context=extra_context)
+
     def has_add_permission(self, request):
         """ User can't create dispatches """
         return False
@@ -619,6 +623,10 @@ class TrackingAdmin(DisplayOnlyIfAdminOrHasClient):
         'subscriber',
     )
 
+    def changelist_view(self, request, extra_context=None):
+        extra_context = {'title': 'Scegli tracking da visualizzare'}
+        return super(TrackingAdmin, self).changelist_view(request, extra_context=extra_context)
+
     def has_add_permission(self, request):
         """ User can't create trackings """
         return False
@@ -658,6 +666,7 @@ class UserMailerMessageAdmin(admin.ModelAdmin):
     readonly_fields = (
         'subject',
         'to_address',
+        'cc_address',
         'bcc_address',
         'from_address',
         'reply_to',
@@ -666,6 +675,10 @@ class UserMailerMessageAdmin(admin.ModelAdmin):
         'app',
     )
     actions = ['send_failed']
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = {'title': 'Scegli log da visualizzare'}
+        return super(UserMailerMessageAdmin, self).changelist_view(request, extra_context=extra_context)
 
     def it_subject(self, instance):
         return instance.subject
@@ -795,6 +808,10 @@ class FailedEmailAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
     list_display_links = ('subscriber', )
     search_fields = ('subscriber__email', )
     actions = [delete_failed_subscribers, ]
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = {'title': 'Lista e-mail bounced'}
+        return super(FailedEmailAdmin, self).changelist_view(request, extra_context=extra_context)
 
     def get_list_display_links(self, request, list_display):
         """
