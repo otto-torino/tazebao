@@ -7,8 +7,9 @@ from django.urls import reverse
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
-from .models import (Campaign, Client, Dispatch, Planning, Subscriber,
-                     SubscriberList, Topic, Tracking, UserMailerMessage)
+from .models import (Campaign, Client, Dispatch, FailedEmail, Planning,
+                     Subscriber, SubscriberList, Topic, Tracking,
+                     UserMailerMessage)
 # send campaign
 from .tasks import send_campaign
 
@@ -417,11 +418,13 @@ class CampaignAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
     def send_campaign_btn(self, obj):
         info = self.model._meta.app_label, self.model._meta.model_name
         return mark_safe(
-            '<a href="%s" class="btn btn-success btn-sm">invia ora</a>' % reverse(
-                'admin:%s_%s_send_campaign' % info, args=[
-                    obj.id,
-                ])) + mark_safe(
-            '&nbsp;<a href="/admin/newsletter/planning/add/?campaign=%d" class="btn btn-warning btn-sm">programma</a>' % obj.id)
+            '<a href="%s" class="btn btn-success btn-sm">invia ora</a>' %
+            reverse('admin:%s_%s_send_campaign' % info, args=[
+                obj.id,
+            ])
+        ) + mark_safe(
+            '&nbsp;<a href="/admin/newsletter/planning/add/?campaign=%d" class="btn btn-warning btn-sm">programma</a>'
+            % obj.id)
 
     send_campaign_btn.short_description = 'invio'
 
@@ -504,10 +507,6 @@ class DispatchAdmin(DisplayOnlyIfAdminOrHasClient):
         ('campaign', admin.RelatedOnlyFieldListFilter),
     )
 
-    readonly_fields = [f.name for f in Dispatch._meta.fields] + [
-        'lists',
-    ]  # noqa
-
     def has_add_permission(self, request):
         """ User can't create dispatches """
         return False
@@ -516,6 +515,15 @@ class DispatchAdmin(DisplayOnlyIfAdminOrHasClient):
         if request.user.is_superuser:
             return self.list_display + ('client', )
         return self.list_display
+
+    def get_readonly_fields(self, request, obj=None):
+        if request.user.is_superuser:
+            return [f.name for f in Dispatch._meta.fields] + [
+                'lists',
+            ]
+        return [f.name for f in Dispatch._meta.fields if f.name != 'finished_at'] + [
+            'lists',
+        ]
 
     def client(self, obj):
         return obj.campaign.client
@@ -573,6 +581,12 @@ class DispatchAdmin(DisplayOnlyIfAdminOrHasClient):
              clicks))  # noqa
 
     click_rate.short_description = 'click'
+
+    def get_form(self, request, obj=None, **kwargs):
+        if not request.user.is_superuser:
+            self.exclude = ("finished_at", )
+        form = super(DispatchAdmin, self).get_form(request, obj, **kwargs)
+        return form
 
 
 admin.site.register(Dispatch, DispatchAdmin)
@@ -655,25 +669,32 @@ class UserMailerMessageAdmin(admin.ModelAdmin):
 
     def it_subject(self, instance):
         return instance.subject
+
     it_subject.short_description = 'Oggetto'
 
     def it_to_address(self, instance):
         return instance.to_address
+
     it_to_address.short_description = 'Indirizzo'
 
     def it_sent(self, instance):
         if instance.sent:
-            return mark_safe('<img src="/static/admin/img/icon-yes.svg" alt="True">')
+            return mark_safe(
+                '<img src="/static/admin/img/icon-yes.svg" alt="True">')
         else:
-            return mark_safe('<img src="/static/admin/img/icon-no.svg" alt="False">')
+            return mark_safe(
+                '<img src="/static/admin/img/icon-no.svg" alt="False">')
+
     it_sent.short_description = 'Inviata'
 
     def it_last_attempt(self, instance):
         return instance.last_attempt
+
     it_last_attempt.short_description = 'Ultimo tentativo'
 
     def dispatch(self, obj):
         return '%s' % (Dispatch.objects.get(pk=int(obj.app)))
+
     dispatch.short_description = 'App: Invio ID - DATA CAMPAGNA'
 
     def has_add_permission(self, request):
@@ -715,7 +736,10 @@ class PlanningAdmin(DisplayOnlyIfAdminOrHasClient):
         ('campaign', admin.RelatedOnlyFieldListFilter),
     )
 
-    readonly_fields = ['sent', ]
+    readonly_fields = [
+        'sent',
+    ]
+
     def get_list_display(self, request):
         if request.user.is_superuser:
             return self.list_display + ('client', )
@@ -743,7 +767,48 @@ class PlanningAdmin(DisplayOnlyIfAdminOrHasClient):
         if db_field.name == "lists" and not request.user.is_superuser:
             kwargs["queryset"] = SubscriberList.objects.filter(
                 client__user=request.user)
-        return super(PlanningAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
+        return super(PlanningAdmin, self).formfield_for_manytomany(
+            db_field, request, **kwargs)
 
 
 admin.site.register(Planning, PlanningAdmin)
+
+
+def delete_failed_subscribers(modeladmin, request, queryset):
+    for e in queryset:
+        e.subscriber.delete()
+
+
+delete_failed_subscribers.short_description = 'Elimina iscritti selezionati'
+
+
+class FailedEmailAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
+                       ClientReadOnly, ClientOnlyAdminListDisplay):
+    list_display = (
+        'subscriber',
+        'datetime',
+        'from_email',
+        'message',
+        'dispatch',
+    )
+    list_filter = (('client', admin.RelatedOnlyFieldListFilter), ('subscriber', admin.RelatedOnlyFieldListFilter), )
+    list_display_links = ('subscriber', )
+    search_fields = ('subscriber__email', )
+    actions = [delete_failed_subscribers, ]
+
+    def get_list_display_links(self, request, list_display):
+        """
+        Return a sequence containing the fields to be displayed as links
+        on the changelist. The list_display parameter is the list of fields
+        returned by get_list_display().
+
+        We override Django's default implementation to specify no links unless
+        these are explicitly set.
+        """
+        if request.user.is_superuser:
+            return self.list_display_links
+        else:
+            return (None,)
+
+
+admin.site.register(FailedEmail, FailedEmailAdmin)

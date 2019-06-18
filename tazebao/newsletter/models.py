@@ -60,6 +60,7 @@ class Subscriber(models.Model):
             'client',
             'email',
         )
+        ordering = ('email', )
 
     def __str__(self):
         return self.email
@@ -198,8 +199,8 @@ class Dispatch(models.Model):
     started_at = models.DateTimeField('inizio')
     finished_at = models.DateTimeField('fine', blank=True, null=True)
     error = models.BooleanField('errore', default=False)
-    error_message = models.TextField('messaggio di errore', blank=True,
-                                     null=True)
+    error_message = models.TextField(
+        'messaggio di errore', blank=True, null=True)
     success = models.BooleanField('successo', default=False)
     open_statistics = models.BooleanField(
         'statistiche apertura', default=False)
@@ -274,3 +275,32 @@ class UserMailerMessage(MailerMessage):
         proxy = True
         verbose_name = 'Log invio'
         verbose_name_plural = 'Log invii'
+
+
+class FailedEmail(models.Model):
+    client = models.ForeignKey(
+        Client, verbose_name='client', on_delete=models.CASCADE)
+    dispatch = models.ForeignKey(
+        Dispatch,
+        verbose_name='invio',
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+        related_name='failedemails')
+    datetime = models.DateTimeField('data e ora')
+    from_email = models.EmailField('indirizzo from')
+    subscriber = models.ForeignKey(
+        Subscriber,
+        verbose_name='iscritto',
+        on_delete=models.CASCADE,
+        related_name='failedemails')
+    message = models.TextField(blank=True, null=True)
+    status = models.CharField('status', max_length=50, blank=True, null=True)
+    email_id = models.CharField('id email', max_length=50)
+
+    class Meta:
+        verbose_name = "E-mail fallita"
+        verbose_name_plural = "E-mail fallite"
+
+    def __str__(self):
+        return super(FailedEmail, self).__str__()

@@ -116,5 +116,34 @@
 })(django.jQuery);
 </script>
 
+<div style="clear:both; padding-top: 3rem;">
+    <h2>E-mail bounced</h2>
+    <p>Gestisci le e-mail bounced nella sezione "<a href="/admin/newsletter/failedemail/">E-mail fallite</a>".</p>
+    {% if original.failedemails.count %}
+        <table class="table table-sm table-striped table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>Iscritto</th>
+                    <th>Status</th>
+                    <th>Messaggio</th>
+                    <th>Data e ora</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in original.failedemails.all %}
+                    <tr>
+                        <td>{{ e.subscriber }}</td>
+                        <td>{{ e.status }}</td>
+                        <td>{{ e.message }}</td>
+                        <td>{{ e.datetime }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="alert alert-info">Al momento non risultano e-mail bounced</p>
+    {% endif %}
+</div>
+
 {% endif %}
 {% endblock %}

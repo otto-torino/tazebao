@@ -13,17 +13,16 @@ Including another URLconf
     1. Add an import:  from blog import urls as blog_urls
     2. Add a URL to urlpatterns:  url(r'^blog/', include(blog_urls))
 """
-from django.urls import include, path, re_path
 from baton.autodiscover import admin
 from django.conf import settings
-from django.views import static
 from django.contrib.staticfiles.views import serve
+from django.urls import include, path, re_path
+from django.views import static
 from django.views.generic import TemplateView
-
 from rest_framework.routers import DefaultRouter
 
-from newsletter.views import SubscriberListViewSet, SubscriberViewSet
-from newsletter.views import CampaignViewSet
+from newsletter.views import (CampaignViewSet, FailedEmailApiView,
+                              SubscriberListViewSet, SubscriberViewSet)
 
 # BEGIN API
 router = DefaultRouter()
@@ -42,17 +41,19 @@ urlpatterns = [
     path('ckeditor/', include('ckeditor_uploader.urls')),
     # mosaico
     path('mosaico/', include('mosaico.urls')),
-    path('export_action/', include("export_action.urls",
-                                   namespace="export_action")),
+    path('export_action/',
+         include("export_action.urls", namespace="export_action")),
     # API
+    path(
+        'api/v1/newsletter/failedemail/',
+        FailedEmailApiView.as_view(),
+        name='failed-email-api'),
     path('api/v1/', include(router.urls))
-
 ]
 
 if settings.DEBUG:
     urlpatterns += [
-        re_path(r'^media/(?P<path>.*)$',
-                static.serve,
+        re_path(r'^media/(?P<path>.*)$', static.serve,
                 {'document_root': settings.MEDIA_ROOT}),
     ]
     urlpatterns += [

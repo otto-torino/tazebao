@@ -23,6 +23,8 @@ load_dotenv(dotenv_path)
 SECRET_KEY = env(
     'SECRET_KEY',
     '49saa%ruey1&!nveiz*f(cu$)0pje8wz7u++y-0ljd2)9r)j8h')
+POSTFIX_CLIENT_ID = env('POSTFIX_CLIENT_ID')
+POSTFIX_CLIENT_SECRET = env('POSTFIX_CLIENT_SECRET')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -181,6 +183,7 @@ BATON = {
         {'type': 'title', 'label': 'Invii',  'apps': ('newsletter', )},
         {'type': 'model', 'app': 'newsletter', 'name': 'planning', 'label': 'Planning', 'icon':'fa fa-clock'},
         {'type': 'model', 'app': 'newsletter', 'name': 'dispatch', 'label': 'Report', 'icon':'fa fa-paper-plane'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'failedemail', 'label': 'E-mail fallite', 'icon':'fa fa-ban'},
 
         {'type': 'title', 'label': 'Statistiche',  'apps': ('newsletter', )},
         {'type': 'model', 'app': 'newsletter', 'name': 'tracking', 'label': 'Tracking', 'icon':'fa fa-chart-pie'},

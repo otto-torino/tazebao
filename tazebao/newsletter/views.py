@@ -1,21 +1,29 @@
-import datetime
 import base64
+import datetime
+import json
+from datetime import datetime, timedelta
 from urllib.parse import unquote
 
 from django import http, template
-from django.db import IntegrityError
 from django.core.signing import Signer
-from django.http import HttpResponse, HttpResponseRedirect
+from django.db import IntegrityError
+from django.http import (HttpResponse, HttpResponseBadRequest,
+                         HttpResponseRedirect)
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 
+from .auth import PostfixNewsletterAPISignatureAuthentication
 from .context import get_campaign_context
-from .models import Campaign, Dispatch, Subscriber, SubscriberList, Tracking
+from .models import (Campaign, Client, Dispatch, FailedEmail, Subscriber,
+                     SubscriberList, Tracking)
 from .permissions import IsClient
-from .serializers import (CampaignSerializer, SubscriberListSerializer,  # noqa
-                          SubscriberSerializer)
+from .serializers import SubscriberListSerializer  # noqa
+from .serializers import CampaignSerializer, SubscriberSerializer
 from .templatetags.newsletter_tags import encrypt
 
 
@@ -109,10 +117,7 @@ def email_tracking(request, dispatch_id, subscriber_id):
         dispatch=dispatch, subscriber=subscriber, type=Tracking.OPEN_TYPE)
     if not tracking.count():
         new_tracking = Tracking(
-            dispatch=dispatch,
-            subscriber=subscriber,
-            type=Tracking.OPEN_TYPE
-        )
+            dispatch=dispatch, subscriber=subscriber, type=Tracking.OPEN_TYPE)
         new_tracking.save()
 
     PIXEL_GIF_DATA = base64.b64decode("""
@@ -201,7 +206,11 @@ class SubscriberViewSet(viewsets.ModelViewSet):
         try:
             serializer.save(client=self.request.user.client)
         except IntegrityError:
-            raise ValidationError(detail={'email': 'Esiste già un utente iscritto con questo indirizzo e-mail'})
+            raise ValidationError(
+                detail={
+                    'email':
+                    'Esiste già un utente iscritto con questo indirizzo e-mail'
+                })
 
 
 class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
@@ -243,3 +252,58 @@ class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
                 last_edit_datetime__lte=datetime.datetime.strptime(
                     date_to, "%Y-%m-%d"))
         return qs
+
+
+class FailedEmailApiView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        # no need for CSRF protection since it is an HMAC request
+        return super(FailedEmailApiView, self).dispatch(
+            request, *args, **kwargs)
+
+    def post(self, request):
+        authentication = PostfixNewsletterAPISignatureAuthentication()
+        if (authentication.authenticate(request)):
+            data = json.loads(request.body)
+            datetime_string = data.get('datetime')
+            from_email = data.get('from_email')
+            email = data.get('email')
+            status = data.get('status')
+            message = data.get('message')
+            email_id = data.get('email_id')
+            if not datetime_string:
+                return HttpResponseBadRequest('missing datetime field')
+            if not from_email:
+                return HttpResponseBadRequest('missing from email field')
+            if not email:
+                return HttpResponseBadRequest('missing email field')
+            if not email_id:
+                return HttpResponseBadRequest('missing email id field')
+            dt = datetime.strptime(datetime_string, '%Y-%m-%d %H:%M:%S')
+            # try to get client
+            client = Client.objects.filter(
+                topic__sending_address=from_email,
+                subscriber__email=email).first()
+            if not client:
+                return HttpResponseBadRequest('unrecognized client')
+            # try to get dispatch
+            dispatch = Dispatch.objects.filter(
+                campaign__client=client,
+                finished_at__range=(dt - timedelta(hours=6), dt)).first()
+            subscriber = Subscriber.objects.filter(
+                client=client, email=email).first()
+
+            failed_email = FailedEmail(
+                datetime=dt,
+                client=client,
+                dispatch=dispatch,
+                from_email=from_email,
+                subscriber=subscriber,
+                status=status,
+                message=message,
+                email_id=email_id,
+            )
+            failed_email.save()
+            return HttpResponse('failed email correctly inserted')
+        else:
+            return http.HttpResponseForbidden()
