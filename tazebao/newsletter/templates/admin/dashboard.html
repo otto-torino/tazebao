@@ -143,9 +143,9 @@
         <div id="lists-chart"></div>
     </div>
     <div class="col-lg-6">
-        <h4 class="text-center" style="position: relative; top: 30px;z-index: 10;">Campagne inviate</h4>
-        <div class="dispatches-badge">
-            {{ dispatches.count }}
+        <h4 class="text-center" style="position: relative; top: 30px;z-index: 10;">Bounces</h4>
+        <div class="dispatches-badge" style="cursor: pointer" onclick="location.href='/admin/newsletter/failedemail/'">
+            {{ subscribers_bounces.count }}
         </div>
     </div>
 </div>

@@ -8,7 +8,7 @@ from django.contrib.sites.models import Site
 from django.core.signing import Signer
 from django.urls import reverse
 
-from ..models import Dispatch, Subscriber, SubscriberList, Tracking
+from ..models import Dispatch, Subscriber, SubscriberList, Tracking, FailedEmail
 
 register = template.Library()
 
@@ -20,6 +20,8 @@ def dashboard(client):
     dispatches = Dispatch.objects.filter(
         campaign__client=client, error=False,
         sent__gt=THRESHOLD).order_by('-started_at')
+    bounces = FailedEmail.objects.filter(client=client)
+    subscribers_bounces = Subscriber.objects.filter(id__in=[b.subscriber.id for b in bounces])
     last_dispatches = dispatches[:4]
     lists = SubscriberList.objects.filter(client=client)
     tot_subscribers = Subscriber.objects.filter(client=client).count()
@@ -46,6 +48,8 @@ def dashboard(client):
         'client': client,
         'last_dispatches': last_dispatches,
         'dispatches': dispatches,
+        'bounces': bounces,
+        'subscribers_bounces': subscribers_bounces,
         'lists': lists,
         'tot_subscribers': tot_subscribers,
         'opening_data': opening_data,
