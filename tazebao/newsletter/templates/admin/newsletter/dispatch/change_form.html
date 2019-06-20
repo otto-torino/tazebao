@@ -116,6 +116,8 @@
 })(django.jQuery);
 </script>
 
+{% endif %}
+
 <div style="clear:both; padding-top: 3rem;">
     <h2>E-mail bounced</h2>
     <p>Gestisci le e-mail bounced nella sezione "<a href="/admin/newsletter/failedemail/">Bounces</a>".</p>
@@ -144,6 +146,4 @@
         <p class="alert alert-info">Al momento non risultano e-mail bounced</p>
     {% endif %}
 </div>
-
-{% endif %}
 {% endblock %}
