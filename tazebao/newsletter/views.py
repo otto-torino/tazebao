@@ -1,5 +1,4 @@
 import base64
-import datetime
 import json
 from datetime import datetime, timedelta
 from urllib.parse import unquote
@@ -245,11 +244,11 @@ class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(html_text__icontains=text)
         if date_from is not None:
             qs = qs.filter(
-                last_edit_datetime__gte=datetime.datetime.strptime(
+                last_edit_datetime__gte=datetime.strptime(
                     date_from, "%Y-%m-%d"))
         if date_to is not None:
             qs = qs.filter(
-                last_edit_datetime__lte=datetime.datetime.strptime(
+                last_edit_datetime__lte=datetime.strptime(
                     date_to, "%Y-%m-%d"))
         return qs
 
