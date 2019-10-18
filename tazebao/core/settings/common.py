@@ -4,6 +4,7 @@ Django settings for tazebao project.
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import datetime
 from dotenv import load_dotenv
 from getenv import env
 
@@ -83,6 +84,7 @@ INSTALLED_APPS = (
     'taggit',
     'rest_framework',
     'rest_framework_httpsignature',
+    'corsheaders',
     'mailqueue',
     'jsonify',
     'mosaico',
@@ -92,6 +94,7 @@ INSTALLED_APPS = (
 
 MIDDLEWARE = (
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -261,8 +264,24 @@ PIPELINE = {
 }
 
 # API
+JWT_AUTH = {
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=60),
+    'JWT_ALLOW_REFRESH': True,
+}
+CORS_ORIGIN_WHITELIST = (
+    '127.0.0.1',
+    'localhost',
+)
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = (
+    'cache-control',
+    'content-type',
+    'authorization',
+    'set-cookie',
+)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'newsletter.auth.NewsletterAPISignatureAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
