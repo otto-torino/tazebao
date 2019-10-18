@@ -257,7 +257,10 @@ class Tracking(models.Model):
     datetime = models.DateTimeField(auto_now_add=True)
     type = models.IntegerField('tipo', choices=TYPE_CHOICES)
     dispatch = models.ForeignKey(
-        Dispatch, verbose_name='invio', on_delete=models.CASCADE)
+        Dispatch,
+        verbose_name='invio',
+        on_delete=models.CASCADE,
+        related_name='trackings')
     subscriber = models.ForeignKey(
         Subscriber, verbose_name='iscritto', on_delete=models.CASCADE)
     notes = models.CharField('note', max_length=255, blank=True, null=True)
@@ -286,14 +289,14 @@ class FailedEmail(models.Model):
         on_delete=models.CASCADE,
         blank=True,
         null=True,
-        related_name='failedemails')
+        related_name='bounces')
     datetime = models.DateTimeField('data e ora')
     from_email = models.EmailField('indirizzo from')
     subscriber = models.ForeignKey(
         Subscriber,
         verbose_name='iscritto',
         on_delete=models.CASCADE,
-        related_name='failedemails')
+        related_name='bounces')
     message = models.TextField(blank=True, null=True)
     status = models.CharField('status', max_length=50, blank=True, null=True)
     email_id = models.CharField('id email', max_length=50, unique=True)

@@ -1,15 +1,17 @@
 from django import template
 from django.contrib.sites.models import Site
-
 from rest_framework import serializers
 
-from .models import Subscriber, SubscriberList, Campaign
 from .context import get_campaign_context
+from .models import Campaign, Dispatch, Subscriber, SubscriberList, Tracking, FailedEmail
 
-class ClientFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField): # noqa
+
+class ClientFilteredPrimaryKeyRelatedField(
+        serializers.PrimaryKeyRelatedField):  # noqa
     def get_queryset(self):
         request = self.context.get('request', None)
-        queryset = super(ClientFilteredPrimaryKeyRelatedField, self).get_queryset() # noqa
+        queryset = super(ClientFilteredPrimaryKeyRelatedField,
+                         self).get_queryset()  # noqa
         if not request or not queryset:
             return None
         return queryset.filter(client__user__id=request.user.id)
@@ -17,9 +19,13 @@ class ClientFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField): 
 
 class SubscriberListSerializer(serializers.ModelSerializer):
     """ SubscriberList Serializer """
+
     class Meta:
         model = SubscriberList
-        fields = ('id', 'name', )
+        fields = (
+            'id',
+            'name',
+        )
         read_only_fields = ('client', )
 
 
@@ -30,13 +36,20 @@ class SubscriberSerializer(serializers.ModelSerializer):
         This way you can set lists only passing an array of ids.
     """
     lists = ClientFilteredPrimaryKeyRelatedField(
-        many=True,
-        queryset=SubscriberList.objects.all())
+        many=True, queryset=SubscriberList.objects.all())
 
     class Meta:
         model = Subscriber
-        fields = ('id', 'client', 'email', 'subscription_datetime',
-                  'info', 'lists', 'opt_in', 'opt_in_datetime', )
+        fields = (
+            'id',
+            'client',
+            'email',
+            'subscription_datetime',
+            'info',
+            'lists',
+            'opt_in',
+            'opt_in_datetime',
+        )
         read_only_fields = ('client', )
 
 
@@ -50,9 +63,19 @@ class CampaignSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Campaign
-        fields = ('id', 'topic_id', 'topic', 'name',
-                  'insertion_datetime', 'last_edit_datetime', 'subject',
-                  'plain_text', 'html_text', 'view_online', 'url', )
+        fields = (
+            'id',
+            'topic_id',
+            'topic',
+            'name',
+            'insertion_datetime',
+            'last_edit_datetime',
+            'subject',
+            'plain_text',
+            'html_text',
+            'view_online',
+            'url',
+        )
         read_only_fields = ('client', )
 
     def topic_fn(self, obj):
@@ -68,7 +91,8 @@ class CampaignSerializer(serializers.ModelSerializer):
         return tpl.render(context)
 
     def html_text_fn(self, obj):
-        tpl = template.Template('{% load newsletter_tags %}' + obj.html_text) # noqa
+        tpl = template.Template(
+            '{% load newsletter_tags %}' + obj.html_text)  # noqa
         context = template.Context({})
         context.update(get_campaign_context(obj))
         return tpl.render(context)
@@ -79,3 +103,72 @@ class CampaignSerializer(serializers.ModelSerializer):
             str(Site.objects.get_current()),
             obj.get_absolute_url()
         ])
+
+
+class FailedEmailSerializer(serializers.ModelSerializer):
+    """ Tracking Serializer """
+    subscriber_email = serializers.SerializerMethodField("subscriber_email_fn")
+
+    class Meta:
+        model = FailedEmail
+        fields = (
+            'id',
+            'datetime',
+            'dispatch',
+            'from_email',
+            'subscriber_email',
+            'message',
+            'status',
+        )
+
+    def subscriber_email_fn(self, obj):
+        return obj.subscriber.email
+
+
+class TrackingSerializer(serializers.ModelSerializer):
+    """ Tracking Serializer """
+    subscriber_email = serializers.SerializerMethodField("subscriber_email_fn")
+    type = serializers.SerializerMethodField("type_fn")
+
+    class Meta:
+        model = Tracking
+        fields = (
+            'id',
+            'datetime',
+            'type',
+            'subscriber_email',
+            'notes',
+        )
+
+    def subscriber_email_fn(self, obj):
+        return obj.subscriber.email
+
+    def type_fn(self, obj):
+        return obj.get_type_display()
+
+
+class DispatchSerializer(serializers.ModelSerializer):
+    """ Campaign Serializer """
+    trackings = TrackingSerializer(many=True, read_only=True)
+    bounces = FailedEmailSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Dispatch
+        fields = (
+            'id',
+            'campaign',
+            'lists',
+            'started_at',
+            'finished_at',
+            'error',
+            'error_message',
+            'success',
+            'open_statistics',
+            'click_statistics',
+            'sent',
+            'error_recipients',
+            'open_rate',
+            'click_rate',
+            'trackings',
+            'bounces',
+        )

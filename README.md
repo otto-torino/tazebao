@@ -293,6 +293,87 @@ returns the campaign object represented by CAMPAIGN_ID, i.e.:
     }
 
 
+#### Dispatches
+
+Dispatch models are readonly, so you can only retrieve a list of paginated dispatches, or a single dispatch.
+
+##### Retrieve dispatches
+
+    GET http://localhost:8000/api/v1/newsletter/dispatch/
+
+returns a paginated (20 for page) list of dispatches associated to the authenticated client, i.e.:
+
+    {
+        "count": 2,
+        "next": "http://localhost:8000/api/v1/newsletter/campaign/?page=2",
+        "previous": null,
+        "results": [
+            {
+                "id": 800,
+                "campaign": 387,
+                "lists": [
+                    23
+                ],
+                "started_at": "2019-06-06T10:28:34+02:00",
+                "finished_at": "2019-06-06T10:28:34+02:00",
+                "error": false,
+                "error_message": null,
+                "success": true,
+                "open_statistics": true,
+                "click_statistics": false,
+                "sent": 1,
+                "error_recipients": ""
+                "open_rate": 100,
+                "click_rate": 100,
+                "trackings": [
+                    {
+                        "id": 159589,
+                        "datetime": "2019-06-06T16:46:40+02:00",
+                        "type": "apertura",
+                        "subscriber_email": "xxx@otto.to.it",
+                        "notes": null
+                    },
+                    {
+                        "id": 159590,
+                        "datetime": "2019-06-06T17:50:54+02:00",
+                        "type": "click",
+                        "subscriber_email": "yyy@otto.to.it",
+                        "notes": "http:\/\/www.google.it"
+                    }
+                ],
+                "bounces": [
+                    {
+                        "id": 1,
+                        "datetime": "2019-10-18T15:40:19+02:00",
+                        "dispatch": 800,
+                        "from_email": "test@otto.to.it",
+                        "subscriber_email": "xxx@gmail.com",
+                        "message": "host gmail-smtp-in.l.google.com[108.177.15.26] said: 550-5.1.1 The email account that you tried to reach does not exist. Please try 550-5.1.1 double-checking the recipient's email address for typos or 550-5.1.1 unnecessary spaces. Learn more at 550 5.1.1 https:\/\/support.google.com\/mail\/?p=NoSuchUser f2si4669900wrx.476 - gsmtp (in reply to RCPT TO command)",
+                        "status": "bounced"
+                    }
+                ]
+            },
+            // ... 19 more
+        ]
+    }
+
+additional filters can be used to retrieve campaigns:
+
+- `date_from` in the format `YYYY-MM-DD`
+- `date_to` in the format `YYYY-MM-DD`
+- `campaign`
+
+just add them in the query string, i.e.
+
+    http://localhost:8000/api/v1/newsletter/dispatch/?subject=foo&date_from=2018-09-12
+
+##### Get a dispatch
+
+    GET http://localhost:8000/api/v1/newsletter/dispatch/<DISPATCH_ID>/
+
+returns the dispatch object represented by DISPATCH_ID, i.e.:
+
+
 ## <a name="mosaico-integration"></a>Mosaico Integration
 
 Tazebao relies on [mosaico](https://github.com/voidlabs/mosaico/) in order to provide a template generator engine.

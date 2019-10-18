@@ -121,7 +121,7 @@
 <div style="clear:both; padding-top: 3rem;">
     <h2>E-mail bounced</h2>
     <p>Gestisci le e-mail bounced nella sezione "<a href="/admin/newsletter/failedemail/">Bounces</a>".</p>
-    {% if original.failedemails.count %}
+    {% if original.bounces.count %}
         <table class="table table-sm table-striped table-bordered table-hover">
             <thead>
                 <tr>
@@ -132,7 +132,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for e in original.failedemails.all %}
+                {% for e in original.bounces.all %}
                     <tr>
                         <td>{{ e.subscriber }}</td>
                         <td>{{ e.status }}</td>

@@ -21,8 +21,8 @@ from .context import get_campaign_context
 from .models import (Campaign, Client, Dispatch, FailedEmail, Subscriber,
                      SubscriberList, Tracking)
 from .permissions import IsClient
-from .serializers import SubscriberListSerializer  # noqa
-from .serializers import CampaignSerializer, SubscriberSerializer
+from .serializers import (CampaignSerializer, DispatchSerializer,
+                          SubscriberListSerializer, SubscriberSerializer)
 from .templatetags.newsletter_tags import encrypt
 
 
@@ -213,7 +213,7 @@ class SubscriberViewSet(viewsets.ModelViewSet):
 
 
 class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
-    """ Subscriber cRud
+    """ Campaigns cRud
     """
     lookup_field = 'pk'
     queryset = Campaign.objects.all()
@@ -228,7 +228,7 @@ class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
         ]
 
     def get_queryset(self):
-        """ Retrieves only clients campaigns
+        """ Retrieves only client's campaigns
         """
         qs = Campaign.objects.filter(client__user__id=self.request.user.id)
         view_online = self.request.query_params.get('view_online', None)
@@ -248,8 +248,41 @@ class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
                     date_from, "%Y-%m-%d"))
         if date_to is not None:
             qs = qs.filter(
-                last_edit_datetime__lte=datetime.strptime(
-                    date_to, "%Y-%m-%d"))
+                last_edit_datetime__lte=datetime.strptime(date_to, "%Y-%m-%d"))
+        return qs
+
+
+class DispatchViewSet(viewsets.ReadOnlyModelViewSet):
+    """ Dispatches cRud
+    """
+    lookup_field = 'pk'
+    queryset = Dispatch.objects.all()
+    serializer_class = DispatchSerializer
+    pagination_class = ResultsSetPagination
+
+    def get_permissions(self):
+        """ Only client users can perform object actions
+        """
+        return [
+            IsClient('campaign'),
+        ]
+
+    def get_queryset(self):
+        """ Retrieves only client's dispatches
+        """
+        qs = Dispatch.objects.filter(campaign__client__user__id=self.request.user.id)
+        campaign_id = self.request.query_params.get('campaign', None)
+        date_from = self.request.query_params.get('date_from', None)
+        date_to = self.request.query_params.get('date_to', None)
+        if campaign_id is not None:
+            qs = qs.filter(campaign__id=campaign_id)
+        if date_from is not None:
+            qs = qs.filter(
+                started_at__gte=datetime.strptime(
+                    date_from, "%Y-%m-%d"))
+        if date_to is not None:
+            qs = qs.filter(
+                started_at__lte=datetime.strptime(date_to, "%Y-%m-%d"))
         return qs
 
 
