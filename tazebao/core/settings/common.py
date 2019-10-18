@@ -269,8 +269,8 @@ JWT_AUTH = {
     'JWT_ALLOW_REFRESH': True,
 }
 CORS_ORIGIN_WHITELIST = (
-    '127.0.0.1',
-    'localhost',
+    'http://127.0.0.1',
+    'http://localhost',
 )
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = (
