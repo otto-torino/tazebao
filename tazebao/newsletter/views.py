@@ -1,7 +1,9 @@
 import base64
 import json
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from urllib.parse import unquote
+
+from dateutil.relativedelta import relativedelta
 
 from django import http, template
 from django.core.signing import Signer
@@ -15,14 +17,17 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .auth import PostfixNewsletterAPISignatureAuthentication
 from .context import get_campaign_context
-from .models import (Campaign, Client, Dispatch, FailedEmail, Subscriber,
-                     SubscriberList, Tracking)
+from .models import (Campaign, Client, Dispatch, FailedEmail, Planning,
+                     Subscriber, SubscriberList, Tracking)
 from .permissions import IsClient
 from .serializers import (CampaignSerializer, DispatchSerializer,
-                          SubscriberListSerializer, SubscriberSerializer)
+                          PlanningSerializer, SubscriberListSerializer,
+                          SubscriberSerializer)
 from .templatetags.newsletter_tags import encrypt
 
 
@@ -153,6 +158,7 @@ class ResultsSetPagination(PageNumberPagination):
 
 class LargeResultsSetPagination(PageNumberPagination):
     page_size = 200
+    page_size_query_param = 'page_size'
 
 
 class SubscriberListViewSet(viewsets.ModelViewSet):
@@ -270,7 +276,8 @@ class DispatchViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """ Retrieves only client's dispatches
         """
-        qs = Dispatch.objects.filter(campaign__client__user__id=self.request.user.id)
+        qs = Dispatch.objects.filter(
+            campaign__client__user__id=self.request.user.id)
         campaign_id = self.request.query_params.get('campaign', None)
         date_from = self.request.query_params.get('date_from', None)
         date_to = self.request.query_params.get('date_to', None)
@@ -278,8 +285,7 @@ class DispatchViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(campaign__id=campaign_id)
         if date_from is not None:
             qs = qs.filter(
-                started_at__gte=datetime.strptime(
-                    date_from, "%Y-%m-%d"))
+                started_at__gte=datetime.strptime(date_from, "%Y-%m-%d"))
         if date_to is not None:
             qs = qs.filter(
                 started_at__lte=datetime.strptime(date_to, "%Y-%m-%d"))
@@ -345,3 +351,30 @@ class FailedEmailApiView(View):
                 'failed email correctly inserted', content_type='text/plain')
         else:
             return http.HttpResponseForbidden()
+
+
+class StatsApiView(APIView):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'description': 'not authenticated'}, status=401)
+            response = {}
+        else:
+            today = date.today()
+            last_month = today - relativedelta(months=1)
+            tot_subscribers = Subscriber.objects.filter(
+                client__user=request.user).count()
+            last_month_subscribers = Subscriber.objects.filter(
+                client__user=request.user,
+                subscription_datetime__gte=last_month).count()
+            last_dispatch = Dispatch.objects.filter(
+                campaign__client__user=request.user).last()
+            next_planning = Planning.objects.filter(
+                campaign__client__user=request.user,
+                schedule__gte=datetime.now()).first()
+            response = {
+                'subscribers': tot_subscribers,
+                'lastMonthSubscribers': last_month_subscribers,
+                'lastDispatch': DispatchSerializer(last_dispatch).data if last_dispatch else None,
+                'nextPlanning': PlanningSerializer(next_planning).data if next_planning else None,
+            }
+        return Response(response)

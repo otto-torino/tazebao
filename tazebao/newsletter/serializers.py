@@ -3,7 +3,7 @@ from django.contrib.sites.models import Site
 from rest_framework import serializers
 
 from .context import get_campaign_context
-from .models import Campaign, Dispatch, Subscriber, SubscriberList, Tracking, FailedEmail
+from .models import Campaign, Dispatch, Subscriber, SubscriberList, Tracking, FailedEmail, Planning
 
 
 class ClientFilteredPrimaryKeyRelatedField(
@@ -148,15 +148,17 @@ class TrackingSerializer(serializers.ModelSerializer):
 
 
 class DispatchSerializer(serializers.ModelSerializer):
-    """ Campaign Serializer """
+    """ Dispatch Serializer """
     trackings = TrackingSerializer(many=True, read_only=True)
     bounces = FailedEmailSerializer(many=True, read_only=True)
+    campaign_name = serializers.SerializerMethodField("campaign_name_fn")
 
     class Meta:
         model = Dispatch
         fields = (
             'id',
             'campaign',
+            'campaign_name',
             'lists',
             'started_at',
             'finished_at',
@@ -172,3 +174,25 @@ class DispatchSerializer(serializers.ModelSerializer):
             'trackings',
             'bounces',
         )
+
+    def campaign_name_fn(self, obj):
+        return obj.campaign.name
+
+
+class PlanningSerializer(serializers.ModelSerializer):
+    """ Planning Serializer """
+    campaign_name = serializers.SerializerMethodField("campaign_name_fn")
+
+    class Meta:
+        model = Planning
+        fields = (
+            'id',
+            'campaign',
+            'campaign_name',
+            'lists',
+            'schedule',
+            'sent',
+        )
+
+    def campaign_name_fn(self, obj):
+        return obj.campaign.name

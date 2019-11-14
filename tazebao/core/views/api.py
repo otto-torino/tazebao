@@ -11,6 +11,7 @@ class WhoAmI(APIView):
 
     def get(self, request):
         if not request.user.is_authenticated:
+            return Response({'description': 'not authenticated'}, status=401)
             response = {}
         else:
             response = {
