@@ -9,7 +9,7 @@ from django.utils.safestring import mark_safe
 
 from .models import (Campaign, Client, Dispatch, FailedEmail, Planning,
                      Subscriber, SubscriberList, Topic, Tracking,
-                     UserMailerMessage)
+                     Unsubscription, UserMailerMessage)
 # send campaign
 from .tasks import send_campaign
 
@@ -509,7 +509,8 @@ class DispatchAdmin(DisplayOnlyIfAdminOrHasClient):
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {'title': 'Scegli report da visualizzare'}
-        return super(DispatchAdmin, self).changelist_view(request, extra_context=extra_context)
+        return super(DispatchAdmin, self).changelist_view(
+            request, extra_context=extra_context)
 
     def has_add_permission(self, request):
         """ User can't create dispatches """
@@ -525,7 +526,9 @@ class DispatchAdmin(DisplayOnlyIfAdminOrHasClient):
             return [f.name for f in Dispatch._meta.fields] + [
                 'lists',
             ]
-        return [f.name for f in Dispatch._meta.fields if f.name != 'finished_at'] + [
+        return [
+            f.name for f in Dispatch._meta.fields if f.name != 'finished_at'
+        ] + [
             'lists',
         ]
 
@@ -625,7 +628,8 @@ class TrackingAdmin(DisplayOnlyIfAdminOrHasClient):
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {'title': 'Scegli tracking da visualizzare'}
-        return super(TrackingAdmin, self).changelist_view(request, extra_context=extra_context)
+        return super(TrackingAdmin, self).changelist_view(
+            request, extra_context=extra_context)
 
     def has_add_permission(self, request):
         """ User can't create trackings """
@@ -678,7 +682,8 @@ class UserMailerMessageAdmin(admin.ModelAdmin):
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {'title': 'Scegli log da visualizzare'}
-        return super(UserMailerMessageAdmin, self).changelist_view(request, extra_context=extra_context)
+        return super(UserMailerMessageAdmin, self).changelist_view(
+            request, extra_context=extra_context)
 
     def it_subject(self, instance):
         return instance.subject
@@ -804,14 +809,20 @@ class FailedEmailAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
         'message',
         'dispatch',
     )
-    list_filter = (('client', admin.RelatedOnlyFieldListFilter), ('subscriber', admin.RelatedOnlyFieldListFilter), )
+    list_filter = (
+        ('client', admin.RelatedOnlyFieldListFilter),
+        ('subscriber', admin.RelatedOnlyFieldListFilter),
+    )
     list_display_links = ('subscriber', )
     search_fields = ('subscriber__email', )
-    actions = [delete_failed_subscribers, ]
+    actions = [
+        delete_failed_subscribers,
+    ]
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {'title': 'Lista e-mail bounced'}
-        return super(FailedEmailAdmin, self).changelist_view(request, extra_context=extra_context)
+        return super(FailedEmailAdmin, self).changelist_view(
+            request, extra_context=extra_context)
 
     def get_list_display_links(self, request, list_display):
         """
@@ -825,7 +836,21 @@ class FailedEmailAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
         if request.user.is_superuser:
             return self.list_display_links
         else:
-            return (None,)
+            return (None, )
 
 
 admin.site.register(FailedEmail, FailedEmailAdmin)
+
+
+class UnsubscriptionAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
+                          ClientReadOnly, ClientOnlyAdminListDisplay):
+    list_display = ('datetime', )
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+
+admin.site.register(Unsubscription, UnsubscriptionAdmin)

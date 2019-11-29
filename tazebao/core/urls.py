@@ -24,15 +24,20 @@ from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 
 from core.views.api import WhoAmI
 from newsletter.views import (CampaignViewSet, DispatchViewSet,
-                              FailedEmailApiView, SubscriberListViewSet,
-                              SubscriberViewSet, StatsApiView)
+                              FailedEmailApiView, FailedEmailViewSet,
+                              PlanningViewSet, StatsApiView,
+                              SubscriberListViewSet, SubscriberViewSet,
+                              TopicViewSet)
 
 # BEGIN API
 router = DefaultRouter()
 router.register(r'newsletter/subscriberlist', SubscriberListViewSet)
 router.register(r'newsletter/subscriber', SubscriberViewSet)
+router.register(r'newsletter/topic', TopicViewSet)
 router.register(r'newsletter/campaign', CampaignViewSet)
 router.register(r'newsletter/dispatch', DispatchViewSet)
+router.register(r'newsletter/planning', PlanningViewSet)
+router.register(r'newsletter/bounces', FailedEmailViewSet)
 # END API
 
 urlpatterns = [
@@ -52,7 +57,6 @@ urlpatterns = [
         'api/v1/newsletter/failedemail/',
         FailedEmailApiView.as_view(),
         name='failed-email-api'),
-
     path('api/v1/login/', obtain_jwt_token),
     path('api/v1/refresh-token/', refresh_jwt_token),
     path('api/v1/whoami/', WhoAmI.as_view()),

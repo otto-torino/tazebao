@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import json
 
 import posixpath
 import re
@@ -9,8 +10,9 @@ from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import models
 from jsonfield import JSONField
-from newsletter.models import Client
 from sorl.thumbnail import ImageField
+
+from newsletter.models import Campaign, Client
 
 
 class Upload(models.Model):
@@ -51,6 +53,12 @@ class Template(models.Model):
         blank=True,
         null=True,
         on_delete=models.SET_NULL)
+    campaign = models.OneToOneField(
+        Campaign,
+        verbose_name='campagna',
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True)
     key = models.CharField('chiave', max_length=10)
     name = models.CharField('nome', max_length=200)
     html = models.TextField()
@@ -61,6 +69,12 @@ class Template(models.Model):
 
     def __unicode__(self):
         return "%s - %s" % (self.name, self.key)
+
+    def meta_data_json(self):
+        return json.dumps(self.meta_data)
+
+    def template_data_json(self):
+        return json.dumps(self.template_data)
 
     def save(self, *args, **kwargs):
         self.meta_data['name'] = self.name

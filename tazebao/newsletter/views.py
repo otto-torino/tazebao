@@ -1,34 +1,48 @@
 import base64
 import json
+import random
+import string
+import time
 from datetime import date, datetime, timedelta
 from urllib.parse import unquote
 
 from dateutil.relativedelta import relativedelta
-
 from django import http, template
 from django.core.signing import Signer
-from django.db import IntegrityError
-from django.http import (HttpResponse, HttpResponseBadRequest,
+from django.db import IntegrityError, transaction
+from django.http import (Http404, HttpResponse, HttpResponseBadRequest,
                          HttpResponseRedirect)
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from mosaico.models import Template
+from mosaico.serializers import TemplateSerializer
+
 from .auth import PostfixNewsletterAPISignatureAuthentication
 from .context import get_campaign_context
 from .models import (Campaign, Client, Dispatch, FailedEmail, Planning,
-                     Subscriber, SubscriberList, Tracking)
+                     Subscriber, SubscriberList, Topic, Tracking, Unsubscription)
 from .permissions import IsClient
 from .serializers import (CampaignSerializer, DispatchSerializer,
-                          PlanningSerializer, SubscriberListSerializer,
-                          SubscriberSerializer)
+                          FailedEmailSerializer, PlanningSerializer,
+                          SubscriberListSerializer, SubscriberSerializer,
+                          TopicSerializer)
+from .tasks import send_campaign
 from .templatetags.newsletter_tags import encrypt
+
+
+def random_string(string_length=7):
+    """Generate a random string of fixed length """
+    letters = string.ascii_lowercase
+    return ''.join(random.choice(letters) for i in range(string_length))
 
 
 def campaign_detail_view(request, client_slug, year, month, day,
@@ -186,6 +200,48 @@ class SubscriberListViewSet(viewsets.ModelViewSet):
         serializer.save(client=self.request.user.client)
 
 
+class PlanningViewSet(viewsets.ModelViewSet):
+    """ SubscriberList CRUD
+    """
+    lookup_field = 'pk'
+    queryset = Planning.objects.all()
+    serializer_class = PlanningSerializer
+
+    def get_permissions(self):
+        """ Only client users can perform object actions
+        """
+        return [
+            IsClient('campaign'),
+        ]
+
+    def get_queryset(self):
+        """ Retrieves only clients plannings
+        """
+        return Planning.objects.filter(
+            campaign__client__user__id=self.request.user.id)  # noqa
+
+
+class FailedEmailViewSet(viewsets.ModelViewSet):
+    """ FailedEmail CRUD
+    """
+    lookup_field = 'pk'
+    queryset = FailedEmail.objects.all()
+    serializer_class = FailedEmailSerializer
+
+    def get_permissions(self):
+        """ Only client users can perform object actions
+        """
+        return [
+            IsClient(),
+        ]
+
+    def get_queryset(self):
+        """ Retrieves only clients plannings
+        """
+        return FailedEmail.objects.filter(
+            client__user__id=self.request.user.id)  # noqa
+
+
 class SubscriberViewSet(viewsets.ModelViewSet):
     """ Subscriber CRUD
     """
@@ -217,14 +273,52 @@ class SubscriberViewSet(viewsets.ModelViewSet):
                     'Esiste già un utente iscritto con questo indirizzo e-mail'
                 })
 
+    @action(detail=False, methods=['post'])
+    def add_list(self, request):
+        subscribers = request.data.get('subscribers')
+        for subscriber_id in subscribers:
+            try:
+                subscriber = Subscriber.objects.get(id=int(subscriber_id))
+                subscriber.lists.add(*request.data.get('lists'))
+            except IntegrityError:
+                pass
+            except Exception as e:
+                print(e)
+                return HttpResponseBadRequest('unexisting subscriber or list')
+        return Response({})
 
-class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
-    """ Campaigns cRud
+    @transaction.atomic
+    @action(detail=False, methods=['post'])
+    def remove_list(self, request):
+        subscribers = request.data.get('subscribers')
+        for subscriber_id in subscribers:
+            try:
+                subscriber = Subscriber.objects.get(id=int(subscriber_id))
+                subscriber.lists.remove(*request.data.get('lists'))
+            except Exception as e:
+                print(e)
+                return HttpResponseBadRequest('unexisting subscriber or list')
+        return Response({})
+
+    @action(detail=False, methods=['post'])
+    def delete_from_bounces(self, request):
+        bounces_ids = request.data.get('bounces')
+        try:
+            subscribers = Subscriber.objects.filter(
+                bounces__id__in=bounces_ids).delete()
+            return Response({'detail': 'subscribers deleted'})
+        except Exception as e:
+            print(e)
+            return HttpResponseBadRequest(str(e))
+
+
+class CampaignViewSet(viewsets.ModelViewSet):
+    """ Campaigns CRUD
     """
     lookup_field = 'pk'
     queryset = Campaign.objects.all()
     serializer_class = CampaignSerializer
-    pagination_class = ResultsSetPagination
+    pagination_class = LargeResultsSetPagination
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -256,6 +350,72 @@ class CampaignViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(
                 last_edit_datetime__lte=datetime.strptime(date_to, "%Y-%m-%d"))
         return qs
+
+    def perform_create(self, serializer):
+        """ Automatically set the client field """
+        serializer.save(client=self.request.user.client)
+
+    @action(detail=True, methods=['get'])
+    def get_template(self, request, pk=None):
+        campaign = self.get_object()
+        if not campaign.template:
+            raise Http404()
+        else:
+            tpl = TemplateSerializer(campaign.template)
+            return Response(tpl.data)
+
+    @action(detail=True, methods=['get'])
+    def dispatches(self, request, pk=None):
+        campaign = self.get_object()
+        data = DispatchSerializer(campaign.dispatch_set, many=True)
+        return Response(data.data)
+
+    @action(detail=True, methods=['post'])
+    def send(self, request, pk=None):
+        campaign = self.get_object()
+        if (campaign.client != request.user.client):
+            raise Http404()
+        else:
+            try:
+                send_campaign.delay(request.data.get('lists'), campaign.id)
+                return Response({'detail': 'task queued'})
+            except Exception as e:
+                return HttpResponseBadRequest(
+                    'cannot send campaign: %s' % str(e))
+
+    @action(detail=True, methods=['post'])
+    def duplicate(self, request, pk=None):
+        campaign = self.get_object()
+        if (campaign.client != request.user.client):
+            raise Http404()
+        if not campaign.template:
+            raise Http404()
+        try:
+            new_campaign = Campaign(
+                client=campaign.client,
+                name=campaign.name + ' (copy)',
+                slug=str(int(time.time())),
+                topic=campaign.topic,
+                subject=campaign.subject,
+                plain_text=campaign.plain_text,
+                html_text=campaign.html_text,
+                view_online=campaign.view_online,
+            )
+            new_campaign.save()
+            new_template = Template(
+                client=campaign.template.client,
+                campaign=new_campaign,
+                key=random_string(),
+                name=campaign.template.name,
+                html=campaign.template.html,
+                template_data=campaign.template.template_data,
+                meta_data=campaign.template.meta_data,
+            )
+            new_template.save()
+            return Response({'id': new_campaign.id})
+        except Exception as e:
+            return HttpResponseBadRequest(
+                'cannot duplicate campaign: %s' % str(e))
 
 
 class DispatchViewSet(viewsets.ReadOnlyModelViewSet):
@@ -353,6 +513,31 @@ class FailedEmailApiView(View):
             return http.HttpResponseForbidden()
 
 
+class TopicViewSet(viewsets.ModelViewSet):
+    """ Topic CRUD
+    """
+    lookup_field = 'pk'
+    queryset = Topic.objects.all()
+    serializer_class = TopicSerializer
+
+    def get_permissions(self):
+        """ Only client users can perform object actions
+        """
+        return [
+            IsClient(),
+        ]
+
+    def get_queryset(self):
+        """ Retrieves only clients lists
+        """
+        return Topic.objects.filter(
+            client__user__id=self.request.user.id)  # noqa
+
+    def perform_create(self, serializer):
+        """ Automatically set the client field """
+        serializer.save(client=self.request.user.client)
+
+
 class StatsApiView(APIView):
     def get(self, request):
         if not request.user.is_authenticated:
@@ -366,6 +551,9 @@ class StatsApiView(APIView):
             last_month_subscribers = Subscriber.objects.filter(
                 client__user=request.user,
                 subscription_datetime__gte=last_month).count()
+            last_month_unsubscriptions= Unsubscription.objects.filter(
+                client__user=request.user,
+                datetime__gte=last_month).count()
             last_dispatch = Dispatch.objects.filter(
                 campaign__client__user=request.user).last()
             next_planning = Planning.objects.filter(
@@ -373,6 +561,7 @@ class StatsApiView(APIView):
                 schedule__gte=datetime.now()).first()
             response = {
                 'subscribers': tot_subscribers,
+                'lastMonthUnsubscriptions': last_month_unsubscriptions,
                 'lastMonthSubscribers': last_month_subscribers,
                 'lastDispatch': DispatchSerializer(last_dispatch).data if last_dispatch else None,
                 'nextPlanning': PlanningSerializer(next_planning).data if next_planning else None,

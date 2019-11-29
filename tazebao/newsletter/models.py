@@ -6,6 +6,9 @@ from django.db import models
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.safestring import mark_safe
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
+
 from mailqueue.models import MailerMessage
 
 
@@ -307,3 +310,24 @@ class FailedEmail(models.Model):
 
     def __str__(self):
         return super(FailedEmail, self).__str__()
+
+
+class Unsubscription(models.Model):
+    client = models.ForeignKey(
+        Client, verbose_name='client', on_delete=models.CASCADE)
+    datetime = models.DateTimeField('data e ora', auto_now_add=True)
+
+    class Meta:
+        verbose_name = "disiscrizione"
+        verbose_name_plural = "disiscrizioni"
+
+    def __str__(self):
+        return super(Unsubscription, self).__str__()
+
+
+@receiver(pre_delete, sender=Subscriber)
+def log_unsubscription(sender, instance, using, **kwargs):
+    unsubscription = Unsubscription(
+        client=instance.client
+    )
+    unsubscription.save()

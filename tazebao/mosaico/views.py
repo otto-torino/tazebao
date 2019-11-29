@@ -1,4 +1,5 @@
 import logging
+import re
 import json
 from urllib.parse import urlsplit
 
@@ -7,13 +8,23 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+from django.http.response import JsonResponse
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.sites.models import Site
 from django.utils.safestring import mark_safe
+from django.views.decorators.clickjacking import xframe_options_exempt
+from django.template.defaultfilters import slugify, striptags
 from premailer import transform
 from PIL import Image, ImageDraw
 
+
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated
+from core.authentication import JSONWebTokenQuerystringAuthentication
+
 from .models import Upload, Template
+from .utils import html2text, extract_urllinks
+from newsletter.models import Campaign, Topic
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -33,10 +44,39 @@ def index(request):
     }
     return render(request, 'mosaico/index.html', dict)
 
+@xframe_options_exempt
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+@authentication_classes((JSONWebTokenQuerystringAuthentication,))
+def appindex(request):
+    dict = {
+        'opts': Template._meta,
+        'change': True,
+        'is_popup': False,
+        'save_as': False,
+        'has_delete_permission': False,
+        'has_add_permission': False,
+        'has_change_permission': False,
+        'site_header': mark_safe(settings.BATON.get('SITE_HEADER'))
+    }
+    return render(request, 'mosaico/appindex.html', dict)
+
 
 @user_passes_test(lambda u: u.is_staff)
 def editor(request):
     return render(request, 'mosaico/editor.html')
+
+
+@xframe_options_exempt
+@api_view(['GET'])
+@permission_classes((IsAuthenticated, ))
+@authentication_classes((JSONWebTokenQuerystringAuthentication,))
+def appeditor(request):
+    id = request.GET.get('id', None)
+    template = None
+    if id:
+        template = Template.objects.get(id=id)
+    return render(request, 'mosaico/appeditor.html', {'template': template})
 
 # mosaico views from https://github.com/voidlabs/mosaico/tree/master/backend
 
@@ -60,6 +100,29 @@ def download(request):
         send_mail(subject, msg, from_email, [to], html_message=html, fail_silently=False)
         # TODO: return the mail ID here
         response = HttpResponse("OK: 250 OK id=12345")
+    return response
+
+
+@xframe_options_exempt
+@api_view(['POST'])
+@permission_classes((IsAuthenticated, ))
+@authentication_classes((JSONWebTokenQuerystringAuthentication,))
+def appupload(request):
+    if request.method == 'POST':
+        file = list(request.FILES.values())[0]
+        upload = Upload(
+            name=file.name,
+            image=file,
+            client=request.user.client
+        )
+        upload.save()
+        uploads = [upload]
+    else:
+        uploads = Upload.objects.filter(client__user=request.user).order_by('-id') # noqa
+    data = {'files': []}
+    for upload in uploads:
+        data['files'].append(upload.to_json_data())
+    response = HttpResponse(json.dumps(data), content_type="application/json")
     return response
 
 
@@ -135,8 +198,8 @@ def image(request):
 def template(request):
     action = request.POST['action']
     if action == 'save':
-        key = request.POST['key']
-        name = request.POST['name']
+        key = request.POST.get('key', request.POST['name'])
+        name = request.POST.get('name')
         html = request.POST['html']
         template_data = json.loads(request.POST['template_data'])
         meta_data = json.loads(request.POST['meta_data'])
@@ -149,12 +212,80 @@ def template(request):
                 client=request.user.client,
                 key=key
             )
-        template.name = template.name if template.id else name
+        template.name = template.name if template.id and template.name else name
         template.html = html
         template.template_data = template_data
         template.meta_data = meta_data
         template.save()
         response = HttpResponse("template saved", status=201)
+    else:
+        response = HttpResponse("unknown action", status=400)
+    return response
+
+
+@api_view(['POST'])
+@permission_classes((IsAuthenticated, ))
+@authentication_classes((JSONWebTokenQuerystringAuthentication,))
+def apptemplate(request):
+    action = request.POST['action']
+    if action == 'save':
+        id = request.POST.get('id')
+        key = request.POST.get('key')  # keep it to let user edit in old mosaico baton
+        name = request.POST.get('name')
+        topic = request.POST.get('topic')
+        subject = request.POST.get('subject')
+        view_online = request.POST.get('view_online', 'false')
+        view_online = True if view_online == 'true' else False
+        html = request.POST['html']
+        template_data = json.loads(request.POST['template_data'])
+        meta_data = json.loads(request.POST['meta_data'])
+
+        template = None
+        if id:
+            campaign = get_object_or_404(Campaign, id=id)
+            template = campaign.template
+
+        if not template:
+            template = Template(key=key)
+        if not request.user.is_superuser:
+            template.client = request.user.client
+        template.name = template.name if template.id and template.name else name
+        template.html = html
+        template.template_data = template_data
+        template.meta_data = meta_data
+        template.save()
+
+        plaintext = striptags(html2text(extract_urllinks(html)))
+        plaintext = re.sub(r'http://\n', 'http://', plaintext)
+        plaintext = re.sub(r'\n+', '\n', plaintext)
+        plaintext = re.sub(r' +', ' ', plaintext)
+
+        if template.campaign:
+            campaign = template.campaign
+            campaign.name = name
+            campaign.slug = slugify(name)
+            campaign.topic = Topic.objects.get(id=int(topic))
+            campaign.subject = subject
+            campaign.html_text = html
+            campaign.plain_text = plaintext
+            campaign.view_online = view_online
+            campaign.save()
+        else:
+            campaign = Campaign(
+                client=request.user.client,
+                name=name,
+                slug=slugify(name),
+                topic=Topic.objects.get(id=int(topic)),
+                subject=subject,
+                html_text=html,
+                plain_text=plaintext,
+                view_online=view_online
+            )
+            campaign.save()
+            template.campaign = campaign
+            template.save()
+
+        response = JsonResponse({'campaign': campaign.id}, status=201)
     else:
         response = HttpResponse("unknown action", status=400)
     return response

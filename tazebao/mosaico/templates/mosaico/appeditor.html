@@ -1,0 +1,275 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=1024, initial-scale=1">
+        <title>Mosaico Generatore di Template</title>
+
+        <link rel="canonical" href="http://mosaico.io" />
+        <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+
+        <script src="{% static 'mosaico/dist/vendor/knockout.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/jquery.min.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/jquery-ui.min.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/jquery.ui.touch-punch.min.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/load-image.all.min.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/canvas-to-blob.min.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/jquery.iframe-transport.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/jquery.fileupload.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/jquery.fileupload-process.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/jquery.fileupload-image.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/jquery.fileupload-validate.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/knockout-jqueryui.min.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/evol.colorpicker.min.js' %}"></script>
+        <script src="{% static 'mosaico/dist/vendor/tinymce.min.js' %}"></script>
+
+        <script src="{% static 'mosaico/dist/mosaico.min.js' %}"></script>
+        <script src="{% static 'core/src/js/core.js' %}"></script>
+        <script>
+$(function() {
+    var randomString = function (len, an){
+        an = an&&an.toLowerCase();
+        var str="", i=0, min=an=="a"?10:0, max=an=="n"?10:62;
+        for(;i++<len;){
+          var r = Math.random()*(max-min)+min <<0;
+          str += String.fromCharCode(r+=r>9?r<36?55:61:48);
+        }
+        return str.toLowerCase();
+    }
+
+    var key = randomString(7)
+
+    if (!Mosaico.isCompatible()) {
+        alert('Update your browser!');
+        return;
+    }
+    // var basePath = window.location.href.substr(0, window.location.href.lastIndexOf('/')).substr(window.location.href.indexOf('/','https://'.length));
+    var basePath = window.location.href.substr(0, window.location.href.lastIndexOf('/'));
+    var plugins;
+    plugins = [
+        // plugin for integrating save button
+        function(viewModel) {
+            var saveCmd = {
+                name: 'Save', // l10n happens in the template
+                enabled: ko.observable(true)
+            };
+
+            saveCmd.execute = function(fields, continueEditing) {
+                saveCmd.enabled(false);
+                viewModel.metadata.changed = Date.now();
+                if (typeof viewModel.metadata.key == 'undefined') {
+                    viewModel.metadata.key = key;
+                }
+
+                // This is the simplest for sending it as POST
+                // append postData with csrfToken
+                var re = /value="(.*?)"/
+                var m = re.exec('{% csrf_token%}')
+
+                var postData = {
+                    csrfmiddlewaretoken: m[1], // this is only required if your back-end requires csrf token
+                    action: 'save',
+                    id: fields.id,
+                    key: key,
+                    name: fields.name,
+                    subject: fields.subject,
+                    view_online: fields.view_online,
+                    topic: fields.topic,
+                    campaign: fields.campaign || null,
+                    meta_data: viewModel.exportMetadata(),
+                    template_data: viewModel.exportJSON(),
+                    html: viewModel.exportHTML()
+                };
+
+                $.post( basePath+'/apptemplate/' + location.search, postData)
+                    .done(function(response) {
+                        window.parent.postMessage({type: 'TAZEBAO', data: { event: 'SAVE', campaignId: response.campaign, continueEditing: continueEditing }}, "*");
+                        // viewModel.notifier.success(viewModel.t('Successfully saved.'));
+                    })
+                    .fail(function(jqXHR, textStatus, error) {
+                        console.log(textStatus);
+                        console.log(error);
+                        console.log(jqXHR);
+                        window.parent.postMessage({type: 'TAZEBAO', data: { event: 'ERROR', description: 'cannot save template' }}, "*");
+                        viewModel.notifier.error(viewModel.t('Saving failed. Please try again in a few moment or contact us.'));
+                    })
+                    .always(function() {
+                        saveCmd.enabled(true);
+                    });
+            };
+
+            viewModel.save = saveCmd;
+
+            // listen messages from react
+            var listener = window.addEventListener('message', function (message) {
+              console.log('MOSAICO APP RECEIVE POST', message.data.data.event)
+              if (message.data.type === 'TAZEBAO') {
+                if (message.data.data.event === 'SAVE') {
+                  viewModel.save.execute(message.data.data.fields, message.data.data.continueEditing);
+                } else if (message.data.data.event === 'RELOAD') {
+                    window.location.href(message.data.data.url);
+                }
+              }
+            })
+
+
+            return {
+                init: function () {
+                    $('#loading a').remove();
+                    // hide test, download
+                    $('#toolbar .rightButtons a').hide();
+                    // $('#toolbar .rightButtons a:first-child + a').show();
+                    $('#downloadForm').hide();
+
+                    // add help layer
+                    var layer = $('<div />', {id: 'help-layer'}).appendTo($(document.body));
+                    layer.html(''+
+                       '<h2>Aiuto</h2>' +
+                       '<p>Inserisci blocchi nell\'area di lavoro trascinandoli dalla sidebar a sinistra, modifica i testi cliccando direttamente sulla preview, gestisci i contenuti e gli stili dalle apposite tab.</p>' +
+                       '<p>Puoi utilizzare alcune variabili messe a disposizione da Tazebao:</p>' +
+                       '<ul>' +
+                       '<li><code>{% verbatim %}{{ id }}{% endverbatim %}</code><br />id della campagna</li>' +
+                       '<li><code>{% verbatim %}{{ title }}{% endverbatim %}</code><br />Nome della campagna</li>' +
+                       '<li><code>{% verbatim %}{{ unsubscribe_url }}{% endverbatim %}</code><br />url disiscrizione newsletter come definito nel Topic cui appartiene la campagna</li>' +
+                       '<li><code>{% verbatim %}{{ view_online_url }}{% endverbatim %}</code><br />url del contenuto disponibile online. Se la campagna non è impostata per essere visualizzata online, ritorna una pagina 404.</li>' +
+                       '<li><code>{% verbatim %}{{ domain }}{% endverbatim %}</code><br />dominio applicazione.</li>' +
+                       '<li><code>{% verbatim %}{{ subscriber_id }}{% endverbatim %}</code><br />id ricevente.</li>' +
+                       '<li><code>{% verbatim %}{{ email }}{% endverbatim %}</code><br />e-mail ricevente.</li>' +
+                       '</ul>' +
+                       '<p>Per criptare utilizzando la SECRET_KEY:</p>' +
+                       '<code>{% verbatim %}{% encrypt email %}{% endverbatim %}</code>' +
+                       '<p>genera una stringa criptata della email del ricevente.</p>' +
+                       '<p><b>Tazebao fornisce la funzionalità di tracciamento dei link interni all\'e-mail</b>. Se il link viene tracciato, ogni evento di click da parte di un utente verrà registrato da Tazebao. <b>Puoi abilitare questa funzione selezionando l\'opzione \'traccia\' dalla tab di gestione del contenuto, oppure manualmente sostituendo all\'url il seguente costrutto</b>: (supponendo di voler tracciare il link a http://www.example.com)</p>' +
+                        '<pre>{% verbatim %}{% link \'http://www.example.com\' %}{% endverbatim %}</pre>'
+                    );
+                }
+            }
+        }
+    ];
+    try {
+        Mosaico.start({
+            strings: {
+                "Download": "Download",
+                "Test": "Test",
+                "Save": "Salva",
+                "Save To Server": "Salva",
+                "Downloading...": "Download in corso...",
+                "Invalid email address": "Indirizzo email invalido",
+                "Test email sent...": "Email di test inviata...",
+                "Unexpected error talking to server: contact us!": "Errore di comunicazione con il server: contattaci!",
+                "Insert here the recipient email address": "Inserisci qui l'indirizzo email a cui spedire",
+                "Test email address": "Indirizzo email di test. Ricorda che i link dinamici (disiscrizione, vedi online, tracciamento etc...) non saranno corretti perché non elaborati, anche il mittente non sarà corretto, utilizzare la funzionalità solamente per testare il layout.",
+                "Block removed: use undo button to restore it...": "Blocco eliminato: usa il pulsante annulla per recuperarlo...",
+                "New block added after the selected one (__pos__)": "Nuovo blocco aggiunto sotto a quello selezionato (__pos__)",
+                "New block added at the model bottom (__pos__)": "Nuovo blocco aggiunto in fondo al modello (__pos__)",
+                "Undo (#COUNT#)": "Annulla (#COUNT#)",
+                "Redo": "Ripristina",
+                "Selected element has no editable properties": "L'elemento selezionato non fornisce proprietà editabili",
+                "This style is specific for this block: click here to remove the custom style and revert to the theme value": "Questo stile è specifico di questo blocco: clicca qui per annullare lo stile personalizzato",
+                "Switch between global and block level styles editing": "Permette di specificare se si vuole modificare lo stile generale o solamente quello specifico del blocco selezionato",
+                "Undo last operation": "Annulla ultima operazione",
+                "Redo last operation": "Ripeti operazione annullata",
+                "Show image gallery": "Visualizza galleria immagini",
+                "Gallery": "Galleria",
+                "Preview": "Anteprima",
+                "Show live preview": "Mostra anteprima live",
+                "Large screen": "Schermo grande",
+                "Tablet": "Tablet",
+                "Smartphone": "Smartphone",
+                "Show preview and send test": "Visualizza una anteprima e fai un invio di test",
+                "Download template": "Scarica il template",
+                "Save template": "Salva il template",
+                "Saved model is obsolete": "Modello salvato obsoleto",
+                "<p>The saved model has been created with a previous, non completely compatible version, of the template</p><p>Some content or style in the model <b>COULD BE LOST</b> if you will <b>save</b></p><p>Contact us for more informations!</p>": "<p>Il modello salvato è stato creato con una versione precedente del template non del tutto compatibile</p><p>Alcuni contenuti o stili del modello <b>POTREBBERO ESSERE PERSI</b> se procederai e deciderai di <b>salvare</b></p><p>Contattaci se hai dei dubbi!</p>",
+                "Blocks": "Blocchi",
+                "Blocks ready to be added to the template": "Elenco contenuti aggiungibili al messaggio",
+                "Content": "Contenuto",
+                "Edit content options": "Modifica opzioni contenuti",
+                "Style": "Stile",
+                "Edit style options": "Modifica opzioni grafiche",
+                "Block __name__": "Blocco __name__",
+                "Click or drag to add this block to the template": "Clicca o trascina per aggiungere al messaggio",
+                "Add": "Aggiungi",
+                "By clicking on message parts you will select a block and content options, if any, will show here": "Cliccando su alcune parti del messaggio selezionerai un blocco e le opzioni contenutistiche, se disponibili, compariranno qui",
+                "By clicking on message parts you will select a block and style options, if available, will show here": "Cliccando su alcune parti del messaggio selezionerai un blocco e le opzioni di stile, se disponibili, compariranno qui",
+                "Click or drag files here": "Clicca o trascina i file qui!",
+                "No images uploaded, yet": "Non hai ancora caricato immagini",
+                "Show images from the gallery": "Visualizza le immagini caricate nella tua area",
+                "Loading...": "Caricamento...",
+                "Load gallery": "Carica galleria",
+                "Loading gallery...": "Caricamento in corso...",
+                "The gallery is empty": "Nessuna immagine nella galleria",
+                "Remove image": "Rimuovi immagine",
+                "Open the image editing tool": "Avvia strumento modifica immagine",
+                "Upload a new image": "Carica una nuova immagine",
+                "Drop an image here": "Trascina una immagine qui",
+                "Drop an image here or click the upload button": "Trascina una immagine qui o clicca sul pulsante di caricamento",
+                "Drag this image and drop it on any template image placeholder": "Trascina questa immagine sulla posizione in cui vuoi inserirla",
+                "Gallery:": "Galleria:",
+                "Session images": "Immagini di sessione",
+                "Recents": "Recenti",
+                "Remote gallery": "Galleria remota",
+                "Customized block.<ul><li>In this status changes to properties will be specific to the current block (instead of being global to all blocks in the same section)</li><li>A <span class=\"customStyled\"><span>\"small cube\" </span></span> icon beside the property will mark the customization. By clicking this icon the property value will be reverted to the value defined for the section.</li></ul>": "Blocco personalizzato.<ul><li>In questa modalità se cambi una proprietà verrà modificata solamente per questo specifico blocco (invece che per tutti i blocchi della stessa sezione).</li><li>Per segnalare la personalizzazione apparirà l'icona <span class=\"customStyled\"><span> del \"cubetto\"</span></span> a fianco delle proprietà. Cliccando questa icona tornerai al valore comune.</li></ul>",
+                "Drop here blocks from the \"Blocks\" tab": "Trascina qui i blocchi dalla scheda 'Blocchi'",
+                "Drag this handle to move the block": "Trascina per spostare il blocco altrove",
+                "Move this block upside": "Sposta il blocco in su",
+                "Move this block downside": "Sposta il blocco in giu",
+                "Delete block": "Elimina blocco",
+                "Duplicate block": "Duplica blocco",
+                "Switch block variant": "Cambia variante blocco",
+                "Theme Colors,Standard Colors,Web Colors,Theme Colors,Back to Palette,History,No history yet.": "Colori Tema,Colori Standard,Colori Web,Colori Tema,Torna alla tavolozza,Storico,storico colori vuoto",
+                "Drop here": "Rilascia qui",
+                "Unknown error": "Errore sconosciuto durante il caricamento",
+                "Uploaded bytes exceed file size": "Errore inaspettato durante il caricamento (uploaded bytes)",
+                "File type not allowed": "Tipo di file non supportato",
+                "File is too large": "File troppo grande",
+                "The uploaded file exceeds the post_max_size directive in php.ini": "Il server ha rifiutato il file perchè troppo grande (post_max_size)",
+                "File is too big": "Il server ha rifiutato il file perch&egrave; troppo grande (max_file_size)",
+                "File is too small": "Il server ha rifiutato il file perch&egrave; troppo piccolo",
+                "Filetype not allowed": "Il server ha rifiutato questo tipo di file",
+                "Maximum number of files exceeded": "Numero massimo di file caricabili superato (max_number_of_files)",
+                "Image exceeds maximum width": "L'Immagine supera la larghezza massima consentita",
+                "Image requires a minimum width": "L'Immagine non è abbastanza larga",
+                "Image exceeds maximum height": "L'Immagine supera l'altezza massima consentita",
+                "Image requires a minimum height": "L'Immagine non è abbastanza alta",
+                "File upload aborted": "Caricamento del file annullato",
+                "Failed to resize image": "Impossibile ridimensionare l'immagine",
+                "Unexpected upload error": "Errore inaspettato durante il caricamento",
+                "Unexpected error listing files": "Errore inaspettato caricando la lista dei file",
+                "Successfully saved.": "Salvataggio avvenuto con successo"
+            },
+            imgProcessorBackend: basePath+'/img/',
+            emailProcessorBackend: basePath+'/dl/',
+            saveProcessorBackend: basePath+'/template/',
+            titleToken: "MOSAICO Responsive Email Designer",
+            fileuploadConfig: {
+                url: basePath+'/appupload/' + document.location.search,
+                // messages??
+            }
+        }, '/static/mosaico/templates/versafix-1/template-versafix-1.html', {% if template %}{{ template.meta_data_json|safe }}{% else %}undefined{% endif %}, {% if template %}{{ template.template_data_json|safe }}{% else %}undefined{% endif %}, plugins);
+        window.parent.postMessage({type: 'TAZEBAO', data: { event: 'READY' }}, "*");
+    } catch(error) {
+        window.parent.postMessage({type: 'TAZEBAO', data: { event: 'ERROR', description: 'cannot init Mosaico' }}, "*");
+    }
+});
+
+var help = function() {
+    $('#help-layer').toggle();
+}
+
+        </script>
+
+        <link rel="stylesheet" href="{% static 'mosaico/dist/mosaico-material.min.css' %}" />
+        <link rel="stylesheet" href="{% static 'mosaico/dist/vendor/notoregular/stylesheet.css' %}" />
+        <link rel="stylesheet" href="{% static 'mosaico/dist/vendor/evol.colorpicker.min.css' %}" /> <!-- 2k -->
+
+        <link rel="stylesheet" href="{% static 'mosaico/custom/mosaico-tazebao.css' %}" />
+    </head>
+    <body class="mo-standalone">
+        <footer>
+            <i id="help" class="fa fa-question-circle fa-2x" style="cursor: pointer;" onclick="help()"></i>
+        </footer>
+    </body>
+</html>

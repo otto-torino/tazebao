@@ -1,11 +1,14 @@
 body {
-    background-color: #3B404D;
+    background-color: #fff;
+}
+.ui-tabs-nav.ui-helper-reset.ui-helper-clearfix.ui-widget-header.ui-corner-all {
+  background-color: #323232;
 }
 #toolbar {
-    background-color: #3B404D;
+    background-color: #323232;
 }
 #toolbar .ui-button, #preview-toolbar .ui-button {
-    background-color: #3B404D;
+    background-color: #323232;
 }
 .mce-title {
     color: #fff !important;
@@ -39,7 +42,7 @@ body > footer > i {
     background: rgba(235, 235, 235, 1);
     padding: 20px;
     line-height: 24px;
-    border: 5px solid #3B404D;
+    border: 5px solid #3232;
     font-size: 14px;
     display: none;
     box-shadow: 0 0 800px 200px rgba(0, 0, 0, 0.9);
@@ -53,7 +56,7 @@ body > footer > i {
     user-select: all;
 }
 #help-layer h2 {
-    color: #3B404D;
+    color: #3232;
 }
 #help-layer code, #help-layer pre {
     color: #444;

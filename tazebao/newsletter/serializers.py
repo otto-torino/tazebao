@@ -3,7 +3,8 @@ from django.contrib.sites.models import Site
 from rest_framework import serializers
 
 from .context import get_campaign_context
-from .models import Campaign, Dispatch, Subscriber, SubscriberList, Tracking, FailedEmail, Planning
+from .models import (Campaign, Dispatch, FailedEmail, Planning, Subscriber,
+                     SubscriberList, Topic, Tracking)
 
 
 class ClientFilteredPrimaryKeyRelatedField(
@@ -19,14 +20,19 @@ class ClientFilteredPrimaryKeyRelatedField(
 
 class SubscriberListSerializer(serializers.ModelSerializer):
     """ SubscriberList Serializer """
+    tot_subscribers = serializers.SerializerMethodField("tot_subscribers_fn")
 
     class Meta:
         model = SubscriberList
         fields = (
             'id',
             'name',
+            'tot_subscribers'
         )
         read_only_fields = ('client', )
+
+    def tot_subscribers_fn(self, obj):
+        return obj.subscriber_set.count()
 
 
 class SubscriberSerializer(serializers.ModelSerializer):
@@ -60,6 +66,7 @@ class CampaignSerializer(serializers.ModelSerializer):
     plain_text = serializers.SerializerMethodField("plain_text_fn")
     html_text = serializers.SerializerMethodField("html_text_fn")
     url = serializers.SerializerMethodField("url_fn")
+    last_dispatch = serializers.SerializerMethodField("last_dispatch_fn")
 
     class Meta:
         model = Campaign
@@ -75,6 +82,8 @@ class CampaignSerializer(serializers.ModelSerializer):
             'html_text',
             'view_online',
             'url',
+            'template',
+            'last_dispatch',
         )
         read_only_fields = ('client', )
 
@@ -104,10 +113,19 @@ class CampaignSerializer(serializers.ModelSerializer):
             obj.get_absolute_url()
         ])
 
+    def last_dispatch_fn(self, obj):
+        last = obj.dispatch_set.last()
+        if last:
+            return last.started_at
+        else:
+            return None
+
 
 class FailedEmailSerializer(serializers.ModelSerializer):
     """ Tracking Serializer """
     subscriber_email = serializers.SerializerMethodField("subscriber_email_fn")
+    subscriber_id = serializers.SerializerMethodField("subscriber_id_fn")
+    campaign_name = serializers.SerializerMethodField("campaign_name_fn")
 
     class Meta:
         model = FailedEmail
@@ -115,14 +133,24 @@ class FailedEmailSerializer(serializers.ModelSerializer):
             'id',
             'datetime',
             'dispatch',
+            'campaign_name',
             'from_email',
             'subscriber_email',
+            'subscriber_id',
             'message',
             'status',
         )
 
     def subscriber_email_fn(self, obj):
         return obj.subscriber.email
+
+    def subscriber_id_fn(self, obj):
+        return obj.subscriber.id
+
+    def campaign_name_fn(self, obj):
+        if obj.dispatch:
+            return obj.dispatch.campaign.name
+        return None
 
 
 class TrackingSerializer(serializers.ModelSerializer):
@@ -196,3 +224,18 @@ class PlanningSerializer(serializers.ModelSerializer):
 
     def campaign_name_fn(self, obj):
         return obj.campaign.name
+
+
+class TopicSerializer(serializers.ModelSerializer):
+    """ Topic Serializer """
+
+    class Meta:
+        model = Topic
+        fields = (
+            'id',
+            'name',
+            'sending_address',
+            'sending_name',
+            'unsubscribe_url',
+        )
+        read_only_fields = ('client', )

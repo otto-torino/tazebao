@@ -174,6 +174,7 @@ BATON = {
         {'type': 'title', 'label': 'Iscrizioni',  'apps': ('newsletter', )},
         {'type': 'model', 'app': 'newsletter', 'name': 'subscriberlist', 'label': 'Liste iscritti', 'icon':'fa fa-list'},
         {'type': 'model', 'app': 'newsletter', 'name': 'subscriber', 'label': 'Iscritti', 'icon':'fa fa-user-tie'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'unsubscription', 'label': 'Disiscrizioni', 'icon':'fa fa-exclamation-triangle'},
 
 
         {'type': 'title', 'label': 'Newsletter',  'apps': ('newsletter', )},
@@ -270,8 +271,10 @@ JWT_AUTH = {
 }
 CORS_ORIGIN_WHITELIST = (
     'http://127.0.0.1',
+    'https://app.tazebao.sqrt64.it',
     'http://localhost',
     'http://localhost:3000',
+    'http://localhost:3001',
 )
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = (

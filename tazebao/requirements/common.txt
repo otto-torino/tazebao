@@ -3,7 +3,9 @@ ansible==2.8.0
 anyjson==0.3.3
 asn1crypto==0.24.0
 bcrypt==3.1.6
+beautifulsoup4==4.8.1
 billiard==3.6.0.0
+bs4==0.0.1
 cachetools==3.1.1
 celery==4.3.0
 certifi==2019.3.9
@@ -79,6 +81,7 @@ requests==2.22.0
 rsa==4.0
 six==1.12.0
 sorl-thumbnail==12.5.0
+soupsieve==1.9.5
 supervisor==4.0.3
 uritemplate==3.0.0
 urllib3==1.25.3
