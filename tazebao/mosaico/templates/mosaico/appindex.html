@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded',function(){
 
         <div id="content-main" style="padding-top: 3rem;">
             <div class="content">
-                <h2 class="ui header centered">Select the template</h2>
+                <h2 class="ui header centered">{% trans "Seleziona il template" %}</h2>
                 <div data-bind="foreach: templates" style="display: flex; justify-content: center">
                     <div class="template template-xx" style="" data-bind="attr: { class: 'template template-'+name }">
                         <div class="description" style="padding-bottom:5px"><b data-bind="text: name">xx</b>: <span data-bind="text: desc">xx</span></div>
