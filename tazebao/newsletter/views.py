@@ -233,13 +233,20 @@ class ImportSubscribersFromCsv(APIView):
         try:
             with transaction.atomic():
                 for row in rows:
-                    if len(row) != 5:
+                    if len(row) != 5 and len(row) != 4:
                         raise Exception('Il file importato non è del formato corretto')
                     email = row[0]
                     subscription_datetime = row[1].strip()
                     info = row[2]
-                    opt_in = row[3]
-                    opt_in_datetime = row[4].strip() or None
+                    opt_in = int(row[3])
+                    if opt_in and len(row) == 5:
+                        opt_in_datetime = row[4].strip()
+                        if not opt_in_datetime:
+                            raise Exception('%s: in caso di opt in ad 1 deve essere specificata la data' % email)
+                    elif opt_in and len(row) == 4:
+                        raise Exception('$s: in caso di opt in ad 1 deve essere specificata la data' % email)
+                    else:
+                        opt_in_datetime = None
 
                     try:
                         validate_email(email)
@@ -356,7 +363,7 @@ class SubscriberViewSet(viewsets.ModelViewSet):
         subscribers = request.data.get('subscribers')
         for subscriber_id in subscribers:
             try:
-                subscriber = Subscriber.objects.get(id=int(subscriber_id))
+                subscriber = Subscriber.objects.get(id=int(subscriber_id), client=request.user.client)
                 subscriber.lists.add(*request.data.get('lists'))
             except IntegrityError:
                 pass
@@ -371,7 +378,7 @@ class SubscriberViewSet(viewsets.ModelViewSet):
         subscribers = request.data.get('subscribers')
         for subscriber_id in subscribers:
             try:
-                subscriber = Subscriber.objects.get(id=int(subscriber_id))
+                subscriber = Subscriber.objects.get(id=int(subscriber_id), client=request.user.client)
                 subscriber.lists.remove(*request.data.get('lists'))
             except Exception as e:
                 print(e)
@@ -383,7 +390,18 @@ class SubscriberViewSet(viewsets.ModelViewSet):
         bounces_ids = request.data.get('bounces')
         try:
             subscribers = Subscriber.objects.filter(
-                bounces__id__in=bounces_ids).delete()
+                bounces__id__in=bounces_ids, client=request.user.client).delete()
+            return Response({'detail': 'subscribers deleted'})
+        except Exception as e:
+            print(e)
+            return HttpResponseBadRequest(str(e))
+
+    @action(detail=False, methods=['post'])
+    def delete_many(self, request):
+        ids = request.data.get('ids')
+        try:
+            subscribers = Subscriber.objects.filter(
+                id__in=ids, client=request.user.client).delete()
             return Response({'detail': 'subscribers deleted'})
         except Exception as e:
             print(e)
