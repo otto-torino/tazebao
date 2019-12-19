@@ -1,4 +1,5 @@
 import base64
+import csv
 import json
 import random
 import string
@@ -8,6 +9,8 @@ from urllib.parse import unquote
 
 from dateutil.relativedelta import relativedelta
 from django import http, template
+from django.core.validators import validate_email
+from django.db import transaction
 from django.core.signing import Signer
 from django.db import IntegrityError, transaction
 from django.http import (Http404, HttpResponse, HttpResponseBadRequest,
@@ -22,6 +25,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from mosaico.models import Template
 from mosaico.serializers import TemplateSerializer
@@ -198,6 +202,80 @@ class SubscriberListViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """ Automatically set the client field """
         serializer.save(client=self.request.user.client)
+
+
+class ImportSubscribersFromCsv(APIView):
+    parser_classes = (MultiPartParser, FormParser, )
+
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return Response({'detail': 'not authenticated'}, status=401)
+        if not request.user.client:
+            return Response({'detail': 'User is not a newsletter user'}, status=400)
+
+        file = request.FILES['file']
+        lists = request.data.get('lists', None)
+        if not file or not lists:
+            return Response({'detail': 'Missing file or lists'}, status=400)
+
+        # check these are client's lists
+        lists = lists.split(',')
+        for list_id in lists:
+            try:
+                SubscriberList.objects.get(client=request.user.client, id=list_id)
+            except:
+                return Response({'detail': 'Invalid list'}, status=400)
+        decoded_file = file.read().decode('utf-8').splitlines()
+        reader = csv.reader(decoded_file)
+        rows = list(reader)
+        if (len(rows) > 1000):
+            return Response({'detail': 'Limite massimo raggiunto: non puoi importare più di 1000 contatti alla volta'}, status=400)
+        try:
+            with transaction.atomic():
+                for row in rows:
+                    if len(row) != 5:
+                        raise Exception('Il file importato non è del formato corretto')
+                    email = row[0]
+                    subscription_datetime = row[1].strip()
+                    info = row[2]
+                    opt_in = row[3]
+                    opt_in_datetime = row[4].strip()
+
+                    try:
+                        validate_email(email)
+                    except Exception:
+                        raise Exception('%s non è un indirizzo e-mail valido' % email)
+
+                    if not subscription_datetime:
+                        subscription_datetime = datetime.now()
+                    if info:
+                        try:
+                            json.loads(info)
+                        except ValueError:
+                            raise Exception('La colonna informazioni deve contenere un JSON valido')
+
+                    (subscriber, created, ) = Subscriber.objects.get_or_create(
+                        client=request.user.client,
+                        email=email,
+                        defaults={
+                            'subscription_datetime': subscription_datetime,
+                            'opt_in': opt_in,
+                            'info': info,
+                            'opt_in_datetime': opt_in_datetime
+                        }
+                    )
+                    # trying to add a list already present causes an Exception and problems
+                    # inside the atomic block
+                    for list_id in lists:
+                        if created or int(list_id) not in [id for id in subscriber.lists.all()]:
+                            subscriber.lists.add(int(list_id))
+        except Exception as e:
+            return Response({'detail': str(e)}, status=400)
+
+        response = {
+            'description': 'Importazione avvenuta con successo'
+        }
+        return Response(response)
 
 
 class PlanningViewSet(viewsets.ModelViewSet):
@@ -542,7 +620,6 @@ class StatsApiView(APIView):
     def get(self, request):
         if not request.user.is_authenticated:
             return Response({'description': 'not authenticated'}, status=401)
-            response = {}
         else:
             today = date.today()
             last_month = today - relativedelta(months=1)
