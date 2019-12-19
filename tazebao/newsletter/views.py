@@ -239,7 +239,7 @@ class ImportSubscribersFromCsv(APIView):
                     subscription_datetime = row[1].strip()
                     info = row[2]
                     opt_in = row[3]
-                    opt_in_datetime = row[4].strip()
+                    opt_in_datetime = row[4].strip() or None
 
                     try:
                         validate_email(email)
