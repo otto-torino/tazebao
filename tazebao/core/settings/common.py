@@ -269,14 +269,15 @@ JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(minutes=60),
     'JWT_ALLOW_REFRESH': True,
 }
-CORS_ORIGIN_WHITELIST = (
-    'http://127.0.0.1',
-    'https://app.tazebao.sqrt64.it',
-    'http://localhost',
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'localhost',
-)
+# CORS_ORIGIN_WHITELIST = (
+#     'http://127.0.0.1',
+#     'https://app.tazebao.sqrt64.it',
+#     'http://localhost',
+#     'http://localhost:3000',
+#     'http://localhost:3001',
+#     'localhost',
+# )
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = (
     'cache-control',
