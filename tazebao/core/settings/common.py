@@ -275,6 +275,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost',
     'http://localhost:3000',
     'http://localhost:3001',
+    'localhost',
 )
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = (
