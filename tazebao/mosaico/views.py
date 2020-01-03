@@ -104,7 +104,7 @@ def download(request):
 
 
 @xframe_options_exempt
-@api_view(['POST'])
+@api_view(['POST', 'GET'])
 @permission_classes((IsAuthenticated, ))
 @authentication_classes((JSONWebTokenQuerystringAuthentication,))
 def appupload(request):
