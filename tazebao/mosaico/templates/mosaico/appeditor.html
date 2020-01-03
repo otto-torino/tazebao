@@ -56,7 +56,7 @@ $(function() {
                 enabled: ko.observable(true)
             };
 
-            saveCmd.execute = function(fields, continueEditing) {
+            saveCmd.execute = function(fields, continueEditing, test, lists) {
                 saveCmd.enabled(false);
                 viewModel.metadata.changed = Date.now();
                 if (typeof viewModel.metadata.key == 'undefined') {
@@ -85,7 +85,7 @@ $(function() {
 
                 $.post( basePath+'/apptemplate/' + location.search, postData)
                     .done(function(response) {
-                        window.parent.postMessage({type: 'TAZEBAO', data: { event: 'SAVE', campaignId: response.campaign, continueEditing: continueEditing }}, "*");
+                        window.parent.postMessage({type: 'TAZEBAO', data: { event: 'SAVE', campaignId: response.campaign, continueEditing: continueEditing, test: test, lists: lists }}, "*");
                         // viewModel.notifier.success(viewModel.t('Successfully saved.'));
                     })
                     .fail(function(jqXHR, textStatus, error) {
@@ -107,7 +107,7 @@ $(function() {
               console.log('MOSAICO APP RECEIVE POST', message.data.data.event)
               if (message.data.type === 'TAZEBAO') {
                 if (message.data.data.event === 'SAVE') {
-                  viewModel.save.execute(message.data.data.fields, message.data.data.continueEditing);
+                  viewModel.save.execute(message.data.data.fields, message.data.data.continueEditing, message.data.data.test, message.data.data.lists);
                 } else if (message.data.data.event === 'RELOAD') {
                     window.location.href(message.data.data.url);
                 }
