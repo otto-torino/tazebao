@@ -233,35 +233,48 @@ PIPELINE = {
     'STYLESHEETS': {
         'vendor': {
             'source_filenames': (
-                'core/src/vendor/Font-Awesome/scss/font-awesome.scss',
+                'core/src/vendor/Font-Awesome/scss/font-awesome.scss', # noqa
+                'core/src/vendor/swiper/css/swiper.min.css', # noqa
+                'core/src/vendor/semantic-ui/semantic.min.css', # noqa
             ),
-            'output_filename': 'core/css/vendor.min.css',
+            'output_filename': 'core/css/vendor.min.css', # noqa
         },
-        'tazebao': {  # bootstrap + custom
+        'tazebao': { # custom
             'source_filenames': (
                 'core/src/scss/styles.scss',
             ),
-            'output_filename': 'core/css/core.min.css',
+            'output_filename': 'core/css/core.min.css', # noqa
         },
     },
     'JAVASCRIPT': {
         'vendor': {
             'source_filenames': (
-                'core/src/vendor/bootstrap/js/bootstrap.min.js',
-                'core/src/vendor/moment/moment-with-locales.min.js',
+                'core/src/vendor/jquery/jquery.min.js', # noqa
+                # 'core/src/vendor/jquery.form/jquery.form.js', # noqa
+                # 'core/src/vendor/jquery.formset/jquery.formset.js', # noqa
+                'core/src/vendor/tocca/tocca.min.js', # noqa
+                'core/src/vendor/semantic-ui/semantic.min.js', # noqa
+                'core/src/vendor/moment/moment-with-locales.min.js', # noqa
             ),
             'output_filename': 'core/js/vendor.min.js'
         },
         'tazebao': {
             'source_filenames': (
-                'core/src/js/core.js',
+                'core/src/js/core.js', # noqa
             ),
-            'output_filename': 'core/js/core.min.js'
+            'output_filename': 'core/js/core.min.js' # noqa
         },
     },
     'COMPILERS': ('pipeline.compilers.sass.SASSCompiler', ),
     'CSS_COMPRESSOR': None,
     'JS_COMPRESSOR': None,
+    'MIMETYPES': (
+      ('text/coffeescript', '.coffee'),
+      ('text/less', '.less'),
+      ('text/javascript', '.js'),
+      ('text/x-sass', '.sass'),
+      ('text/x-scss', '.scss')
+    )
 }
 
 # API

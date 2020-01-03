@@ -1,16 +1,28 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block content %}
-    <div class="" style="margin: 20px 0;">
-        <div class="container">
-            <h1 class="text-center" style="margin: 2rem 0">Gestisci campagne newsletter</h1>
-            <p><strong>Tazebao</strong> è una web application multi-utente che consente di gestire campagne newsletter. <strong>Tazebao</strong> implementa un web service REST che ti permette di gestire esternamente la sottoscrizione e disiscrizione degli utenti in massima sicurezza. <strong>Tazebao</strong> gestisce in maniera asincrona l'invio massivo di email utilizzando le migliori tecnologie disponibili!</p><p><b>Tazebao</b> utilizza <a href="https://github.com/voidlabs/mosaico/">Mosaico</a> per la generazione di layout responsive, ma consente anche di creare e-mail con html raw, in modo da lasciare la massima libertà all'utente.</p>
-            <p class="text-center">
-            <a href="https://otto-torino.github.io/tag/tazebao/" class="btn btn-warning"><i class="fa fa-link"></i> Scopri di più!</a> 
-            <a class="btn btn-primary" href="mailto:mail@otto.to.it?subject=Tazebao"><i class="fa fa-envelope"></i> Contattaci e richiedi un account!</a>
+{% block jumbotron %}
+    <div class="jumbotron">
+        <div class="ui container">
+            <p class="text-center slogan"><small>Versatile, rapido, sicuro.</small></p>
+            <h1 class="ui header text-center oswald">Il sistema di gestione newsletter perfetto per le tue esigenze</h1>
+            <p class="mt-2 text-center">
+            <a class="ui small button" href="mailto:mail@otto.to.it?subject=Tazebao"><i class="fa fa-envelope"></i> Contattaci e richiedi un account!</a>
             </p>
         </div>
-        <img class="img-responsive" src="/static/core/img/tazebao.png" />
     </div>
+    <div class="ui container mt-4">
+        <div class="ui two columns grid">
+            <div class="column">
+                <p><strong>Tazebao</strong> è una web application multi-utente che consente di gestire campagne newsletter. <strong>Tazebao</strong> implementa un web service REST che ti permette di gestire esternamente la sottoscrizione e disiscrizione degli utenti in massima sicurezza. <strong>Tazebao</strong> gestisce in maniera asincrona l'invio massivo di email utilizzando le migliori tecnologie disponibili!</p><p><b>Tazebao</b> utilizza <a href="https://github.com/voidlabs/mosaico/">Mosaico</a> per la generazione di layout responsive, ma consente anche di creare e-mail con html raw, in modo da lasciare la massima libertà all'utente.</p>
+            </div>
+            <div class="column">
+                <img class="ui fluid image" src="{% static 'core/img/tazebao.png' %}" alt="">
+            </div>
+        </div>
+    </div>
+{% endblock jumbotron %}
+
+{% block content %}
 {% endblock %}
 

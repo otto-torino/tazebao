@@ -22,6 +22,7 @@
             <meta name="twitter:description" content="Otto srl newsletter web application" />
             <meta name="twitter:creator" content="@abidibo" />
         {% endblock %}
+        <link href="https://fonts.googleapis.com/css?family=Lato:100,300i,400,700,900|Oswald:400,700&display=swap" rel="stylesheet">
         {% stylesheet 'vendor' %}
         {% stylesheet 'tazebao' %}
         {% block extra_css %}{% endblock %}
@@ -31,36 +32,70 @@
         {% block extra_js %}{% endblock %}
     </head>
     <body class="{% block body_css %}{% endblock %}">
-        {% block navbar %}
-            <nav class="navbar navbar-light bg-faded">
-                <button class="navbar-toggler hidden-sm-up pull-right" type="button" data-toggle="collapse" data-target="#collapsingNavbar">
-                    &#9776;
-                </button>
-                <a class="navbar-brand" href="/"><img src="/static/core/img/logo.png" /></a>
-                <div class="collapse navbar-toggleable-xs" id="collapsingNavbar">
-                    <ul class="nav navbar-nav">
-                        <li class="nav-item">
-                            <a class="nav-link" href="https://app.tazebao.email">Accedi</a>
-                        </li>
-                        {% if request.user.is_authenticated %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="/help/">Aiuto!</a>
-                            </li>
-                        {% endif %}
-                    </ul>
-                </div>
-            </nav>
-        {% endblock %}
-        {% block jumbotron %}{% endblock %}
-        <div class="container main-content-container">
-            {% block content %}{% endblock %}
+        {% block body_top %}{% endblock %}
+        <div class="ui left vertical menu inverted sidebar main-menu">
+          <ul style="margin-top: 0">
+            <li><a href="https://app.tazebao.email">Accedi <i class="lock icon"></i></a></li>
+          </ul>
         </div>
-        <footer class="footer">
-            <div class="container">
-                <p class="text-center">
-                <strong>Tazebao</strong> è un'applicazione sviluppata da <a href="http://www.otto.to.it">Otto srl</a>, pensata per sistemi linux, scritta in python utilizzando il framework Open Source <a href="https://www.djangoproject.com/">Django</a>.</p>
-                <p class="text-center mb-0" style="margin-bottom: 0"><a href="http://www.otto.to.it"><img src="{% static 'core/img/otto.jpg' %}" alt="otto srl" /></a></p>
+        <div class="pusher">
+            {% block navbar %}
+                <div class="ui top tiny menu navbar main-navbar" style="margin-bottom: 0;">
+                    <a class="item" onclick="core.IS_LOGO_LINK_ACTIVE = false; $('.ui.sidebar').sidebar({transition: 'push', onHidden: function() { $('body').removeClass('pushable'); core.IS_LOGO_LINK_ACTIVE = true }}).sidebar('toggle')" href="javascript:void(0)">
+                        <i class="icon big bars"></i>
+                    </a>
+                    <a class="item no-border" href="javascript:void(0)" onclick="if(core.IS_LOGO_LINK_ACTIVE) location.href='/'">
+                        <span id="logo" class="logo">
+                            <img src="{% static 'core/img/logo.png' %}" alt="logo" style="height: 30px;" />
+                        </span>
+                    </a>
+                    <div class="right item social no-border">
+                        <!-- <a href=""><i class="twitter icon"></i></a> -->
+                        <!-- <a href=""><i class="youtube icon"></i></a> -->
+                        <!-- <a href=""><i class="linkedin icon"></i></a> -->
+                        <!-- <a href=""><i class="flickr icon"></i></a> -->
+                        <a href="https://www.otto.to.it"><img src="{% static 'core/img/otto.jpg' %}" alt="otto srl" /></a>
+                        <!-- <a href=""><i class="instagram icon"></i></a> -->
+                    </div>
+                </div>
+            {% endblock %}
+            {% block jumbotron %}{% endblock %}
+            {% block content %}{% endblock %}
+            {% block footer_wrapper %}
+                <footer class="main-footer mt-4" style="flex-shrink: 0">
+                    {% block footer %}
+                        <strong>Tazebao</strong> è un'applicazione sviluppata da <a href="http://www.otto.to.it">Otto srl</a>, pensata per sistemi linux, scritta in python utilizzando il framework Open Source <a href="https://www.djangoproject.com/">Django</a>.</p>
+                    {% endblock footer %}
+                </footer>
+            {% endblock %}
+        </div>
+        <div class="ui basic modal" id="dynamic-modal">
+            <i class="close icon"></i>
+            <div class="header modal-title"></div>
+            <div class="scrolling content modal-body" id="dynamic-modal-body"></div>
+            <div class="actions modal-footer">
+                <div class="ui black deny button">
+                    Chiudi
+                </div>
+                <div class="ui positive right labeled icon button">
+                    Salva
+                    <i class="checkmark icon"></i>
+                </div>
             </div>
-        </footer>
+        </div>
+        {% if not DEBUG %}
+            <script src="https://cookierulez.sqrt64.it/widget/VBgPKLjeKaIT4TfHeHRDTUfS5xAdNZPx"></script>
+        {% endif %}
+        {% if messages %}
+            <script>
+var html = '<ul style="list-style-type: none; padding-left: 0;">';
+{% for message in messages %}
+        html += '<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{% if message.tags == 'error' %}<i class="exclamation red icon"></i>{% elif message.tags == 'success' %}<i class="check green icon"></i>{% elif message.tags == 'info' %}<i class="info teal icon"></i>{% endif %} {{ message }}</li>';
+{% endfor %}
+html += '</ul>';
+var m = new core.Modal({title: 'Laboratorio Chimico', content: html, basic: true});
+m.open();
+            </script>
+        {% endif %}
     </body>
 </html>

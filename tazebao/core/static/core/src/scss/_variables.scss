@@ -1,3 +1,51 @@
-// Jumbotron
-$jumbotron-padding:              0rem !default;
-$jumbotron-bg:                   #fff !default;
+// grid
+$desktop: 1200px;
+$sm-desktop: 992px;
+$tablet: 768px;
+
+// colors
+$primary: #F50E03;
+$green: #3eba45;
+$white: #fff;
+$black: #000;
+$c-blue: #0098d4;
+$c-pink: #c77ab0;
+$c-gray: #666;
+$c-lightgray: #ddd;
+$c-orange: #db7a27;
+$white8: rgba(255, 255, 255, .8);
+
+// navbar
+// $navbar-bg: #d8d8d8;
+$navbar-bg: rgba(0, 0, 0, .8);
+$jumbotron-bg: #46a8b1;
+
+// home
+$jumbotron-bg: #EAAE00;
+$jumbotron-fg: $white;
+$jumbotron-slogan-fg: $c-lightgray;
+
+// footer
+$footer-bg: darken($green, 50%);
+$footer-button-bg: #044968;
+$footer-button-fg: $white;
+
+// menu
+$menu-toast-fg: $white;
+$menu-bg: $c-gray;
+$menu-li-bg: lighten($menu-bg, 4%);
+$menu-li-hover-bg: $menu-bg;
+$menu-li-border-fg: rgba(255, 255, 255, .1);
+$menu-link-fg: #fff;
+
+// social
+$twitter-fg: #2fa3f3;
+$youtube-fg: #f50e02;
+$linkedin-fg: #2077b5;
+$flickr-fg: #2077b5;
+$facebook-fg: #fff;
+$instagram-fg: #9d31c3;
+
+// footer
+$footer-bg: #000;
+$footer-fg: #fff;

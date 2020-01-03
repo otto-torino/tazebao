@@ -1,3 +1,26 @@
-.main-content {
-  margin-top: 20px;
+.jumbotron {
+  background: $jumbotron-bg;
+  color: $jumbotron-fg !important;
+  padding: 2rem;
+
+  .ui.header {
+    color: $jumbotron-fg !important;
+    margin-top: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .slogan {
+    color: $jumbotron-slogan-fg;
+    font-size: 1.8rem;
+    font-style: italic;
+    font-weight: 400;
+    margin-bottom: 0;
+  }
+}
+
+.main-footer {
+  background: $footer-bg;
+  color: $footer-fg;
+  padding: 2rem;
+  text-align: center;
 }
