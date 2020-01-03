@@ -473,7 +473,7 @@ class CampaignViewSet(viewsets.ModelViewSet):
             raise Http404()
         else:
             try:
-                test = request.data.get('test', False)
+                test = request.GET.get('test', False)
                 test = True if test == '1' else False
                 send_campaign.delay(request.data.get('lists'), campaign.id, test=test)
                 return Response({'detail': 'task queued'})
