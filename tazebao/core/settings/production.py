@@ -7,14 +7,14 @@ import os
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['tazebao.sqrt64.it', ]
+ALLOWED_HOSTS = ['tazebao.email', ]
 
 # ssl
-HTTPS = True
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_HTTPONLY = True
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
-SESSION_COOKIE_SECURE = True
+# HTTPS = True
+# SESSION_COOKIE_SECURE = True
+# SESSION_COOKIE_HTTPONLY = True
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTOCOL', 'https')
+# SESSION_COOKIE_SECURE = True
 
 STATIC_ROOT = '/home/otto/www/tazebao/static/'
 MEDIA_ROOT = '/home/otto/www/tazebao/media'
