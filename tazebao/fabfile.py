@@ -38,7 +38,7 @@ def production():
     env.settings = 'production'
     env.user = 'otto'
     env.path = '/home/otto/www/tazebao'
-    env.hosts = ['tazebao.sqrt64.it']
+    env.hosts = ['tazebao.email']
 
 @task
 def get_remote_revision():
