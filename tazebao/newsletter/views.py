@@ -473,7 +473,9 @@ class CampaignViewSet(viewsets.ModelViewSet):
             raise Http404()
         else:
             try:
-                send_campaign.delay(request.data.get('lists'), campaign.id)
+                test = request.data.get('test', False)
+                test = True if test == '1' else False
+                send_campaign.delay(request.data.get('lists'), campaign.id, test=test)
                 return Response({'detail': 'task queued'})
             except Exception as e:
                 return HttpResponseBadRequest(
@@ -646,11 +648,11 @@ class StatsApiView(APIView):
             last_month_subscribers = Subscriber.objects.filter(
                 client__user=request.user,
                 subscription_datetime__gte=last_month).count()
-            last_month_unsubscriptions= Unsubscription.objects.filter(
+            last_month_unsubscriptions = Unsubscription.objects.filter(
                 client__user=request.user,
                 datetime__gte=last_month).count()
             last_dispatch = Dispatch.objects.filter(
-                campaign__client__user=request.user).last()
+                campaign__client__user=request.user, test=False).last()
             next_planning = Planning.objects.filter(
                 campaign__client__user=request.user,
                 schedule__gte=datetime.now()).first()

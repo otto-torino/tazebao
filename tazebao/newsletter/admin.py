@@ -494,6 +494,7 @@ class DispatchAdmin(DisplayOnlyIfAdminOrHasClient):
     list_display = (
         'id',
         'campaign',
+        'test',
         'started_at',
         'finished_at',
         'error_full',

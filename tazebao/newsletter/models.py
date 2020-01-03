@@ -199,6 +199,7 @@ class Dispatch(models.Model):
     campaign = models.ForeignKey(
         Campaign, verbose_name='campagna', on_delete=models.CASCADE)
     lists = models.ManyToManyField(SubscriberList, verbose_name='liste')
+    test = models.BooleanField(default=False)
     started_at = models.DateTimeField('inizio')
     finished_at = models.DateTimeField('fine', blank=True, null=True)
     error = models.BooleanField('errore', default=False)

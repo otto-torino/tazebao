@@ -67,6 +67,7 @@ class CampaignSerializer(serializers.ModelSerializer):
     html_text = serializers.SerializerMethodField("html_text_fn")
     url = serializers.SerializerMethodField("url_fn")
     last_dispatch = serializers.SerializerMethodField("last_dispatch_fn")
+    last_not_test_dispatch = serializers.SerializerMethodField("last_not_test_dispatch_fn")
 
     class Meta:
         model = Campaign
@@ -84,6 +85,7 @@ class CampaignSerializer(serializers.ModelSerializer):
             'url',
             'template',
             'last_dispatch',
+            'last_not_test_dispatch',
         )
         read_only_fields = ('client', )
 
@@ -115,6 +117,13 @@ class CampaignSerializer(serializers.ModelSerializer):
 
     def last_dispatch_fn(self, obj):
         last = obj.dispatch_set.last()
+        if last:
+            return last.started_at
+        else:
+            return None
+
+    def last_not_test_dispatch_fn(self, obj):
+        last = obj.dispatch_set.filter(test=False).last()
         if last:
             return last.started_at
         else:
@@ -187,6 +196,7 @@ class DispatchSerializer(serializers.ModelSerializer):
             'id',
             'campaign',
             'campaign_name',
+            'test',
             'lists',
             'started_at',
             'finished_at',

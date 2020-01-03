@@ -23,7 +23,7 @@ log_email_file = logging.getLogger('newsletter')
 
 
 @app.task # noqa
-def send_campaign(lists_ids, campaign_id):
+def send_campaign(lists_ids, campaign_id, test=False):
     """ Dispatches the newsletter """
     logger.debug('running task: send_newsletter')
     campaign = Campaign.objects.get(pk=campaign_id)
@@ -33,7 +33,8 @@ def send_campaign(lists_ids, campaign_id):
         campaign=campaign,
         started_at=timezone.now(),
         error=False,
-        success=False
+        success=False,
+        test=test
     )
     dispatch.save()
     sent = 0
