@@ -13,12 +13,19 @@ a:link, a:visited {
   font-family: 'Oswald' !important;
 }
 
+h2 {
+  font-family: 'Oswald';
+}
+
 .custom-button {
   background: $custom-button-bg;
+  border-radius: 30px;
   color: $custom-button-fg !important;
   display: inline-block;
+  font-family: 'Oswald';
   font-weight: 700;
-  padding: 1.5rem 1rem 1.3rem;
+  padding: 1rem 1.3rem;
+  text-transform: uppercase;
 
   &:hover {
     background: darken($custom-button-bg, 20%);
