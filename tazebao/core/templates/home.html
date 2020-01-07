@@ -4,20 +4,111 @@
 {% block jumbotron %}
     <div class="jumbotron">
         <div class="ui container">
-            <p class="text-center slogan"><small>Versatile, rapido, sicuro.</small></p>
-            <h1 class="ui header text-center oswald">Il sistema di gestione newsletter perfetto per le tue esigenze</h1>
-            <p class="mt-2 text-center">
-            <a class="ui small button" href="mailto:mail@otto.to.it?subject=Tazebao"><i class="fa fa-envelope"></i> Contattaci e richiedi un account!</a>
-            </p>
+            <div class="ui two columns stackable mobile reversed grid">
+                <div class="column">
+                    <img class="ui fluid image" src="{% static 'core/img/jumb.jpg' %}" alt="">
+                </div>
+                <div class="column middle aligned">
+
+                    <p class="text-center slogan"><small>Versatile, rapido, sicuro.</small></p>
+                    <h1 class="ui header text-center oswald">Il sistema di gestione newsletter perfetto per le tue esigenze</h1>
+                    <p class="mt-4 mb-4 text-center">
+                    <a class="custom-button" href="mailto:mail@otto.to.it?subject=Tazebao">Richiedi un Account</a>
+                    </p>
+                    <p style="text-align: justify;" class="description"><strong>Tazebao</strong> è un'applicazione web che ti consente di creare e gestire campagne newsletter in completa autonomia. Organizza tutti i tuoi contatti in liste, prepara i contenuti e spedisci le campagne in pochi click. Visualizza le statistiche, i rimbalzi e tutte le informazioni riguardo ogni singolo invio.</p>
+                </div>
+            </div>
         </div>
     </div>
-    <div class="ui container mt-4">
-        <div class="ui two columns stackable grid">
-            <div class="column">
-                <p><strong>Tazebao</strong> è una web application multi-utente che consente di gestire campagne newsletter. <strong>Tazebao</strong> implementa un web service REST che ti permette di gestire esternamente la sottoscrizione e disiscrizione degli utenti in massima sicurezza. <strong>Tazebao</strong> gestisce in maniera asincrona l'invio massivo di email utilizzando le migliori tecnologie disponibili!</p><p><b>Tazebao</b> utilizza <a href="https://github.com/voidlabs/mosaico/">Mosaico</a> per la generazione di layout responsive, ma consente anche di creare e-mail con html raw, in modo da lasciare la massima libertà all'utente.</p>
+    <div class="subscribers-grid">
+        <div class="ui container pt-4">
+            <div class="ui two columns stackable grid">
+                <div class="column middle aligned text-center">
+                    <div class="text-center ico">
+                        <img src="{% static 'core/img/ico-iscritti.png' %}" alt="Iscritti" />
+                    </div>
+                    <h2 class="text-center">Iscritti e liste</h2>
+                    <p>Gestisci tutti i tuoi contatti, organizzali in liste per effettuare invii personalizzati, importali a partire da file csv.</p>
+                    <p>Esegui operazioni multiple su più iscritti, velocizza il tuo workflow!</p>
+                </div>
+                <div class="column">
+                    <div class="p-4 img">
+                        <img class="ui fluid image" src="/static/core/img/subscribers.png" alt="Iscritti" />
+                    </div>
+                </div>
             </div>
-            <div class="column">
-                <img class="ui fluid image" src="{% static 'core/img/tazebao.png' %}" alt="">
+        </div>
+    </div>
+    <div class="contents-grid">
+        <div class="ui container pt-4">
+            <div class="ui two columns stackable mobile reversed grid">
+                <div class="column">
+                    <div class="p-4 img">
+                        <img class="ui fluid image" src="/static/core/img/contents.png" alt="Contenuti" />
+                    </div>
+                </div>
+                <div class="column middle aligned text-center">
+                    <div class="text-center ico">
+                        <img src="{% static 'core/img/ico-contenuti.png' %}" alt="Contenuti" />
+                    </div>
+                    <h2 class="text-center">Gestione contenuti</h2>
+                    <p class="text-center">Tazebao integra una versione ritoccata di <a href="https://mosaico.io/" target="_blank">Mosaico</a>, un template builder veloce e semplice da usare.</p>
+                    <p class="text-center">Concentrati sulla scrittura dei testi e la preparazione delle immagini, a tutto il resto penserà Tazebao, con pochi click e qualche drag&drop potrai creare delle e-mail professionali a partire da template base.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="planning-grid">
+        <div class="ui container pt-4">
+            <div class="ui two columns stackable grid">
+                <div class="column middle aligned text-center">
+                    <div class="text-center ico">
+                        <img src="{% static 'core/img/ico-invio-progr.png' %}" alt="Invio programmato" />
+                    </div>
+                    <h2 class="text-center">Invio programmato</h2>
+                    <p class="text-center">Tazebao ti consente di effettuare degli invii di test, e quando tutto sarà pronto potrai decidere se inviare immediatamente la tua campagna, oppure programmarne l'invio. Tazebao si occuperà di farlo al posto tuo nella data ed all'ora programmata.</p>
+                </div>
+                <div class="column">
+                    <div class="p-4 img">
+                        <img class="ui fluid image" src="/static/core/img/planning.png" alt="Programmazione" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="report-grid">
+        <div class="ui container pt-4">
+            <div class="ui two columns stackable mobile reversed grid">
+                <div class="column">
+                    <div class="p-4 img">
+                        <img class="ui fluid image" src="/static/core/img/report.png" alt="Report" />
+                    </div>
+                </div>
+                <div class="column middle aligned text-center">
+                    <div class="text-center ico">
+                        <img src="{% static 'core/img/ico-stats.png' %}" alt="Statistiche" />
+                    </div>
+                    <h2 class="text-center">Report</h2>
+                    <p class="text-center">Visualizza una reportistica per ciascun invio, grazie alle statistiche fornite da Tazebao potrai capire se la campagna ha avuto successo, e quali sono stati i contenuti più apprezzati. Tazebao registra gli eventi di apertura delle e-mail, i click sui vari bottoni e le e-mail rimbalzate. Potrai visualizza i grafici e le informazioni puntuali, disiscrivere velocemente iscritti con e-mail disattivate etc...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="integration-grid">
+        <div class="ui container pt-4">
+            <div class="ui two columns stackable grid">
+                <div class="column middle aligned text-center">
+                    <div class="text-center ico">
+                        <img src="{% static 'core/img/ico-integration.png' %}" alt="Integrazione" />
+                    </div>
+                    <h2 class="text-center">Integrazione</h2>
+                    <p class="text-center">Tazebao ti mette a disposizione un'API REST da utilizzare per integrare alla perfezione la gestione della newsletter nel tuo sito. Potrai gestire tutto ciò di cui hai bisogno direttamente sul tuo sito, iscrizioni, disiscrizioni, visualizzazione delle reportistiche etc... E se avessi bisogno di aiuto, non hai che da chiedere!</p>
+                </div>
+                <div class="column">
+                    <div class="p-4 img">
+                        <img class="ui fluid image" src="/static/core/img/integration.png" alt="Invio" />
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -1,20 +1,28 @@
 .jumbotron {
   background: $jumbotron-bg;
+  background-size: cover;
   color: $jumbotron-fg !important;
   padding: 2rem;
 
+  img {
+    border: 10px solid $white;
+  }
+
   .ui.header {
     color: $jumbotron-fg !important;
-    margin-top: 1rem;
-    margin-bottom: 2rem;
+    margin-top: 1.8rem;
+    margin-bottom: 2.8rem;
   }
 
   .slogan {
     color: $jumbotron-slogan-fg;
     font-size: 1.8rem;
-    font-style: italic;
     font-weight: 400;
     margin-bottom: 0;
+  }
+
+  .description {
+    margin-top: 2.5rem;
   }
 }
 
@@ -23,4 +31,35 @@
   color: $footer-fg;
   padding: 2rem;
   text-align: center;
+}
+
+.subscribers-grid {
+  background: #fff3cb;
+}
+
+.contents-grid {
+  background: #cdc9f4;
+}
+
+.planning-grid {
+  background: #ffeacb;
+}
+
+.report-grid {
+  background: #c5dbf3;
+}
+
+.integration-grid {
+  background: #f6f6f4;
+}
+
+.subscribers-grid,
+.contents-grid,
+.planning-grid,
+.report-grid,
+.integration-grid {
+  .img img {
+    border: 10px solid $white;
+    border-radius: 50%;
+  }
 }

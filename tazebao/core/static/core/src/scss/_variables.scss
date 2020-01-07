@@ -21,9 +21,13 @@ $navbar-bg: rgba(0, 0, 0, .8);
 $jumbotron-bg: #46a8b1;
 
 // home
-$jumbotron-bg: #EAAE00;
+$jumbotron-bg: url('/static/core/img/bg.jpg') no-repeat center center;
 $jumbotron-fg: $white;
 $jumbotron-slogan-fg: $c-lightgray;
+
+// button
+$custom-button-bg: #ff0000;
+$custom-button-fg: #fff;
 
 // footer
 $footer-bg: darken($green, 50%);

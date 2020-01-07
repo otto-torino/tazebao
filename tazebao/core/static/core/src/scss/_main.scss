@@ -1,12 +1,28 @@
 html,
 body {
-  font-size: 16px;
+  font-size: 18px;
   font-family: 'Lato';
-  font-weight: 100;
+  font-weight: 300;
+}
+
+a:link, a:visited {
+  color: $primary;
 }
 
 .oswald {
   font-family: 'Oswald' !important;
+}
+
+.custom-button {
+  background: $custom-button-bg;
+  color: $custom-button-fg !important;
+  display: inline-block;
+  font-weight: 700;
+  padding: 1.5rem 1rem 1.3rem;
+
+  &:hover {
+    background: darken($custom-button-bg, 20%);
+  }
 }
 
 .hidden,
@@ -149,6 +165,10 @@ body {
 
 .ui.menu .item.right.ml-0 {
   margin-left: 0 !important;
+}
+
+.p-4 {
+  padding: 2rem !important;
 }
 
 .px-4 {
