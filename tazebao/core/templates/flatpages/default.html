@@ -5,8 +5,10 @@
 {% endblock %}
 
 {% block content %}
-<section class="main-content">
-    <h1>{{ flatpage.title }}</h1>
-    {{ flatpage.content|safe }}
-</section>
+  <div class="ui container">
+      <section class="main-content">
+          <h1 class="mt-4">{{ flatpage.title }}</h1>
+          {{ flatpage.content|safe }}
+      </section>
+  </div>
 {% endblock %}
