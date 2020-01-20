@@ -7,7 +7,7 @@ import os
 
 DEBUG = False
 
-ALLOWED_HOSTS = ['tazebao.email', 'www.tazebao.email', ]
+ALLOWED_HOSTS = ['tazebao.email', 'www.tazebao.email', 'tazebao.sqrt64.it', ]
 
 # ssl
 HTTPS = True
