@@ -1,14 +1,14 @@
-from django.conf.urls import url
+from django.urls import path
 from .views import campaign_detail_view, email_tracking, link_tracking
 
 urlpatterns = [
-    url(r'^(?P<client_slug>[-\w\d]+)/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<campaign_slug>[-\w\d]+)/$', # noqa
+    path('<slug:client_slug>/<int:year>/<int:month>/<int:day>/<slug:campaign_slug>/', # noqa
         campaign_detail_view,
         name='newsletter-campaign-detail'),
-    url(r'^tracking/click/(?P<dispatch_id>\d+)/(?P<subscriber_id>\d+)/$',
+    path('tracking/click/<int:dispatch_id>/<int:subscriber_id>/',
         link_tracking,
         name='newsletter-click-tracking'),
-    url(r'^tracking/(?P<dispatch_id>\d+)/(?P<subscriber_id>\d+)/?$',
+    path('tracking/<int:dispatch_id>/<int:subscriber_id>/',
         email_tracking,
         name='newsletter-email-tracking'),
 ]
