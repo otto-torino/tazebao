@@ -154,6 +154,10 @@ def image(request):
         'https://' if settings.HTTPS else 'http://',
         domain
     ])
+    base_old_url = ''.join([
+        'https://' if settings.HTTPS else 'http://',
+        'tazebao.sqrt64.it'
+    ])
     if request.method == 'GET':
         method = request.GET['method']
         logger.debug("method: %r", method)
@@ -168,7 +172,7 @@ def image(request):
             src = request.GET['src']
             width, height = [size(p) for p in params]
             for upload in Upload.objects.all():
-                if base_url + upload.image.url == src:
+                if ((base_url + upload.image.url == src) or (base_old_url + upload.image.url == src)):
                     break
             image = Image.open(upload.image.file)
             if width is not None and height is not None:
