@@ -96,7 +96,8 @@ class CampaignSerializer(serializers.ModelSerializer):
         return obj.topic.id
 
     def plain_text_fn(self, obj):
-        tpl = template.Template(obj.plain_text)
+        tpl = template.Template(
+            '{% load newsletter_tags %}' + obj.plain_text)  # noqa
         context = template.Context({})
         context.update(get_campaign_context(obj))
         return tpl.render(context)
