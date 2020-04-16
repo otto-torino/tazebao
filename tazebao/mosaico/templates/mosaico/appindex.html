@@ -71,7 +71,8 @@ viewModel.newEdit = function(shorttmplname) {
     var rnd = Math.random().toString(36).substr(2, 7);
     var template = '{% static 'mosaico/templates/' %}'+shorttmplname+'/template-'+shorttmplname+'.html';
     viewModel.edits.unshift({ created: Date.now(), key: rnd, name: shorttmplname, template: template });
-    document.location = 'appeditor.html' + location.search;// + '#'+rnd;
+    // document.location = 'appeditor.html' + location.search;// + '#'+rnd;
+    document.location = 'appeditor.html' + location.search + '&tpl=' + shorttmplname;
     // { data: 'AAAA-MM-GG', key: 'ABCDE' }
     // viewModel.edits.push(template);
 };

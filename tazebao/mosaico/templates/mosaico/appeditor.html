@@ -29,6 +29,16 @@
         <script src="{% static 'core/src/js/core.js' %}"></script>
         <script>
 $(function() {
+    {% if template  %}
+        var re = new RegExp('"template": "(.*?)"');
+        var matches = re.exec('{{ template.meta_data_json|safe }}');
+        var tpl = matches[1];
+    {% else %}
+        var tpl = /tpl=versafix-1/.test(location.search)
+            ? '/static/mosaico/templates/versafix-1/template-versafix-1.html'
+            : '/static/mosaico/templates/tedc15/template-tedc15.html';
+    {% endif %}
+
     var randomString = function (len, an){
         an = an&&an.toLowerCase();
         var str="", i=0, min=an=="a"?10:0, max=an=="n"?10:62;
@@ -248,12 +258,14 @@ $(function() {
                 url: basePath+'/appupload/' + document.location.search,
                 // messages??
             }
-        }, '/static/mosaico/templates/versafix-1/template-versafix-1.html', {% if template %}{{ template.meta_data_json|safe }}{% else %}undefined{% endif %}, {% if template %}{{ template.template_data_json|safe }}{% else %}undefined{% endif %}, plugins);
+        }, tpl, {% if template %}{{ template.meta_data_json|safe }}{% else %}undefined{% endif %}, {% if template %}{{ template.template_data_json|safe }}{% else %}undefined{% endif %}, plugins);
         window.parent.postMessage({type: 'TAZEBAO', data: { event: 'READY' }}, "*");
     } catch(error) {
         window.parent.postMessage({type: 'TAZEBAO', data: { event: 'ERROR', description: 'cannot init Mosaico' }}, "*");
     }
 });
+
+console.log('DIO', location.hash.substr(1));
 
 var help = function() {
     $('#help-layer').toggle();
