@@ -62,7 +62,7 @@ def unsubscribe(request):
             str(request.GET['id']) + str(request.GET['email']))  # noqa
         )
         if (sig == signature):
-            # subscriber.delete()
+            subscriber.delete()
             return render(request, 'newsletter/unsubscribe.html', {
                 'newsletter': subscriber.client,
                 'email': subscriber.email
