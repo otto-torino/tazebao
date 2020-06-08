@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Disiscrizione newsletter | {{ block.super }}
+{% endblock %}
+
+{% block content %}
+  <div class="page-title">
+    <h1 class="mt-4">Disiscrizione newsletter</h1>
+  </div>
+  <div class="ui container">
+      <div class="page-body">
+          <p class="text-center">
+            <i class="check green icon circle" style="font-size: 70px;"></i>
+          </p>
+          <p class="text-center">La disiscrizione dell'indirizzo e-mail <b>{{ email }}</b> è avvenuta con successo.<br />
+          A partire da questo momento non riceverai più e-mail della newsletter <b>{{ newsletter }}</b>.</p>
+      </div>
+  </div>
+{% endblock %}

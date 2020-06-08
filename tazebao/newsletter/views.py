@@ -5,7 +5,7 @@ import random
 import string
 import time
 from datetime import date, datetime, timedelta
-from urllib.parse import unquote
+from urllib.parse import unquote, unquote_plus
 
 from dateutil.relativedelta import relativedelta
 from django import http, template
@@ -15,7 +15,7 @@ from django.core.signing import Signer
 from django.db import IntegrityError, transaction
 from django.http import (Http404, HttpResponse, HttpResponseBadRequest,
                          HttpResponseRedirect)
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
@@ -47,6 +47,29 @@ def random_string(string_length=7):
     """Generate a random string of fixed length """
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(string_length))
+
+
+def unsubscribe(request):
+    # check signature
+    if request.GET.get('id', False) and request.GET.get(
+            'email', False) and request.GET.get('sig', False):  # noqa
+        subscriber = get_object_or_404(Subscriber, id=int(request.GET.get('id')))
+        sig = request.GET['sig']
+        signature = unquote_plus(
+            encrypt({
+                'client': subscriber.client
+            },
+            str(request.GET['id']) + str(request.GET['email']))  # noqa
+        )
+        if (sig == signature):
+            # subscriber.delete()
+            return render(request, 'newsletter/unsubscribe.html', {
+                'newsletter': subscriber.client,
+                'email': subscriber.email
+            })
+        else:
+            raise Http404()
+    raise Http404()
 
 
 def campaign_detail_view(request, client_slug, year, month, day,

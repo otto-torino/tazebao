@@ -82,14 +82,18 @@ class Topic(models.Model):
         max_length=255,
         help_text=mark_safe('''
             <p><b>Variabili</b> disponibili</p>
+            <p>
             - <code>{{ id }}</code> id iscritto<br />
             - <code>{{ email }}</code> e-mail iscritto<br />
             - <code>{{ subscription_datetime }}</code> data
-                            sottoscrizione<br />
+                            sottoscrizione
+            </p>
             <p>Per criptare utilizzando la SECRET_KEY:</p>
             <code>{% encrypt id email %}</code>
             <p>genera una stringa criptata della concatenazione di id
                             e email.</p>
+            <p>URL gestito interamente da Tazebao, se inserisci questo URL la disiscrizione avverrà su Tazebao:</p>
+            <p><code>https://www.tazebao.email/unsubscribe/?id={{ id }}&email={{ email }}&sig={% encrypt id email %}</code></p>
         '''))
 
     class Meta:
