@@ -81,19 +81,20 @@ class Topic(models.Model):
         null=True,
         max_length=255,
         help_text=mark_safe('''
-            <p><b>Variabili</b> disponibili</p>
+            <p><b>Variabili</b> disponibili:</p>
             <p>
-            - <code>{{ id }}</code> id iscritto<br />
-            - <code>{{ email }}</code> e-mail iscritto<br />
-            - <code>{{ subscription_datetime }}</code> data
-                            sottoscrizione
-            </p>
+            <ul>
+            <li><code>{{ id }}</code> id iscritto</li>
+            <li><code>{{ email }}</code> e-mail iscritto</li>
+            <li><code>{{ subscription_datetime }}</code> data
+                            sottoscrizione</li>
+            </ul>
             <p>Per criptare utilizzando la SECRET_KEY:</p>
             <code>{% encrypt id email %}</code>
             <p>genera una stringa criptata della concatenazione di id
                             e email.</p>
-            <p>URL gestito interamente da Tazebao, se inserisci questo URL la disiscrizione avverrà su Tazebao:</p>
-            <p><code>https://www.tazebao.email/unsubscribe/?id={{ id }}&email={{ email }}&sig={% encrypt id email %}</code></p>
+            <p>Se vuoi avere tutto quanto gestito da Tazebao (la disiscrizione avverrà sul dominio Tazebao), inserisci questo URL:</p>
+            <p><code>https://www.tazebao.email/newsletter/unsubscribe/?id={{ id }}&email={{ email }}&sig={% encrypt id email %}</code></p>
         '''))
 
     class Meta:
