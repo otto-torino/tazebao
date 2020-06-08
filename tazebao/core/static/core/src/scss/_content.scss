@@ -83,6 +83,12 @@
 pre {
   background: $black;
   color: #eeffff;
+  font-family: monospace;
   overflow: auto;
   padding: 1rem 2rem;
+
+  &.light {
+    background: #fff;
+    color: #000;
+  }
 }
