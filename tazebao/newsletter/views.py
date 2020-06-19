@@ -373,7 +373,7 @@ class SubscriberViewSet(viewsets.ModelViewSet):
         email = self.request.query_params.get('email', None)
         info = self.request.query_params.get('info', None)
         if email is not None:
-            qs = qs.filter(email__icontainse=email)
+            qs = qs.filter(email__icontains=email)
         if info is not None:
             qs = qs.filter(info__icontains=info)
         return qs
