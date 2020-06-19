@@ -368,7 +368,15 @@ class SubscriberViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """ Retrieves only clients subscribers
         """
-        return Subscriber.objects.filter(client__user__id=self.request.user.id)
+        qs = Subscriber.objects.filter(client__user__id=self.request.user.id)
+
+        email = self.request.query_params.get('email', None)
+        info = self.request.query_params.get('info', None)
+        if email is not None:
+            qs = qs.filter(email__icontainse=email)
+        if info is not None:
+            qs = qs.filter(info__icontains=info)
+        return qs
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
