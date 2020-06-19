@@ -372,10 +372,18 @@ class SubscriberViewSet(viewsets.ModelViewSet):
 
         email = self.request.query_params.get('email', None)
         info = self.request.query_params.get('info', None)
+        sort = self.request.query_params.get('sort', None)
+        sort_direction = self.request.query_params.get('sort_direction', None)
         if email is not None:
             qs = qs.filter(email__icontains=email)
         if info is not None:
             qs = qs.filter(info__icontains=info)
+        if sort is not None:
+            order = '%s%s' % (
+                '-' if sort_direction == 'desc' else '',
+                sort
+            )
+            qs = qs.order_by(order)
         return qs
 
     def perform_create(self, serializer):
