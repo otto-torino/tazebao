@@ -1,0 +1,8 @@
+#!/bin/bash
+# Setup of the staging environment
+
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )"
+echo "===================="
+echo "Staging Provisioning"
+echo "===================="
+ansible-playbook --inventory-file="$DIR/provisioning/ansible_staging_inventory" --extra-vars "@$DIR/provisioning/ansible_staging_variables" --extra-vars "base_dir=$DIR" --ask-pass "$DIR/provisioning/playbooks/staging.yml"

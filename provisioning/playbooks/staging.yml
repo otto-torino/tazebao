@@ -5,7 +5,7 @@
 # - Web app initialization (user nd dirs creation)
 ##
 ---
-- hosts: remote
+- hosts: staging
   user: root
   vars:
     repo_name: tazebao

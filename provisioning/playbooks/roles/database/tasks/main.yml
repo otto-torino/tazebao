@@ -4,4 +4,5 @@
       when: provisioning == 'local'
     - include: remote.yml
       when: provisioning == 'remote'
-
+    - include: remote.yml
+      when: provisioning == 'staging'
