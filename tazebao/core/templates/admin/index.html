@@ -23,7 +23,7 @@
 {% block content %}
     {% if request.path == '/admin/' %}
         <div id="content-main">
-            <div class="module" style="background: #fff; border: 1px solid #ccc;flex: 1; max-width: 100%; margin: 0 15px;padding-top: 10px;">
+            <div class="module" style="background: #fff; flex: 1; max-width: 100%; margin: 0 15px;padding-top: 10px; margin-bottom: 15px;">
                 {% if request.user.client %}
                     {% dashboard request.user.client %}
                 {% else %}

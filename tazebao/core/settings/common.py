@@ -77,6 +77,7 @@ INSTALLED_APPS = (
     'ckeditor',
     'ckeditor_uploader',
     'pipeline',
+    'cachalot',
     'django_cleanup',
     'export_action',
     'captcha',
@@ -138,6 +139,16 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
+
+CACHES = {
+    'default': {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/10",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    },
+}
 
 
 # Static files (CSS, JavaScript, Images)
