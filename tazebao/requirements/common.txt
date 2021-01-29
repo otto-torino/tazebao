@@ -18,6 +18,7 @@ cssutils==1.0.2
 Django==2.2.2
 django-appconf==1.0.3
 https://github.com/otto-torino/django-baton/archive/v2.zip
+django-cachalot==2.3.3
 django-ckeditor==5.7.1
 django-cleanup==3.2.0
 django-cors-headers==3.1.1
@@ -29,6 +30,7 @@ django-jsonify==0.3.0
 django-mail-queue==3.1.6
 django-pipeline==1.6.14
 django-ranged-response==0.2.0
+django-redis==4.12.1
 django-simple-captcha==0.5.11
 django-taggit==1.1.0
 djangorestframework==3.9.4
@@ -62,9 +64,9 @@ oauth2client==1.5.2
 openpyxl==2.6.2
 ordereddict==1.1
 paramiko==2.4.2
+patchwork==1.0.1
 pbr==5.2.1
 Pillow==6.0.0
-pkg-resources==0.0.0
 premailer==3.4.1
 pyasn1==0.4.5
 pyasn1-modules==0.2.5
