@@ -108,10 +108,10 @@
 
 <h4 class="d-flex justify-content-between mb-4">
     <span>Ultimi invii</span>
-    <span class="badge badge-pill badge-info">{{ tot_subscribers }} iscritti totali</span>
+    <span class="badge rounded-pill bg-info">{{ tot_subscribers }} iscritti totali</span>
 </h4>
 <div class="table-responsive">
-    <table class="table table-bordered table-striped">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Campagna</th>
@@ -127,8 +127,8 @@
                     <td>{{ d.campaign.name }}</td>
                     <td>{{ d.started_at }}</td>
                     <td>{{ d.sent }}</td>
-                    <td>{% if d.open_rate %}<span class="badge badge-pill badge-warning" style="font-size: 1.1rem;">{{ d.open_rate }}%</span>{% endif %}</td>
-                    <td>{% if d.click_rate %}<span class="badge badge-pill badge-primary" style="font-size: 1.1rem;">{{ d.click_rate }}%</span>{% endif %}</td>
+                    <td>{% if d.open_rate %}<span class="badge rounded-pill bg-warning" style="font-size: 1.1rem;">{{ d.open_rate }}%</span>{% endif %}</td>
+                    <td>{% if d.click_rate %}<span class="badge rounded-pill bg-primary" style="font-size: 1.1rem;">{{ d.click_rate }}%</span>{% endif %}</td>
                 </tr>
             {% endfor %}
         </tbody>
