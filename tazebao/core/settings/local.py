@@ -48,7 +48,7 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.logging.LoggingPanel',
     'debug_toolbar.panels.redirects.RedirectsPanel',
     'debug_toolbar.panels.profiling.ProfilingPanel',
-    'cachalot.panels.CachalotPanel',
+    # 'cachalot.panels.CachalotPanel',
 ]
 
 # CELERY

@@ -77,7 +77,7 @@ INSTALLED_APPS = (
     'ckeditor',
     'ckeditor_uploader',
     'pipeline',
-    'cachalot',
+    # 'cachalot',
     'django_cleanup',
     'export_action',
     'captcha',
