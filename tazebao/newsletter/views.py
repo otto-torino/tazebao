@@ -370,6 +370,7 @@ class SubscriberViewSet(viewsets.ModelViewSet):
         """
         qs = Subscriber.objects.filter(client__user__id=self.request.user.id)
 
+        lists = self.request.query_params.get('lists', None)
         email = self.request.query_params.get('email', None)
         info = self.request.query_params.get('info', None)
         sort = self.request.query_params.get('sort', None)
@@ -378,6 +379,8 @@ class SubscriberViewSet(viewsets.ModelViewSet):
             qs = qs.filter(email__icontains=email)
         if info is not None:
             qs = qs.filter(info__icontains=info)
+        if lists is not None:
+            qs = qs.filter(lists__id__in=[int(lists)])
         if sort is not None:
             order = '%s%s' % (
                 '-' if sort_direction == 'desc' else '',
