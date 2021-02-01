@@ -10,9 +10,9 @@ from urllib.parse import unquote, unquote_plus
 from dateutil.relativedelta import relativedelta
 from django import http, template
 from django.core.validators import validate_email
-from django.db import transaction
 from django.core.signing import Signer
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.http import (Http404, HttpResponse, HttpResponseBadRequest,
                          HttpResponseRedirect)
 from django.shortcuts import get_object_or_404, render
@@ -202,6 +202,11 @@ class LargeResultsSetPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
 
 
+class AllResultsSetPagination(PageNumberPagination):
+    page_size = 1000000
+    page_size_query_param = 'page_size'
+
+
 class SubscriberListViewSet(viewsets.ModelViewSet):
     """ SubscriberList CRUD
     """
@@ -358,6 +363,22 @@ class SubscriberViewSet(viewsets.ModelViewSet):
     serializer_class = SubscriberSerializer
     pagination_class = LargeResultsSetPagination
 
+    @property
+    def paginator(self):
+        """
+        The paginator instance associated with the view, or `None`.
+        """
+        # do not paginate under 5000
+        if Subscriber.objects.filter(client__user__id=self.request.user.id).count() < 1:
+            self._paginator = None
+        else:
+            if not hasattr(self, '_paginator'):
+                if self.pagination_class is None:
+                    self._paginator = None
+                else:
+                    self._paginator = self.pagination_class()
+        return self._paginator
+
     def get_permissions(self):
         """ Only client users can perform object actions
         """
@@ -370,6 +391,7 @@ class SubscriberViewSet(viewsets.ModelViewSet):
         """
         qs = Subscriber.objects.filter(client__user__id=self.request.user.id)
 
+        q = self.request.query_params.get('q', None)
         lists = self.request.query_params.get('lists', None)
         email = self.request.query_params.get('email', None)
         info = self.request.query_params.get('info', None)
@@ -381,6 +403,8 @@ class SubscriberViewSet(viewsets.ModelViewSet):
             qs = qs.filter(info__icontains=info)
         if lists is not None:
             qs = qs.filter(lists__id__in=[int(lists)])
+        if q is not None:
+            qs = qs.filter(Q(email__icontains=q) | Q(info__icontains=q))
         if sort is not None:
             order = '%s%s' % (
                 '-' if sort_direction == 'desc' else '',
