@@ -505,11 +505,14 @@ class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
         """ Retrieves only client's campaigns
         """
         qs = Campaign.objects.filter(client__user__id=self.request.user.id)
+        q = self.request.query_params.get('q', None)
         view_online = self.request.query_params.get('view_online', None)
         subject = self.request.query_params.get('subject', None)
         text = self.request.query_params.get('text', None)
         date_from = self.request.query_params.get('date_from', None)
         date_to = self.request.query_params.get('date_to', None)
+        sort = self.request.query_params.get('sort', None)
+        sort_direction = self.request.query_params.get('sort_direction', None)
         if view_online is not None:
             qs = qs.filter(view_online=True if int(view_online) else False)
         if subject is not None:
@@ -523,6 +526,19 @@ class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
         if date_to is not None:
             qs = qs.filter(
                 last_edit_datetime__lte=datetime.strptime(date_to, "%Y-%m-%d"))
+        if q is not None:
+            qs = qs.filter(name__icontains=q)
+
+        if sort is not None:
+            order = '%s%s' % (
+                '-' if sort_direction == 'desc' else '',
+                sort
+            )
+        else: # default ordering
+            order = '-id'
+
+        qs = qs.order_by(order)
+
         return qs
 
     def perform_create(self, serializer):
