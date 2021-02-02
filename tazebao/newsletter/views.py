@@ -193,7 +193,7 @@ def link_tracking(request, dispatch_id, subscriber_id):
 
 # API
 class ResultsSetPagination(PageNumberPagination):
-    page_size = 20
+    page_size = 10
     page_size_query_param = 'page_size'
 
 
@@ -207,12 +207,32 @@ class AllResultsSetPagination(PageNumberPagination):
     page_size_query_param = 'page_size'
 
 
-class SubscriberListViewSet(viewsets.ModelViewSet):
+class DynamicPagination(object):
+    @property
+    def paginator(self):
+        """
+        The paginator instance associated with the view, or `None`.
+        """
+        # do not paginate under 5000
+        if self.request.query_params.get('page_size', None) is None and Subscriber.objects.filter(client__user__id=self.request.user.id).count() < self.pagination_threshold:
+            self._paginator = None
+        else:
+            if not hasattr(self, '_paginator'):
+                if self.pagination_class is None:
+                    self._paginator = None
+                else:
+                    self._paginator = self.pagination_class()
+        return self._paginator
+
+
+class SubscriberListViewSet(DynamicPagination, viewsets.ModelViewSet):
     """ SubscriberList CRUD
     """
     lookup_field = 'pk'
     queryset = SubscriberList.objects.all()
     serializer_class = SubscriberListSerializer
+    pagination_class = ResultsSetPagination
+    pagination_threshold = 10000
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -313,12 +333,14 @@ class ImportSubscribersFromCsv(APIView):
         return Response(response)
 
 
-class PlanningViewSet(viewsets.ModelViewSet):
+class PlanningViewSet(DynamicPagination, viewsets.ModelViewSet):
     """ SubscriberList CRUD
     """
     lookup_field = 'pk'
     queryset = Planning.objects.all()
     serializer_class = PlanningSerializer
+    pagination_class = ResultsSetPagination
+    pagination_threshold = 10000
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -334,12 +356,14 @@ class PlanningViewSet(viewsets.ModelViewSet):
             campaign__client__user__id=self.request.user.id)  # noqa
 
 
-class FailedEmailViewSet(viewsets.ModelViewSet):
+class FailedEmailViewSet(DynamicPagination, viewsets.ModelViewSet):
     """ FailedEmail CRUD
     """
     lookup_field = 'pk'
     queryset = FailedEmail.objects.all()
     serializer_class = FailedEmailSerializer
+    pagination_class = ResultsSetPagination
+    pagination_threshold = 10000
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -355,29 +379,14 @@ class FailedEmailViewSet(viewsets.ModelViewSet):
             client__user__id=self.request.user.id)  # noqa
 
 
-class SubscriberViewSet(viewsets.ModelViewSet):
+class SubscriberViewSet(DynamicPagination, viewsets.ModelViewSet):
     """ Subscriber CRUD
     """
     lookup_field = 'pk'
     queryset = Subscriber.objects.all()
     serializer_class = SubscriberSerializer
-    pagination_class = LargeResultsSetPagination
-
-    @property
-    def paginator(self):
-        """
-        The paginator instance associated with the view, or `None`.
-        """
-        # do not paginate under 5000
-        if Subscriber.objects.filter(client__user__id=self.request.user.id).count() < 1:
-            self._paginator = None
-        else:
-            if not hasattr(self, '_paginator'):
-                if self.pagination_class is None:
-                    self._paginator = None
-                else:
-                    self._paginator = self.pagination_class()
-        return self._paginator
+    pagination_class = ResultsSetPagination
+    pagination_threshold = 8000
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -410,7 +419,9 @@ class SubscriberViewSet(viewsets.ModelViewSet):
                 '-' if sort_direction == 'desc' else '',
                 sort
             )
-            qs = qs.order_by(order)
+        else: # default ordering
+            order = '-id'
+        qs = qs.order_by(order)
         return qs
 
     def perform_create(self, serializer):
@@ -474,13 +485,14 @@ class SubscriberViewSet(viewsets.ModelViewSet):
             return HttpResponseBadRequest(str(e))
 
 
-class CampaignViewSet(viewsets.ModelViewSet):
+class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
     """ Campaigns CRUD
     """
     lookup_field = 'pk'
     queryset = Campaign.objects.all()
     serializer_class = CampaignSerializer
-    pagination_class = LargeResultsSetPagination
+    pagination_class = ResultsSetPagination
+    pagination_threshold = 100
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -677,12 +689,14 @@ class FailedEmailApiView(View):
             return http.HttpResponseForbidden()
 
 
-class TopicViewSet(viewsets.ModelViewSet):
+class TopicViewSet(viewsets.ModelViewSet, DynamicPagination):
     """ Topic CRUD
     """
     lookup_field = 'pk'
     queryset = Topic.objects.all()
     serializer_class = TopicSerializer
+    pagination_class = ResultsSetPagination
+    pagination_threshold = 10000
 
     def get_permissions(self):
         """ Only client users can perform object actions
