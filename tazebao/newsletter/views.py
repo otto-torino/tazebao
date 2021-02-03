@@ -247,7 +247,8 @@ class SubscriberListViewSet(DynamicPagination, viewsets.ModelViewSet):
     def get_queryset(self):
         """ Retrieves only clients lists
         """
-        qs = SubscriberList.objects.filter(client__user__id=self.request.user.id)
+        qs = SubscriberList.objects.filter(
+            client__user__id=self.request.user.id)
 
         q = self.request.query_params.get('q', None)
         sort = self.request.query_params.get('sort', None)
@@ -429,7 +430,9 @@ class FailedEmailViewSet(DynamicPagination, viewsets.ModelViewSet):
         sort = self.request.query_params.get('sort', None)
         sort_direction = self.request.query_params.get('sort_direction', None)
         if q is not None:
-            qs = qs.filter(Q(subscriber__email__icontains=q) | Q(dispatch__campaign__name__icontains=q))
+            qs = qs.filter(
+                Q(subscriber__email__icontains=q)
+                | Q(dispatch__campaign__name__icontains=q))
         if sort is not None:
             if sort == 'subscriber_email':
                 sort = 'subscriber__email'
@@ -528,9 +531,8 @@ class SubscriberViewSet(DynamicPagination, viewsets.ModelViewSet):
     def delete_from_bounces(self, request):
         bounces_ids = request.data.get('bounces')
         try:
-            Subscriber.objects.filter(
-                bounces__id__in=bounces_ids,
-                client=request.user.client).delete()
+            Subscriber.objects.filter(bounces__id__in=bounces_ids,
+                                      client=request.user.client).delete()
             return Response({'detail': 'subscribers deleted'})
         except Exception as e:
             print(e)
@@ -540,10 +542,25 @@ class SubscriberViewSet(DynamicPagination, viewsets.ModelViewSet):
     def delete_from_mailermessages(self, request):
         ids = request.data.get('mailermessages')
         try:
-            emails = [m.to_address for m in MailerMessage.objects.filter(id__in=ids, app__in=[str(d.pk) for d in Dispatch.objects.filter(campaign__client__user=request.user)])]
-            Subscriber.objects.filter(
-                email__in=emails,
-                client=request.user.client).delete()
+            emails = [
+                m.to_address for m in MailerMessage.objects.filter(
+                    id__in=ids,
+                    app__in=[
+                        str(d.pk) for d in Dispatch.objects.filter(
+                            campaign__client__user=request.user)
+                    ])
+            ]
+
+            Subscriber.objects.filter(email__in=emails,
+                                      client=request.user.client).delete()
+
+            # delete logs also
+            MailerMessage.objects.filter(
+                to_address__in=emails,
+                app__in=[
+                    str(d.pk) for d in Dispatch.objects.filter(
+                        campaign__client__user=request.user)
+                ]).delete()
             return Response({'detail': 'subscribers deleted'})
         except Exception as e:
             print(e)
@@ -553,8 +570,8 @@ class SubscriberViewSet(DynamicPagination, viewsets.ModelViewSet):
     def delete_many(self, request):
         ids = request.data.get('ids')
         try:
-            Subscriber.objects.filter(
-                id__in=ids, client=request.user.client).delete()
+            Subscriber.objects.filter(id__in=ids,
+                                      client=request.user.client).delete()
             return Response({'detail': 'subscribers deleted'})
         except Exception as e:
             print(e)

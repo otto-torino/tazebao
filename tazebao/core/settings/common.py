@@ -295,6 +295,7 @@ JWT_AUTH = {
 }
 CORS_ORIGIN_WHITELIST = (
     'http://127.0.0.1',
+    'http://192.168.0.4:3001',
     'https://app.tazebao.sqrt64.it',
     'https://app.tazebao.email',
     'http://localhost',
