@@ -1,6 +1,7 @@
 from django import template
 from django.contrib.sites.models import Site
 from rest_framework import serializers
+from mailqueue.models import MailerMessage
 
 from .context import get_campaign_context
 from .models import (Campaign, Dispatch, FailedEmail, Planning, Subscriber,
@@ -250,3 +251,19 @@ class TopicSerializer(serializers.ModelSerializer):
             'unsubscribe_url',
         )
         read_only_fields = ('client', )
+
+
+class MailerMessageSerializer(serializers.ModelSerializer):
+    """ Message serializer """
+    class Meta:
+        model = MailerMessage
+        fields = (
+            'id',
+            'created',
+            'subject',
+            'to_address',
+            'from_address',
+            'app',
+            'sent',
+            'last_attempt',
+        )

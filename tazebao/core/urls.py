@@ -25,9 +25,10 @@ from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 from core.views.api import WhoAmI
 from newsletter.views import (CampaignViewSet, DispatchViewSet,
                               FailedEmailApiView, FailedEmailViewSet,
+                              ImportSubscribersFromCsv, MailerMessageViewSet,
                               PlanningViewSet, StatsApiView,
                               SubscriberListViewSet, SubscriberViewSet,
-                              TopicViewSet, ImportSubscribersFromCsv)
+                              TopicViewSet)
 
 # BEGIN API
 router = DefaultRouter()
@@ -38,6 +39,7 @@ router.register(r'newsletter/campaign', CampaignViewSet)
 router.register(r'newsletter/dispatch', DispatchViewSet)
 router.register(r'newsletter/planning', PlanningViewSet)
 router.register(r'newsletter/bounces', FailedEmailViewSet)
+router.register(r'newsletter/mailermessage', MailerMessageViewSet)
 # END API
 
 urlpatterns = [
@@ -53,15 +55,15 @@ urlpatterns = [
     path('export_action/',
          include("export_action.urls", namespace="export_action")),
     # API
-    path(
-        'api/v1/newsletter/failedemail/',
-        FailedEmailApiView.as_view(),
-        name='failed-email-api'),
+    path('api/v1/newsletter/failedemail/',
+         FailedEmailApiView.as_view(),
+         name='failed-email-api'),
     path('api/v1/login/', obtain_jwt_token),
     path('api/v1/refresh-token/', refresh_jwt_token),
     path('api/v1/whoami/', WhoAmI.as_view()),
     path('api/v1/newsletter/stats/', StatsApiView.as_view()),
-    path('api/v1/newsletter/subscriber/import/', ImportSubscribersFromCsv.as_view()),
+    path('api/v1/newsletter/subscriber/import/',
+         ImportSubscribersFromCsv.as_view()),
     path('api/v1/', include(router.urls))
 ]
 
