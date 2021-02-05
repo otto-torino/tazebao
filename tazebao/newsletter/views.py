@@ -214,10 +214,9 @@ class DynamicPagination(object):
         The paginator instance associated with the view, or `None`.
         """
         # do not paginate under 5000
-        if self.request.query_params.get(
-                'page_size', None) is None and Subscriber.objects.filter(
-                    client__user__id=self.request.user.id).count(
-                    ) < self.pagination_threshold:
+        if self.request.query_params.get('page_size',
+                                         None) is None and self.get_all_count(
+                                         ) < self.pagination_threshold:
             self._paginator = None
         else:
             if not hasattr(self, '_paginator'):
@@ -261,6 +260,10 @@ class SubscriberListViewSet(DynamicPagination, viewsets.ModelViewSet):
             order = '-id'
         qs = qs.order_by(order)
         return qs
+
+    def get_all_count(self):
+        return SubscriberList.objects.filter(
+            client__user__id=self.request.user.id).count()
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
@@ -404,6 +407,10 @@ class PlanningViewSet(DynamicPagination, viewsets.ModelViewSet):
         qs = qs.order_by(order)
         return qs
 
+    def get_all_count(self):
+        return Planning.objects.filter(
+            campaign__client__user__id=self.request.user.id).count()
+
 
 class FailedEmailViewSet(DynamicPagination, viewsets.ModelViewSet):
     """ FailedEmail CRUD
@@ -444,6 +451,10 @@ class FailedEmailViewSet(DynamicPagination, viewsets.ModelViewSet):
         qs = qs.order_by(order)
         return qs
 
+    def get_all_count(self):
+        return FailedEmail.objects.filter(
+            client__user__id=self.request.user.id).count()
+
 
 class SubscriberViewSet(DynamicPagination, viewsets.ModelViewSet):
     """ Subscriber CRUD
@@ -452,7 +463,7 @@ class SubscriberViewSet(DynamicPagination, viewsets.ModelViewSet):
     queryset = Subscriber.objects.all()
     serializer_class = SubscriberSerializer
     pagination_class = ResultsSetPagination
-    pagination_threshold = 1
+    pagination_threshold = 8000
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -486,6 +497,10 @@ class SubscriberViewSet(DynamicPagination, viewsets.ModelViewSet):
             order = '-id'
         qs = qs.order_by(order)
         return qs
+
+    def get_all_count(self):
+        return Subscriber.objects.filter(
+            client__user__id=self.request.user.id).count()
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
@@ -635,6 +650,10 @@ class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
 
         return qs
 
+    def get_all_count(self):
+        return Campaign.objects.filter(
+            client__user__id=self.request.user.id).count()
+
     def perform_create(self, serializer):
         """ Automatically set the client field """
         serializer.save(client=self.request.user.client)
@@ -706,13 +725,14 @@ class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
                                           str(e))
 
 
-class DispatchViewSet(viewsets.ReadOnlyModelViewSet):
+class DispatchViewSet(DynamicPagination, viewsets.ReadOnlyModelViewSet):
     """ Dispatches cRud
     """
     lookup_field = 'pk'
     queryset = Dispatch.objects.all()
     serializer_class = DispatchSerializer
     pagination_class = ResultsSetPagination
+    pagination_threshold = 10000
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -738,6 +758,10 @@ class DispatchViewSet(viewsets.ReadOnlyModelViewSet):
             qs = qs.filter(
                 started_at__lte=datetime.strptime(date_to, "%Y-%m-%d"))
         return qs
+
+    def get_all_count(self):
+        return Dispatch.objects.filter(
+            campaign__client__user__id=self.request.user.id).count()
 
 
 class FailedEmailApiView(View):
@@ -807,7 +831,7 @@ class TopicViewSet(DynamicPagination, viewsets.ModelViewSet):
     queryset = Topic.objects.all()
     serializer_class = TopicSerializer
     pagination_class = ResultsSetPagination
-    pagination_threshold = 1
+    pagination_threshold = 10000
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -832,6 +856,10 @@ class TopicViewSet(DynamicPagination, viewsets.ModelViewSet):
             order = '-id'
         qs = qs.order_by(order)
         return qs
+
+    def get_all_count(self):
+        return Topic.objects.filter(
+            client__user__id=self.request.user.id).count()
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
@@ -881,7 +909,7 @@ class MailerMessageViewSet(DynamicPagination, mixins.ListModelMixin,
     queryset = MailerMessage.objects.all()
     serializer_class = MailerMessageSerializer
     pagination_class = ResultsSetPagination
-    pagination_threshold = 1
+    pagination_threshold = 8000
 
     def get_permissions(self):
         """ Only client users can perform object actions
@@ -909,3 +937,9 @@ class MailerMessageViewSet(DynamicPagination, mixins.ListModelMixin,
             order = '-id'
         qs = qs.order_by(order)
         return qs
+
+    def get_all_count(self):
+        return MailerMessage.objects.filter(app__in=[
+            str(d.pk) for d in Dispatch.objects.filter(
+                campaign__client__user=self.request.user)
+        ]).count()
