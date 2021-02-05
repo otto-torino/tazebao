@@ -215,8 +215,7 @@ class DynamicPagination(object):
         """
         # do not paginate under 5000
         if self.request.query_params.get('page_size',
-                                         None) is None and self.get_all_count(
-                                         ) < self.pagination_threshold:
+                                         None) is None and self.get_for_client().count() < self.pagination_threshold:
             self._paginator = None
         else:
             if not hasattr(self, '_paginator'):
@@ -246,8 +245,7 @@ class SubscriberListViewSet(DynamicPagination, viewsets.ModelViewSet):
     def get_queryset(self):
         """ Retrieves only clients lists
         """
-        qs = SubscriberList.objects.filter(
-            client__user__id=self.request.user.id)
+        qs = self.get_for_client()
 
         q = self.request.query_params.get('q', None)
         sort = self.request.query_params.get('sort', None)
@@ -261,9 +259,9 @@ class SubscriberListViewSet(DynamicPagination, viewsets.ModelViewSet):
         qs = qs.order_by(order)
         return qs
 
-    def get_all_count(self):
+    def get_for_client(self):
         return SubscriberList.objects.filter(
-            client__user__id=self.request.user.id).count()
+            client__user__id=self.request.user.id)
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
@@ -390,8 +388,7 @@ class PlanningViewSet(DynamicPagination, viewsets.ModelViewSet):
     def get_queryset(self):
         """ Retrieves only clients plannings
         """
-        qs = Planning.objects.filter(
-            campaign__client__user__id=self.request.user.id)
+        qs = self.get_for_client()
 
         q = self.request.query_params.get('q', None)
         sort = self.request.query_params.get('sort', None)
@@ -407,9 +404,9 @@ class PlanningViewSet(DynamicPagination, viewsets.ModelViewSet):
         qs = qs.order_by(order)
         return qs
 
-    def get_all_count(self):
+    def get_for_client(self):
         return Planning.objects.filter(
-            campaign__client__user__id=self.request.user.id).count()
+            campaign__client__user__id=self.request.user.id)
 
 
 class FailedEmailViewSet(DynamicPagination, viewsets.ModelViewSet):
@@ -431,7 +428,7 @@ class FailedEmailViewSet(DynamicPagination, viewsets.ModelViewSet):
     def get_queryset(self):
         """ Retrieves only clients plannings
         """
-        qs = FailedEmail.objects.filter(client__user__id=self.request.user.id)
+        qs = self.get_for_client()
 
         q = self.request.query_params.get('q', None)
         sort = self.request.query_params.get('sort', None)
@@ -451,9 +448,9 @@ class FailedEmailViewSet(DynamicPagination, viewsets.ModelViewSet):
         qs = qs.order_by(order)
         return qs
 
-    def get_all_count(self):
+    def get_for_client(self):
         return FailedEmail.objects.filter(
-            client__user__id=self.request.user.id).count()
+            client__user__id=self.request.user.id)
 
 
 class SubscriberViewSet(DynamicPagination, viewsets.ModelViewSet):
@@ -475,7 +472,7 @@ class SubscriberViewSet(DynamicPagination, viewsets.ModelViewSet):
     def get_queryset(self):
         """ Retrieves only clients subscribers
         """
-        qs = Subscriber.objects.filter(client__user__id=self.request.user.id)
+        qs = self.get_for_client()
 
         q = self.request.query_params.get('q', None)
         lists = self.request.query_params.get('lists', None)
@@ -498,9 +495,9 @@ class SubscriberViewSet(DynamicPagination, viewsets.ModelViewSet):
         qs = qs.order_by(order)
         return qs
 
-    def get_all_count(self):
+    def get_for_client(self):
         return Subscriber.objects.filter(
-            client__user__id=self.request.user.id).count()
+            client__user__id=self.request.user.id)
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
@@ -612,7 +609,7 @@ class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
     def get_queryset(self):
         """ Retrieves only client's campaigns
         """
-        qs = Campaign.objects.filter(client__user__id=self.request.user.id)
+        qs = self.get_for_client()
         q = self.request.query_params.get('q', None)
         view_online = self.request.query_params.get('view_online', None)
         topic = self.request.query_params.get('topic', None)
@@ -650,9 +647,9 @@ class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
 
         return qs
 
-    def get_all_count(self):
+    def get_for_client(self):
         return Campaign.objects.filter(
-            client__user__id=self.request.user.id).count()
+            client__user__id=self.request.user.id)
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
@@ -744,8 +741,7 @@ class DispatchViewSet(DynamicPagination, viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         """ Retrieves only client's dispatches
         """
-        qs = Dispatch.objects.filter(
-            campaign__client__user__id=self.request.user.id)
+        qs = self.get_for_client()
         campaign_id = self.request.query_params.get('campaign', None)
         date_from = self.request.query_params.get('date_from', None)
         date_to = self.request.query_params.get('date_to', None)
@@ -759,9 +755,9 @@ class DispatchViewSet(DynamicPagination, viewsets.ReadOnlyModelViewSet):
                 started_at__lte=datetime.strptime(date_to, "%Y-%m-%d"))
         return qs
 
-    def get_all_count(self):
+    def get_for_client(self):
         return Dispatch.objects.filter(
-            campaign__client__user__id=self.request.user.id).count()
+            campaign__client__user__id=self.request.user.id)
 
 
 class FailedEmailApiView(View):
@@ -843,7 +839,7 @@ class TopicViewSet(DynamicPagination, viewsets.ModelViewSet):
     def get_queryset(self):
         """ Retrieves only clients lists
         """
-        qs = Topic.objects.filter(client__user__id=self.request.user.id)
+        qs = self.get_for_client()
 
         q = self.request.query_params.get('q', None)
         sort = self.request.query_params.get('sort', None)
@@ -857,9 +853,9 @@ class TopicViewSet(DynamicPagination, viewsets.ModelViewSet):
         qs = qs.order_by(order)
         return qs
 
-    def get_all_count(self):
+    def get_for_client(self):
         return Topic.objects.filter(
-            client__user__id=self.request.user.id).count()
+            client__user__id=self.request.user.id)
 
     def perform_create(self, serializer):
         """ Automatically set the client field """
@@ -921,10 +917,7 @@ class MailerMessageViewSet(DynamicPagination, mixins.ListModelMixin,
     def get_queryset(self):
         """ Retrieves only clients lists
         """
-        qs = MailerMessage.objects.filter(app__in=[
-            str(d.pk) for d in Dispatch.objects.filter(
-                campaign__client__user=self.request.user)
-        ])
+        qs = self.get_for_client()
 
         q = self.request.query_params.get('q', None)
         sort = self.request.query_params.get('sort', None)
@@ -938,8 +931,8 @@ class MailerMessageViewSet(DynamicPagination, mixins.ListModelMixin,
         qs = qs.order_by(order)
         return qs
 
-    def get_all_count(self):
+    def get_for_client(self):
         return MailerMessage.objects.filter(app__in=[
             str(d.pk) for d in Dispatch.objects.filter(
                 campaign__client__user=self.request.user)
-        ]).count()
+        ])
