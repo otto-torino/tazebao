@@ -940,4 +940,4 @@ class MailerMessageViewSet(DynamicPagination, mixins.ListModelMixin,
     @action(detail=False, methods=['get'])
     def unsent(self, request):
         tot = MailerMessage.objects.filter(sent=False).count()
-        return JsonResponse({'unsent': 1000})
+        return JsonResponse({'unsent': tot})
