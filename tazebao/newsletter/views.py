@@ -14,7 +14,7 @@ from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.http import (Http404, HttpResponse, HttpResponseBadRequest,
-                         HttpResponseRedirect)
+                         HttpResponseRedirect, JsonResponse)
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -936,3 +936,8 @@ class MailerMessageViewSet(DynamicPagination, mixins.ListModelMixin,
             str(d.pk) for d in Dispatch.objects.filter(
                 campaign__client__user=self.request.user)
         ])
+
+    @action(detail=False, methods=['get'])
+    def unsent(self, request):
+        tot = MailerMessage.objects.filter(sent=False).count()
+        return JsonResponse({'unsent': 1000})
