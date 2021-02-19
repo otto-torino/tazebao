@@ -706,10 +706,13 @@ class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
                 view_online=campaign.view_online,
             )
             new_campaign.save()
+            key = random_string()
+            # change metadata key
+            campaign.template.meta_data['key'] = key
             new_template = Template(
                 client=campaign.template.client,
                 campaign=new_campaign,
-                key=random_string(),
+                key=key,
                 name=campaign.template.name,
                 html=campaign.template.html,
                 template_data=campaign.template.template_data,
