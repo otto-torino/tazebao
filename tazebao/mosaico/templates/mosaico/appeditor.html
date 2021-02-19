@@ -29,14 +29,20 @@
         <script src="{% static 'core/src/js/core.js' %}"></script>
         <script>
 $(function() {
+    // var basePath = window.location.href.substr(0, window.location.href.lastIndexOf('/')).substr(window.location.href.indexOf('/','https://'.length));
+    var basePath = window.location.href.substr(0, window.location.href.lastIndexOf('/'));
+    var re = /https?:\/\/[^\/]+/
+    var host = basePath.match(re)[0]
+
     {% if template  %}
         var re = new RegExp('"template": "(.*?)"');
         var matches = re.exec('{{ template.meta_data_json|safe }}');
         var tpl = matches[1];
     {% else %}
+        // host necessary otherwise relative path images inside mosaico are not prefixed with all https://...
         var tpl = /tpl=versafix-1/.test(location.search)
-            ? '/static/mosaico/templates/versafix-1/template-versafix-1.html'
-            : '/static/mosaico/templates/tedc15/template-tedc15.html';
+            ? host + '/static/mosaico/templates/versafix-1/template-versafix-1.html'
+            : host + '/static/mosaico/templates/tedc15/template-tedc15.html';
     {% endif %}
 
     var randomString = function (len, an){
@@ -55,8 +61,6 @@ $(function() {
         alert('Update your browser!');
         return;
     }
-    // var basePath = window.location.href.substr(0, window.location.href.lastIndexOf('/')).substr(window.location.href.indexOf('/','https://'.length));
-    var basePath = window.location.href.substr(0, window.location.href.lastIndexOf('/'));
     var plugins;
     plugins = [
         // plugin for integrating save button
