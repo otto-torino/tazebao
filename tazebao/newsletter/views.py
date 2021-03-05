@@ -884,9 +884,20 @@ class StatsApiView(APIView):
             next_planning = Planning.objects.filter(
                 campaign__client__user=request.user,
                 schedule__gte=datetime.now()).first()
+            tot_bounces = FailedEmail.objects.filter(
+                client__user=request.user).count()
+            tot_dispatching = MailerMessage.objects.filter(app__in=[
+                str(d.pk) for d in Dispatch.objects.filter(
+                    campaign__client__user=self.request.user)
+                ]).count()
+
             response = {
                 'subscribers':
                 tot_subscribers,
+                'bounces':
+                tot_bounces,
+                'dispatching':
+                tot_dispatching,
                 'lastMonthUnsubscriptions':
                 last_month_unsubscriptions,
                 'lastMonthSubscribers':
