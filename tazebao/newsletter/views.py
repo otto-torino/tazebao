@@ -888,7 +888,8 @@ class StatsApiView(APIView):
                 client__user=request.user).count()
             tot_dispatching = MailerMessage.objects.filter(app__in=[
                 str(d.pk) for d in Dispatch.objects.filter(
-                    campaign__client__user=self.request.user)
+                    campaign__client__user=self.request.user,
+                    sent=False)
                 ]).count()
 
             response = {
