@@ -41,7 +41,7 @@ from .serializers import (CampaignSerializer, DispatchSerializer,
                           FailedEmailSerializer, MailerMessageSerializer,
                           PlanningSerializer, SubscriberListSerializer,
                           SubscriberSerializer, TopicSerializer)
-from .tasks import send_campaign
+from .tasks import send_campaign, test_campaign
 from .templatetags.newsletter_tags import encrypt
 
 
