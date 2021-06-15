@@ -9,6 +9,7 @@ from urllib.parse import unquote, unquote_plus
 
 from dateutil.relativedelta import relativedelta
 from django import http, template
+from django.conf import settings
 from django.core.signing import Signer
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
@@ -685,6 +686,24 @@ class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
                 return Response({'detail': 'task queued'})
             except Exception as e:
                 return HttpResponseBadRequest('cannot send campaign: %s' %
+                                              str(e))
+
+    @action(detail=True, methods=['post'])
+    def test(self, request, pk=None):
+        campaign = self.get_object()
+        if (campaign.client != request.user.client):
+            raise Http404()
+        else:
+            try:
+                lists = request.data.get('lists')
+                tot = sum([SubscriberList.objects.get(id=l).subscriber_set.count() for l in lists])
+                if tot > settings.TEST_EMAIL_MAX_NUM:
+                    return HttpResponseBadRequest('the max number of allowed e-mails is 50, you tried to send %d' % int(tot))
+                test_campaign.delay(lists,
+                                    campaign.id)
+                return Response({'detail': 'task in execution'})
+            except Exception as e:
+                return HttpResponseBadRequest('cannot test campaign: %s' %
                                               str(e))
 
     @action(detail=True, methods=['post'])

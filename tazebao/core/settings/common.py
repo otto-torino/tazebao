@@ -44,6 +44,8 @@ SITE_ID = 1
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
 
+TEST_EMAIL_MAX_NUM = 50
+
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
