@@ -67,7 +67,7 @@
             {% block footer_wrapper %}
                 <footer class="main-footer" style="flex-shrink: 0">
                     {% block footer %}
-                        <strong>©2016-2020 <a href="https://www.otto.to.it">Otto srl</a><br />
+                        <strong>©2016-{% now "Y" %} <a href="https://www.otto.to.it">Otto srl</a><br />
                             <small><a style="color: #fff;" href="https://www.otto.to.it/privacy-policy/">Privacy</a> - <a style="color: #fff;" href="/cookie/">Cookies</a></small>
                     {% endblock footer %}
                 </footer>
