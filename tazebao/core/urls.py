@@ -23,7 +23,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 
 from core.views.api import WhoAmI
-from newsletter.views import (CampaignViewSet, DispatchViewSet,
+from newsletter.views import (CampaignViewSet, DispatchStatsApiView, DispatchViewSet,
                               FailedEmailApiView, FailedEmailViewSet,
                               ImportSubscribersFromCsv, MailerMessageViewSet,
                               PlanningViewSet, StatsApiView,
@@ -62,6 +62,7 @@ urlpatterns = [
     path('api/v1/refresh-token/', refresh_jwt_token),
     path('api/v1/whoami/', WhoAmI.as_view()),
     path('api/v1/newsletter/stats/', StatsApiView.as_view()),
+    path('api/v1/newsletter/dispatches/stats/', DispatchStatsApiView.as_view()),
     path('api/v1/newsletter/subscriptions/stats/', SubscriptionsStatsApiView.as_view()),
     path('api/v1/newsletter/subscriber/import/',
          ImportSubscribersFromCsv.as_view()),

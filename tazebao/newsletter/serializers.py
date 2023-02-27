@@ -191,6 +191,7 @@ class DispatchSerializer(serializers.ModelSerializer):
     trackings = TrackingSerializer(many=True, read_only=True)
     bounces = FailedEmailSerializer(many=True, read_only=True)
     campaign_name = serializers.SerializerMethodField("campaign_name_fn")
+    queryset = Dispatch.objects.all().select_related('campaign')
 
     class Meta:
         model = Dispatch

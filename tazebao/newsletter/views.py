@@ -979,10 +979,25 @@ class MailerMessageViewSet(DynamicPagination, mixins.ListModelMixin,
 
 class SubscriptionsStatsApiView(APIView):
     def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'description': 'not authenticated'}, status=401)
+
         sub_data = Subscriber.objects.filter(client__user=request.user).values('subscription_datetime__date').exclude(subscription_datetime__date__isnull=True).order_by('subscription_datetime__date').annotate(cnt=Count('subscription_datetime__date'))
         unsub_data = Unsubscription.objects.filter(client__user=request.user).values('datetime__date').exclude(datetime__date__isnull=True).order_by('datetime__date').annotate(cnt=Count('datetime__date'))
 
         return JsonResponse({
             'subscriptions_stats': SubscribtionsStatsSerializer(sub_data, many=True).data,
             'unsubscriptions_stats': UnsubscriptionStatsSerializer(unsub_data, many=True).data,
+        })
+
+class DispatchStatsApiView(APIView):
+    def get(self, request):
+        if not request.user.is_authenticated:
+            return Response({'description': 'not authenticated'}, status=401)
+
+        ids = request.GET.get('ids', '').split('-')
+        dispatches = Dispatch.objects.filter(campaign__client__user=request.user, campaign__id__in=ids, test=False)
+
+        return JsonResponse({
+            'dispatches': DispatchSerializer(dispatches, many=True).data,
         })
