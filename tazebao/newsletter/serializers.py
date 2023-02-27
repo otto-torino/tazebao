@@ -267,3 +267,11 @@ class MailerMessageSerializer(serializers.ModelSerializer):
             'sent',
             'last_attempt',
         )
+
+class SubscribtionsStatsSerializer(serializers.Serializer):
+    subscription_datetime__date = serializers.DateField()
+    cnt = serializers.IntegerField()
+
+class UnsubscriptionStatsSerializer(serializers.Serializer):
+    datetime__date = serializers.DateField()
+    cnt = serializers.IntegerField()

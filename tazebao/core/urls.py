@@ -27,7 +27,7 @@ from newsletter.views import (CampaignViewSet, DispatchViewSet,
                               FailedEmailApiView, FailedEmailViewSet,
                               ImportSubscribersFromCsv, MailerMessageViewSet,
                               PlanningViewSet, StatsApiView,
-                              SubscriberListViewSet, SubscriberViewSet,
+                              SubscriberListViewSet, SubscriberViewSet, SubscriptionsStatsApiView,
                               TopicViewSet)
 
 # BEGIN API
@@ -62,6 +62,7 @@ urlpatterns = [
     path('api/v1/refresh-token/', refresh_jwt_token),
     path('api/v1/whoami/', WhoAmI.as_view()),
     path('api/v1/newsletter/stats/', StatsApiView.as_view()),
+    path('api/v1/newsletter/subscriptions/stats/', SubscriptionsStatsApiView.as_view()),
     path('api/v1/newsletter/subscriber/import/',
          ImportSubscribersFromCsv.as_view()),
     path('api/v1/', include(router.urls))

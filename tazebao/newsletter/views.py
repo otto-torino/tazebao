@@ -13,7 +13,7 @@ from django.conf import settings
 from django.core.signing import Signer
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import (Http404, HttpResponse, HttpResponseBadRequest,
                          HttpResponseRedirect, JsonResponse)
 from django.shortcuts import get_object_or_404, render
@@ -40,7 +40,7 @@ from .permissions import IsClient, IsMailerMessageClient
 from .serializers import (CampaignSerializer, DispatchSerializer,
                           FailedEmailSerializer, MailerMessageSerializer,
                           PlanningSerializer, SubscriberListSerializer,
-                          SubscriberSerializer, TopicSerializer)
+                          SubscriberSerializer, SubscribtionsStatsSerializer, TopicSerializer, UnsubscriptionStatsSerializer)
 from .tasks import send_campaign, test_campaign
 from .templatetags.newsletter_tags import encrypt
 
@@ -975,3 +975,14 @@ class MailerMessageViewSet(DynamicPagination, mixins.ListModelMixin,
     def unsent(self, request):
         tot = MailerMessage.objects.filter(sent=False).count()
         return JsonResponse({'unsent': tot})
+
+
+class SubscriptionsStatsApiView(APIView):
+    def get(self, request):
+        sub_data = Subscriber.objects.filter(client__user=request.user).values('subscription_datetime__date').exclude(subscription_datetime__date__isnull=True).order_by('subscription_datetime__date').annotate(cnt=Count('subscription_datetime__date'))
+        unsub_data = Unsubscription.objects.filter(client__user=request.user).values('datetime__date').exclude(datetime__date__isnull=True).order_by('datetime__date').annotate(cnt=Count('datetime__date'))
+
+        return JsonResponse({
+            'subscriptions_stats': SubscribtionsStatsSerializer(sub_data, many=True).data,
+            'unsubscriptions_stats': UnsubscriptionStatsSerializer(unsub_data, many=True).data,
+        })
