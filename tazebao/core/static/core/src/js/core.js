@@ -5,36 +5,54 @@ window.core = {};
     core.Modal = function(params) {
 
         var opts = {
-            show_action_btn: false,
-            on_url_loaded: function() {},
-            size: 'lg',
+            hideActions: false,
+            showActionBtn: false,
+            actionBtnLabel: 'salva <i class="checkmark icon"></i>',
+            actionBtnCallback: function () {},
+            onUrlLoaded: function() {},
+            size: 'small',
+            onHide: function () {},
+            closable: true,
+            autofocus: true,
+            basic: false
         }
 
         this.init = function(params) {
-            this.modal = $('#dynamicModal');
+            this.isOpen = false;
+            this.modal = $('#dynamic-modal');
+            this.reset(params);
+            this.update(params);
+        };
+
+        this.update = function (params) {
             this.options = $.extend({}, opts, params);
-            this.setStyle();
+            this.setSize();
             this.setTitle();
             this.setContent();
             this.setButtons();
-        };
+        }
 
-        this.setStyle = function() {
-
-            if(typeof this.options.style != 'undefined') {
-                this.modal.addClass(this.options.style);
+        this.reset = function () {
+            if (params.basic) {
+                this.modal.addClass('basic');
+            } else {
+                this.modal.removeClass('basic');
             }
+            this.modal.find('.modal-dialog').attr('class', 'modal-dialog');
+            this.modal.find('.modal-footer').show();
+            this.modal.find('.btn-action').show();
+            this.modal.find('.btn-action').off('click');
+        }
 
-            this.modal.find('.modal-dialog').addClass('modal-' + this.options.size);
-
+        this.setSize = function() {
+            this.modal.removeClass('mini small medium big huge');
+            this.modal.addClass(this.options.size);
         };
 
         this.setTitle = function() {
-
             if(typeof this.options.title != 'undefined') {
                 this.modal.find('.modal-title').html(this.options.title);
             }
-
         };
 
         this.setContent = function() {
@@ -43,7 +61,16 @@ window.core = {};
                 this.method = 'request';
                 $.get(this.options.url, function(response) {
                     self.modal.find('.modal-body').html(response);
-                    self.options.on_url_loaded(self);
+                    self.options.onUrlLoaded(self);
+                    // if IE (parent has legacy class, then adjust position)
+                    if (self.modal.parent().hasClass('legacy')) {
+                        setTimeout(function () {
+                          console.log('adjusting vertical position for IE', 'height: ', self.modal.height());
+                          self.modal.css('margin-top', -(parseInt(self.modal.height() / 2) + 10) + 'px');
+                          console.log('adjusting horizontal position for IE', 'width: ', self.modal.width());
+                          self.modal.css('margin-left', -parseInt(self.modal.width() / 2) + 'px');
+                        }, 50);
+                    }
                 })
             }
             else if(typeof this.options.content != 'undefined') {
@@ -51,20 +78,65 @@ window.core = {};
             }
         };
 
-        this.setButtons = function() {
+        this.updateContent = function (html) {
+            this.modal.find('.modal-body').html(html);
+        };
 
-            if(typeof this.options.show_action_btn != 'undefined' && this.options.show_action_btn ) {
-            }
-            else {
-                $('.btn-action').hide();
+        this.setButtons = function() {
+            if (this.options.hideActions) {
+                this.modal.find('.modal-footer').hide();
+            } else {
+                if(typeof this.options.showActionBtn != 'undefined' && this.options.showActionBtn ) {
+                    this.modal.find('.positive.right.icon').html(this.options.actionBtnLabel);
+                }
+                else {
+                    this.modal.find('.positive.right.icon').hide();
+                }
             }
         };
 
         this.open = function() {
-            this.modal.modal();
+            if (this.isOpen) {
+                return;
+            }
+            var self = this;
+            if (this.options.actionBtnCallback) {
+                this.modal.modal({
+                    closable: false,
+                    autofocus: this.options.autofocus,
+                    onApprove: this.options.actionBtnCallback,
+                    onHide: function () {
+                        self.modal.find('.modal-body').empty();
+                        self.isOpen = false;
+                    }
+                }).modal('show');
+            } else {
+                console.log('SHOWING')
+                this.modal.modal({
+                    autofocus: this.options.autofocus,
+                    onHide: function () { self.isOpen = false; }
+                }).modal('show');
+            }
+            this.isOpen = true;
+
+            // if IE (parent has legacy class, then adjust position)
+            if (self.modal.parent().hasClass('legacy')) {
+              setTimeout(function () {
+                console.log('adjusting vertical position for IE', 'height: ', self.modal[0].clientHeight);
+                self.modal.css('margin-top', -(parseInt(self.modal[0].clientHeight / 2) + 10) + 'px');
+                console.log('adjusting horizontal position for IE', 'width: ', self.modal[0].clientWidth);
+                self.modal.css('margin-left', -parseInt(self.modal[0].clientWidth / 2) + 'px');
+              }, 100);
+            }
         };
 
+        this.hide = function () {
+            this.isOpen = false;
+            this.modal.modal('hide');
+        }
+
         this.init(params);
+        return this;
     }
 
 })(jQuery, undefined)

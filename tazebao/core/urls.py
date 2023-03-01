@@ -51,6 +51,8 @@ urlpatterns = [
     path('newsletter/', include('newsletter.urls')),
     # ckeditor uploader
     path('ckeditor/', include('ckeditor_uploader.urls')),
+    # captcha
+    path('captcha/', include('captcha.urls')),
     # mosaico
     path('mosaico/', include('mosaico.urls')),
     path('export_action/',

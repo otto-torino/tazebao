@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block menu %}
+{% endblock menu %}
+{% block menu_toggle %}
+{% endblock menu_toggle %}
+{% block content %}
+    <div class="page-title">
+        <h1 class="mt-4">{{ subscription_form.title }}</h1>
+    </div>
+    <div class="ui container newsletter-subscription-form">
+        <div class="page-body">
+            <div class="ui centered grid">
+                <div class="twelve wide tablet twelve wide computer column">
+                    {{ subscription_form.content|safe }}
+                    <form action=""
+                          method="post"
+                          accept-charset="utf-8"
+                          class="ui form{% if form.errors %} error{% endif %}">
+                        {% csrf_token %}
+                        {{ forms.non_field_errors }}
+                        <div class="field">
+                            <label>E-mail</label>
+                            {{ form.email }}
+                        </div>
+                        {% if form.email.errors %}
+                            <div class="ui error message">
+                                {% for error in form.email.errors %}
+                                    <div>
+                                        <strong>{{ error|escape }}</strong>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="field">
+                            <div class="ui toggle checkbox">
+                                {{ form.opt_in }}
+                                <label>{{ subscription_form.privacy_disclaimer|safe }}</label>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>Codice di controllo</label>
+                            <div style="display: flex; align-items: center; gap: 1rem;">{{ form.captcha }}</div>
+                        </div>
+                        {% if form.captcha.errors %}
+                            <div class="ui error message">
+                                {% for error in form.captcha.errors %}
+                                    <div>
+                                        <strong>{{ error|escape }}</strong>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="text-center">
+                            <input class="ui button" type="submit" value="Invia" />
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block messages %}
+    {% if messages %}
+        <script>
+            var html = '<ul style="list-style-type: none; padding-left: 0;">';
+            var title = "{{ subscription_form.title|escapejs}}";
+            {% for message in messages %}
+                    html += '<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{% if message.tags == 'error' %}<i class="exclamation red icon"></i>{% elif message.tags == 'success' %}<i class="check green icon"></i>{% elif message.tags == 'info' %}<i class="info teal icon"></i>{% endif %} {{ message }}</li>';
+            {% endfor %}
+            html += '</ul>';
+            var m = new core.Modal({title: title, content: html, basic: true});
+            m.open();
+        </script>
+    {% endif %}
+    {% endblock %}
+{% endblock content %}

@@ -9,7 +9,7 @@ from django.utils.safestring import mark_safe
 
 from .models import (Campaign, Client, Dispatch, FailedEmail, Planning,
                      Subscriber, SubscriberList, Topic, Tracking,
-                     Unsubscription, UserMailerMessage)
+                     Unsubscription, UserMailerMessage, SubscriptionForm)
 # send campaign
 from .tasks import send_campaign
 
@@ -855,3 +855,9 @@ class UnsubscriptionAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
 
 
 admin.site.register(Unsubscription, UnsubscriptionAdmin)
+
+class SubscriptionFormAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
+                          ClientReadOnly, ClientOnlyAdminListDisplay):
+    list_display = ('name', 'code', )
+
+admin.site.register(SubscriptionForm, SubscriptionFormAdmin)

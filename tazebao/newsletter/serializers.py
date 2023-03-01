@@ -283,6 +283,7 @@ class SubscriptionFormSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionForm
         fields = (
+            'id',
             'created',
             'last_edited',
             'name',
@@ -290,5 +291,8 @@ class SubscriptionFormSerializer(serializers.ModelSerializer):
             'content',
             'privacy_disclaimer',
             'code',
+            'success_url',
+            'error_url',
+            'lists'
         )
         read_only_fields = ('client', )

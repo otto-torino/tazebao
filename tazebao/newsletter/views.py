@@ -12,14 +12,15 @@ from django import http, template
 from django.conf import settings
 from django.core.signing import Signer
 from django.core.validators import validate_email
-from django.db import IntegrityError, transaction
+from django.db import DatabaseError, IntegrityError, transaction
 from django.db.models import Q, Count
 from django.http import (Http404, HttpResponse, HttpResponseBadRequest,
                          HttpResponseRedirect, JsonResponse)
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
@@ -30,6 +31,7 @@ from rest_framework.views import APIView
 
 from mosaico.models import Template
 from mosaico.serializers import TemplateSerializer
+from newsletter.forms import SubscriptionPageForm
 
 from .auth import PostfixNewsletterAPISignatureAuthentication
 from .context import get_campaign_context
@@ -50,6 +52,44 @@ def random_string(string_length=7):
     letters = string.ascii_lowercase
     return ''.join(random.choice(letters) for i in range(string_length))
 
+
+def subscription_form_standalone(request, code):
+    subscription_form = get_object_or_404(SubscriptionForm, code=code)
+
+    if request.method == 'POST':
+        form = SubscriptionPageForm(request.POST)
+        if form.is_valid():
+            try:
+                subscriber = Subscriber(
+                    client=subscription_form.client,
+                    email=form.cleaned_data['email'],
+                    opt_in=True,
+                    opt_in_datetime=datetime.now()
+                )
+                subscriber.save()
+                subscriber.lists.set(subscription_form.lists.all())
+
+                if subscription_form.success_url:
+                    return redirect(subscription_form.success_url)
+                else:
+                    messages.add_message(request, messages.SUCCESS, "L'iscrizione è avvenuta con successo")
+            except IntegrityError as e:
+                messages.add_message(request, messages.ERROR, "L'email inserita è già presente")
+            except Exception as e:
+                messages.add_message(request, messages.ERROR, 'Si è verificato un errore: %s' % str(e))
+    else:
+        form = SubscriptionPageForm()
+
+    ctx = {
+        'subscription_form': subscription_form,
+        'form': form,
+    }
+
+    return render(
+        request,
+        'newsletter/subscription_form_standalone.html',
+        ctx,
+    )
 
 def unsubscribe(request):
     # check signature

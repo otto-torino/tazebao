@@ -349,6 +349,9 @@ class SubscriptionForm(models.Model):
     content = models.TextField('contenuto', blank=True, null=True)
     privacy_disclaimer = models.TextField('disclaimer privacy')
     code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    lists = models.ManyToManyField(SubscriberList, verbose_name='liste')
+    success_url = models.URLField('URL iscrizione eseguita', blank=True, null=True)
+    error_url = models.URLField('URL iscrizione fallita', blank=True, null=True)
 
     class Meta:
         verbose_name = "form sottoscrizione"

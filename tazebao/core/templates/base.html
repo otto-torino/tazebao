@@ -34,6 +34,7 @@
     </head>
     <body class="{% block body_css %}{% endblock %}">
         {% block body_top %}{% endblock %}
+        {% block menu %}
         <div class="ui left vertical menu inverted sidebar main-menu">
           <ul style="margin-top: 0">
             <li><a href="/">Home <i class="home icon"></i></a></li>
@@ -41,12 +42,15 @@
             <li><a href="https://app.tazebao.email">Accedi <i class="lock icon"></i></a></li>
           </ul>
         </div>
+        {% endblock menu %}
         <div class="pusher">
             {% block navbar %}
                 <div class="ui top tiny menu navbar main-navbar" style="margin-bottom: 0;">
+                    {% block menu_toggle %}
                     <a class="item" onclick="core.IS_LOGO_LINK_ACTIVE = false; $('.ui.sidebar').sidebar({transition: 'push', onHidden: function() { $('body').removeClass('pushable'); core.IS_LOGO_LINK_ACTIVE = true }}).sidebar('toggle')" href="javascript:void(0)">
                         <i class="icon big bars"></i>
                     </a>
+                    {% endblock menu_toggle %}
                     <a class="item no-border" href="javascript:void(0)" onclick="if(core.IS_LOGO_LINK_ACTIVE) location.href='/'">
                         <span id="logo" class="logo">
                             <img src="{% static 'core/img/logo.png' %}" alt="logo" style="height: 30px;" onclick="location.href='/'" />
@@ -89,6 +93,7 @@
         </div>
         {% if not DEBUG %}
         {% endif %}
+        {% block messages %}
         {% if messages %}
             <script>
 var html = '<ul style="list-style-type: none; padding-left: 0;">';
@@ -96,9 +101,10 @@ var html = '<ul style="list-style-type: none; padding-left: 0;">';
         html += '<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{% if message.tags == 'error' %}<i class="exclamation red icon"></i>{% elif message.tags == 'success' %}<i class="check green icon"></i>{% elif message.tags == 'info' %}<i class="info teal icon"></i>{% endif %} {{ message }}</li>';
 {% endfor %}
 html += '</ul>';
-var m = new core.Modal({title: 'Laboratorio Chimico', content: html, basic: true});
+var m = new core.Modal({title: 'Tazebao', content: html, basic: true});
 m.open();
             </script>
         {% endif %}
+        {% endblock messages %}
     </body>
 </html>

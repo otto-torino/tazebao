@@ -259,3 +259,12 @@ h2 {
     content: '';
   }
 }
+
+.newsletter-subscription-form {
+    .ui.toggle.checkbox label:before,
+    .ui.toggle.checkbox label:after,
+    .ui.toggle.checkbox input
+    {
+        top: 20px !important;
+    }
+}

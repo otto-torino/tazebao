@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import (campaign_detail_view, email_tracking, link_tracking,
+from .views import (campaign_detail_view, email_tracking, link_tracking, subscription_form_standalone,
                     unsubscribe)
 
 urlpatterns = [
@@ -17,4 +17,5 @@ urlpatterns = [
         email_tracking,
         name='newsletter-email-tracking'),
     path('unsubscribe/', unsubscribe, name='newsletter-unsubscribe'),
+    path('subscribe/<uuid:code>/', subscription_form_standalone, name='newsletter-subscription-form-standalone'),
 ]
