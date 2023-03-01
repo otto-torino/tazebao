@@ -1,5 +1,6 @@
 from django import template
 from django.contrib.sites.models import Site
+from django.urls import reverse
 from rest_framework import serializers
 from mailqueue.models import MailerMessage
 
@@ -279,6 +280,7 @@ class UnsubscriptionStatsSerializer(serializers.Serializer):
 
 class SubscriptionFormSerializer(serializers.ModelSerializer):
     """ SubscribtionForm Serializer """
+    standalone_link = serializers.SerializerMethodField("standalone_link_fn")
 
     class Meta:
         model = SubscriptionForm
@@ -293,6 +295,14 @@ class SubscriptionFormSerializer(serializers.ModelSerializer):
             'code',
             'success_url',
             'error_url',
-            'lists'
+            'lists',
+            'standalone_link',
         )
         read_only_fields = ('client', )
+
+    def standalone_link_fn(self, obj):
+        return ''.join([
+            'http://',
+            str(Site.objects.get_current()),
+            reverse('newsletter-subscription-form-standalone', kwargs={'code': obj.code})
+        ])
