@@ -34,13 +34,13 @@ from mosaico.serializers import TemplateSerializer
 from .auth import PostfixNewsletterAPISignatureAuthentication
 from .context import get_campaign_context
 from .models import (Campaign, Client, Dispatch, FailedEmail, MailerMessage,
-                     Planning, Subscriber, SubscriberList, Topic, Tracking,
+                     Planning, Subscriber, SubscriberList, SubscriptionForm, Topic, Tracking,
                      Unsubscription)
 from .permissions import IsClient, IsMailerMessageClient
 from .serializers import (CampaignSerializer, DispatchSerializer,
                           FailedEmailSerializer, MailerMessageSerializer,
                           PlanningSerializer, SubscriberListSerializer,
-                          SubscriberSerializer, SubscribtionsStatsSerializer, TopicSerializer, UnsubscriptionStatsSerializer)
+                          SubscriberSerializer, SubscribtionsStatsSerializer, SubscriptionFormSerializer, TopicSerializer, UnsubscriptionStatsSerializer)
 from .tasks import send_campaign, test_campaign
 from .templatetags.newsletter_tags import encrypt
 
@@ -1001,3 +1001,34 @@ class DispatchStatsApiView(APIView):
         return JsonResponse({
             'dispatches': DispatchSerializer(dispatches, many=True).data,
         })
+
+
+class SubscriptionFormViewSet(DynamicPagination, viewsets.ModelViewSet):
+    """ SubscriberList CRUD
+    """
+    lookup_field = 'pk'
+    queryset = SubscriptionForm.objects.all()
+    serializer_class = SubscriptionFormSerializer
+    pagination_class = ResultsSetPagination
+    pagination_threshold = 10000
+
+    def get_permissions(self):
+        """ Only client users can perform object actions
+        """
+        return [
+            IsClient(),
+        ]
+
+    def get_queryset(self):
+        """ Retrieves only clients lists
+        """
+        qs = self.get_for_client()
+        return qs
+
+    def get_for_client(self):
+        return SubscriptionForm.objects.filter(
+            client__user__id=self.request.user.id)
+
+    def perform_create(self, serializer):
+        """ Automatically set the client field """
+        serializer.save(client=self.request.user.client)

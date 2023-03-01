@@ -27,7 +27,7 @@ from newsletter.views import (CampaignViewSet, DispatchStatsApiView, DispatchVie
                               FailedEmailApiView, FailedEmailViewSet,
                               ImportSubscribersFromCsv, MailerMessageViewSet,
                               PlanningViewSet, StatsApiView,
-                              SubscriberListViewSet, SubscriberViewSet, SubscriptionsStatsApiView,
+                              SubscriberListViewSet, SubscriberViewSet, SubscriptionFormViewSet, SubscriptionsStatsApiView,
                               TopicViewSet)
 
 # BEGIN API
@@ -40,6 +40,7 @@ router.register(r'newsletter/dispatch', DispatchViewSet)
 router.register(r'newsletter/planning', PlanningViewSet)
 router.register(r'newsletter/bounces', FailedEmailViewSet)
 router.register(r'newsletter/mailermessage', MailerMessageViewSet)
+router.register(r'newsletter/subscriptionform', SubscriptionFormViewSet)
 # END API
 
 urlpatterns = [

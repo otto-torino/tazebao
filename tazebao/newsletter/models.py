@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models.fields import uuid
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.safestring import mark_safe
@@ -337,3 +338,21 @@ def log_unsubscription(sender, instance, using, **kwargs):
         client=instance.client
     )
     unsubscription.save()
+
+
+class SubscriptionForm(models.Model):
+    client = models.ForeignKey(Client, verbose_name='client', on_delete=models.CASCADE)
+    created = models.DateTimeField(verbose_name='data creazione', auto_now_add=True)
+    last_edited = models.DateTimeField(verbose_name='data ultima modifica', auto_now=True)
+    name = models.CharField('nome', max_length=255)
+    title = models.CharField('titolo', max_length=255, blank=True, null=True)
+    content = models.TextField('contenuto', blank=True, null=True)
+    privacy_disclaimer = models.TextField('disclaimer privacy')
+    code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+
+    class Meta:
+        verbose_name = "form sottoscrizione"
+        verbose_name_plural = "form sottoscrizione"
+
+    def __str__(self):
+        return self.name
