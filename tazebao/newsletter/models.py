@@ -345,7 +345,6 @@ class SubscriptionForm(models.Model):
     created = models.DateTimeField(verbose_name='data creazione', auto_now_add=True)
     last_edited = models.DateTimeField(verbose_name='data ultima modifica', auto_now=True)
     name = models.CharField('nome', max_length=255)
-    title = models.CharField('titolo', max_length=255, blank=True, null=True)
     content = models.TextField('contenuto', blank=True, null=True)
     privacy_disclaimer = models.TextField('disclaimer privacy')
     code = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)

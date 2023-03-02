@@ -56,14 +56,16 @@
                             <img src="{% static 'core/img/logo.png' %}" alt="logo" style="height: 30px;" onclick="location.href='/'" />
                         </span>
                     </a>
-                    <div class="right item social no-border">
-                        <!-- <a href=""><i class="twitter icon"></i></a> -->
-                        <!-- <a href=""><i class="youtube icon"></i></a> -->
-                        <!-- <a href=""><i class="linkedin icon"></i></a> -->
-                        <!-- <a href=""><i class="flickr icon"></i></a> -->
-                        <a href="https://www.otto.to.it"><img src="{% static 'core/img/otto.png' %}" alt="otto srl" /></a>
-                        <!-- <a href=""><i class="instagram icon"></i></a> -->
-                    </div>
+                    {% block logo %}
+                        <div class="right item social no-border">
+                            <!-- <a href=""><i class="twitter icon"></i></a> -->
+                            <!-- <a href=""><i class="youtube icon"></i></a> -->
+                            <!-- <a href=""><i class="linkedin icon"></i></a> -->
+                            <!-- <a href=""><i class="flickr icon"></i></a> -->
+                            <a href="https://www.otto.to.it"><img src="{% static 'core/img/otto.png' %}" alt="otto srl" /></a>
+                            <!-- <a href=""><i class="instagram icon"></i></a> -->
+                        </div>
+                    {% endblock logo %}
                 </div>
             {% endblock %}
             {% block jumbotron %}{% endblock %}

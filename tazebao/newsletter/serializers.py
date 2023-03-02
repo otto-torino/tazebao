@@ -289,7 +289,6 @@ class SubscriptionFormSerializer(serializers.ModelSerializer):
             'created',
             'last_edited',
             'name',
-            'title',
             'content',
             'privacy_disclaimer',
             'code',
