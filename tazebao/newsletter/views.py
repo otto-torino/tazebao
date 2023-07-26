@@ -1092,6 +1092,7 @@ class SubjectSuggestionApiView(APIView):
 
         try:
             chrome_options = Options()
+            chrome_options.add_argument("--headless")
             chrome_options.add_argument("--headless=chrome")
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-extensions')
@@ -1099,16 +1100,16 @@ class SubjectSuggestionApiView(APIView):
 
             driver = webdriver.Chrome()
             driver.get("https://www.pizzagpt.it")
-            # textarea = driver.find_element(By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[4]/div/textarea')
-            # textarea.send_keys("Suggeriscimi 5 titoli di articoli newsletter accattivanti che parlano di %s rivolti ad un pubblico di eta media di %d anni" % (topic, mean_age));
-            # button = driver.find_element(By.XPATH, '//*[@id="send"]')
-            # button.click()
+            textarea = driver.find_element(By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[4]/div/textarea')
+            textarea.send_keys("Suggeriscimi 5 titoli di massimo 50 caratteri di articoli newsletter accattivanti che parlano di %s rivolti ad un pubblico di eta media di %d anni" % (topic, mean_age));
+            button = driver.find_element(By.XPATH, '//*[@id="send"]')
+            button.click()
 
-            # while 'Caricamento' in WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[3]/div[2]/div[3]/div[2]'))).text:
-            #     time.sleep(5)
+            while 'Caricamento' in WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[3]/div[2]/div[3]/div[2]'))).text:
+                time.sleep(5)
 
-            # response_text = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[3]/div[2]/div[3]/div[2]'))).text
-            json_response = {'success': True, 'text': 'suca'}
+            response_text = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[3]/div[2]/div[3]/div[2]'))).text
+            json_response = {'success': True, 'text': response_text}
 
             return JsonResponse(json_response, status=200)
         except Exception as e:
