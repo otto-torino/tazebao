@@ -17,7 +17,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from dateutil.relativedelta import relativedelta
 from django import http, template
-from django.conf import settings
+from django.conf import Settings, settings
 from django.core.signing import Signer
 from django.core.validators import validate_email
 from django.db import DatabaseError, IntegrityError, transaction
@@ -1093,12 +1093,16 @@ class SubjectSuggestionApiView(APIView):
         try:
             chrome_options = Options()
             chrome_options.add_argument("--headless")
-            chrome_options.add_argument("--headless=chrome")
             chrome_options.add_argument('--no-sandbox')
             chrome_options.add_argument('--disable-extensions')
             chrome_options.add_argument('--disable-dev-shm-usage')
 
-            driver = webdriver.Chrome()
+
+            if settings.DEBUG:
+                driver = webdriver.Chrome(options=chrome_options)
+            else:
+                ser = ChromeService('/snap/bin/chromium.chromedriver')
+                driver = webdriver.Chrome(options=chrome_options, service=ser)
             driver.get("https://www.pizzagpt.it")
             textarea = driver.find_element(By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[4]/div/textarea')
             textarea.send_keys("Suggeriscimi 5 titoli di massimo 50 caratteri di articoli newsletter accattivanti che parlano di %s rivolti ad un pubblico di eta media di %d anni" % (topic, mean_age));
