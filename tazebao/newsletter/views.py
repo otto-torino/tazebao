@@ -4,6 +4,7 @@ import json
 import random
 import string
 import time
+import requests
 from datetime import date, datetime, timedelta
 from urllib.parse import unquote, unquote_plus
 
@@ -1072,3 +1073,49 @@ class SubscriptionFormViewSet(DynamicPagination, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """ Automatically set the client field """
         serializer.save(client=self.request.user.client)
+
+
+class SubjectSuggestionApiView(APIView):
+    def post(self, request):
+        if not request.user.is_authenticated:
+            return Response({'description': 'not authenticated'}, status=401)
+
+        topic = request.data.get('topic', None)
+        mean_age = int(request.data.get('mean_age', None))
+
+        cookies = {
+            'dntd': 'false',
+            'cf_clearance': 'GFKwWluV3UAxBRJ23NL2lGCfS8mQx9x3y_e4hFFwhtU-1690357359-0-0.2.1690357359',
+            '__gads': 'ID=c00a46fbd07ca4a4-229e25bcfee20094:T=1690357360:RT=1690357360:S=ALNI_Mb-FcNljVZnRSyNSy2jfHMWNL-soQ',
+            '__gpi': 'UID=00000d1bc842c300:T=1690357360:RT=1690357360:S=ALNI_MZ3WZvcrUX2nZjVghTEejifpU1-iA',
+            'n-req': '2',
+        }
+
+        headers = {
+            'authority': 'www.pizzagpt.it',
+            'accept': '*/*',
+            'accept-language': 'en-US,en;q=0.9',
+            'content-type': 'text/plain;charset=UTF-8',
+            # 'cookie': 'dntd=false; cf_clearance=GFKwWluV3UAxBRJ23NL2lGCfS8mQx9x3y_e4hFFwhtU-1690357359-0-0.2.1690357359; __gads=ID=c00a46fbd07ca4a4-229e25bcfee20094:T=1690357360:RT=1690357360:S=ALNI_Mb-FcNljVZnRSyNSy2jfHMWNL-soQ; __gpi=UID=00000d1bc842c300:T=1690357360:RT=1690357360:S=ALNI_MZ3WZvcrUX2nZjVghTEejifpU1-iA; n-req=2',
+            'origin': 'https://www.pizzagpt.it',
+            'referer': 'https://www.pizzagpt.it/',
+            'sec-ch-ua': '"Not.A/Brand";v="8", "Chromium";v="114", "Google Chrome";v="114"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"Linux"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'same-origin',
+            'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+            'x-secret': 'Marinara',
+        }
+
+        data = '''{"question":"suggeriscimi 5 titoli di articoli newsletter che parlano di %s rivolti ad un pubblico di eta media di %d anni"}''' % (topic, mean_age)
+
+        response = requests.post('https://www.pizzagpt.it/api/chat-completion', cookies=cookies, headers=headers, data=data)
+        json_response = response.json()
+        # json_response = {'description': 'ok', 'answer': {'role': 'assistant', 'content': '1. "Le sfide e le emozioni di scalare le vette sopra i 2000 metri: esperienze di un gruppo CAI"\n2. "Guida essenziale alle escursioni in alta quota per appassionati CAI sopra i 2000 metri"\n3. "Lungo i sentieri alpini: scoprire le meraviglie sopra i 2000 metri con il CAI"\n4. "I segreti della montagna: consigli del CAI per affrontare escursioni sopra i 2000 metri in sicurezza"\n5. "Scoprire la bellezza delle vette alpine sopra i 2000 metri: esperienze e consigli dal CAI per gli escursionisti over 50"'}}
+
+        if json_response.get('description') != 'ok':
+            return Response("Too many requests", status=429)
+
+        return JsonResponse({'answer': json_response.get('answer')}, status=200)
