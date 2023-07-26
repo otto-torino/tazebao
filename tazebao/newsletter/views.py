@@ -1099,11 +1099,11 @@ class SubjectSuggestionApiView(APIView):
         ## perform a post request with requests module
         response = requests.post(
             'https://www.abidibo.net/api/pizzagpt/suggestions',
-            # 'http://localhost:8001/api/suggestions/subject',
+            # 'http://localhost:8001/api/pizzagpt/suggestions',
             data={
                 'date': date,
-                'topic': topic,
                 'question': question,
+                'signature': signature,
             })
         json_response = response.json()
         return JsonResponse(json_response)
