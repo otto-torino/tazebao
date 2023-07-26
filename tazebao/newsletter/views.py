@@ -1096,7 +1096,7 @@ class SubjectSuggestionApiView(APIView):
 
         ## perform a post request with requests module
         response = requests.post(
-            'http://localhost:8001/api/suggestions/subject',
+            'http://www.abidibo.net/api/suggestions/subject',
             data={
                 'date': date,
                 'topic': topic,
