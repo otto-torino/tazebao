@@ -1104,7 +1104,7 @@ class SubjectSuggestionApiView(APIView):
                 ser = ChromeService('/snap/bin/chromium.chromedriver')
                 driver = webdriver.Chrome(options=chrome_options, service=ser)
             driver.get("https://www.pizzagpt.it")
-            textarea = driver.find_element(By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[4]/div/textarea')
+            textarea = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[4]/div/textarea')))
             textarea.send_keys("Suggeriscimi 5 titoli di massimo 50 caratteri di articoli newsletter accattivanti che parlano di %s rivolti ad un pubblico di eta media di %d anni" % (topic, mean_age));
             button = driver.find_element(By.XPATH, '//*[@id="send"]')
             button.click()
