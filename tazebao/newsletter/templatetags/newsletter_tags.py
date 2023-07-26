@@ -12,7 +12,6 @@ from ..models import Dispatch, Subscriber, SubscriberList, Tracking, FailedEmail
 
 register = template.Library()
 
-
 @register.inclusion_tag('admin/dashboard.html')
 def dashboard(client):
     THRESHOLD = 20

@@ -26,6 +26,7 @@ SECRET_KEY = env(
     '49saa%ruey1&!nveiz*f(cu$)0pje8wz7u++y-0ljd2)9r)j8h')
 POSTFIX_CLIENT_ID = env('POSTFIX_CLIENT_ID')
 POSTFIX_CLIENT_SECRET = env('POSTFIX_CLIENT_SECRET')
+ABIDIBO_API_KEY = env('ABIDIBO_API_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False

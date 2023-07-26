@@ -1,4 +1,6 @@
 import base64
+import hashlib
+import hmac
 import csv
 import json
 import random
@@ -7,12 +9,7 @@ import time
 import logging
 from datetime import date, datetime, timedelta
 from urllib.parse import unquote, unquote_plus
-from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.common.by import By
+from rest_framework.compat import requests
 
 from dateutil.relativedelta import relativedelta
 from django import http, template
@@ -1091,34 +1088,21 @@ class SubjectSuggestionApiView(APIView):
         topic = request.data.get('topic', None)
         mean_age = int(request.data.get('mean_age', None))
 
-        try:
-            chrome_options = Options()
-            chrome_options.add_argument("--headless")
-            chrome_options.add_argument('--no-sandbox')
-            chrome_options.add_argument('--disable-extensions')
-            chrome_options.add_argument('--disable-dev-shm-usage')
+        date = datetime.now().strftime('%Y-%m-%d')
+        dig = hmac.new(
+            bytes(settings.ABIDIBO_API_KEY, 'latin-1'), date.encode('utf-8'),
+            digestmod=hashlib.sha256).digest()
+        signature = base64.b64encode(dig).decode()
 
+        ## perform a post request with requests module
+        response = requests.post(
+            'http://localhost:8001/api/suggestions/subject',
+            data={
+                'date': date,
+                'topic': topic,
+                'mean_age': mean_age,
+                'signature': signature,
+            })
+        json_response = response.json()
+        return JsonResponse(json_response)
 
-            if settings.DEBUG:
-                driver = webdriver.Chrome(options=chrome_options)
-            else:
-                ser = ChromeService('/snap/bin/chromium.chromedriver')
-                driver = webdriver.Chrome(options=chrome_options, service=ser)
-            driver.get("https://www.pizzagpt.it")
-
-            logger.debug("ALL PAGE", driver.page_source)
-
-            textarea = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[4]/div/textarea')))
-            textarea.send_keys("Suggeriscimi 5 titoli di massimo 50 caratteri di articoli newsletter accattivanti che parlano di %s rivolti ad un pubblico di eta media di %d anni" % (topic, mean_age));
-            button = driver.find_element(By.XPATH, '//*[@id="send"]')
-            button.click()
-
-            while 'Caricamento' in WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[3]/div[2]/div[3]/div[2]'))).text:
-                time.sleep(5)
-
-            response_text = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="__nuxt"]/div/div[1]/div[3]/div[2]/div[3]/div[2]'))).text
-            json_response = {'success': True, 'text': response_text}
-
-            return JsonResponse(json_response, status=200)
-        except Exception as e:
-            return JsonResponse({'success': False}, status=429)
