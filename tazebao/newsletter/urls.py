@@ -17,5 +17,5 @@ urlpatterns = [
         email_tracking,
         name='newsletter-email-tracking'),
     path('unsubscribe/', unsubscribe, name='newsletter-unsubscribe'),
-    path('subscribe/<uuid:code>', subscription_form_standalone, name='newsletter-subscription-form-standalone'),
+    path('subscribe/<uuid:code>/', subscription_form_standalone, name='newsletter-subscription-form-standalone'),
 ]
