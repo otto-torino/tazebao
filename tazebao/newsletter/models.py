@@ -42,6 +42,7 @@ class SystemMessage(models.Model):
     class Meta:
         verbose_name = "messaggio di sistema"
         verbose_name_plural = "messaggi di sistema"
+        ordering = ['-datetime']
 
     def __str__(self):
         return self.title
