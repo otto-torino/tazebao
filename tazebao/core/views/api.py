@@ -19,6 +19,7 @@ class WhoAmI(APIView):
                 client = {
                     'idKey': request.user.client.id_key,
                     'secretKey': request.user.client.secret_key,
+                    'suggestionsPerDay': request.user.client.suggestions_per_day,
                 }
             response = {
                 'userId': request.user.id,

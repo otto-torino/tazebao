@@ -190,6 +190,7 @@ BATON = {
         {'type': 'model', 'app': 'newsletter', 'name': 'subscriber', 'label': 'Iscritti', 'icon':'fa fa-user-tie'},
         {'type': 'model', 'app': 'newsletter', 'name': 'unsubscription', 'label': 'Disiscrizioni', 'icon':'fa fa-exclamation-triangle'},
         {'type': 'model', 'app': 'newsletter', 'name': 'subscriptionform', 'label': 'Form sottoscrizione', 'icon':'fab fa-wpforms'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'suggestionrequest', 'label': 'Richieste suggerimenti', 'icon':'fa far fa-comment'},
 
 
         {'type': 'title', 'label': 'Newsletter',  'apps': ('newsletter', )},

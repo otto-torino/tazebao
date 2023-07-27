@@ -40,7 +40,7 @@ from newsletter.forms import SubscriptionPageForm
 from .auth import PostfixNewsletterAPISignatureAuthentication
 from .context import get_campaign_context
 from .models import (Campaign, Client, Dispatch, FailedEmail, MailerMessage,
-                     Planning, Subscriber, SubscriberList, SubscriptionForm, Topic, Tracking,
+                     Planning, Subscriber, SubscriberList, SubscriptionForm, SuggestionRequest, Topic, Tracking,
                      Unsubscription)
 from .permissions import IsClient, IsMailerMessageClient
 from .serializers import (CampaignSerializer, DispatchSerializer,
@@ -1085,6 +1085,13 @@ class SubjectSuggestionApiView(APIView):
         if not request.user.is_authenticated:
             return Response({'description': 'not authenticated'}, status=401)
 
+        # can he ask for a suggestion?
+        today_suggestions = SuggestionRequest.objects.filter(
+            client__user=request.user,
+            datetime__date=datetime.now().strftime('%Y-%m-%d')).count()
+        if today_suggestions >= request.user.client.suggestions_per_day:
+            return JsonResponse({"description": "too many suggestions today"}, status=400)
+
         topic = request.data.get('topic', None)
         mean_age = int(request.data.get('mean_age', None))
 
@@ -1096,6 +1103,12 @@ class SubjectSuggestionApiView(APIView):
 
         question = "Suggeriscimi 5 titoli di massimo 50 caratteri di articoli newsletter accattivanti che parlano di %s rivolti ad un pubblico di eta media di %d anni" % (topic, mean_age);
 
+        suggestion_request = SuggestionRequest(
+            client=request.user.client,
+            question=question,
+        )
+        suggestion_request.save()
+
         ## perform a post request with requests module
         response = requests.post(
             'https://www.abidibo.net/api/pizzagpt/suggestions',
@@ -1106,5 +1119,9 @@ class SubjectSuggestionApiView(APIView):
                 'signature': signature,
             })
         json_response = response.json()
+
+        suggestion_request.answer = json_response
+        suggestion_request.save()
+
         return JsonResponse(json_response)
 

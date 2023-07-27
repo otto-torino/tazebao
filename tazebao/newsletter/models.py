@@ -23,6 +23,7 @@ class Client(models.Model):
         'id key', max_length=8, unique=True, blank=True, null=True)
     secret_key = models.CharField(
         'secret key', max_length=32, unique=True, blank=True, null=True)
+    suggestions_per_day = models.IntegerField('suggerimenti giornalieri', default=3)
 
     class Meta:
         verbose_name = "client"
@@ -358,3 +359,18 @@ class SubscriptionForm(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class SuggestionRequest(models.Model):
+    client = models.ForeignKey(Client, verbose_name='client', on_delete=models.CASCADE)
+    datetime = models.DateTimeField(verbose_name='data e ora', auto_now_add=True)
+    question = models.TextField('domanda')
+    answer = models.TextField('risposta', blank=True, null=True)
+
+    class Meta:
+        verbose_name = "richiesta suggerimento"
+        verbose_name_plural = "richieste suggerimenti"
+
+    def __str__(self):
+        return super(SuggestionRequest, self).__str__()
+

@@ -8,7 +8,7 @@ from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
 from .models import (Campaign, Client, Dispatch, FailedEmail, Planning,
-                     Subscriber, SubscriberList, Topic, Tracking,
+                     Subscriber, SubscriberList, SuggestionRequest, Topic, Tracking,
                      Unsubscription, UserMailerMessage, SubscriptionForm)
 # send campaign
 from .tasks import send_campaign
@@ -105,6 +105,7 @@ class ClientAdmin(DisplayOnlyIfAdminOrHasClient):
                 'user',
                 'id_key',
                 'secret_key',
+                'suggestions_per_day',
             )
 
     def save_model(self, request, obj, form, change):
@@ -861,3 +862,14 @@ class SubscriptionFormAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows
     list_display = ('name', 'code', )
 
 admin.site.register(SubscriptionForm, SubscriptionFormAdmin)
+
+class SuggestionRequestAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
+                          ClientReadOnly, ClientOnlyAdminListDisplay):
+    list_display = (
+        'datetime',
+        'question',
+    )
+    list_filter = (('client', admin.RelatedOnlyFieldListFilter), )
+
+
+admin.site.register(SuggestionRequest, SuggestionRequestAdmin)
