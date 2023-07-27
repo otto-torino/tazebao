@@ -301,7 +301,7 @@ class SubscriptionFormSerializer(serializers.ModelSerializer):
 
     def standalone_link_fn(self, obj):
         return ''.join([
-            'http://',
+            'https://',
             str(Site.objects.get_current()),
             reverse('newsletter-subscription-form-standalone', kwargs={'code': obj.code})
         ])
