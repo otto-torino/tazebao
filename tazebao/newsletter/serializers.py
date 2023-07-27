@@ -6,7 +6,7 @@ from mailqueue.models import MailerMessage
 
 from .context import get_campaign_context
 from .models import (Campaign, Dispatch, FailedEmail, Planning, Subscriber,
-                     SubscriberList, SubscriptionForm, Topic, Tracking)
+                     SubscriberList, SubscriptionForm, SystemMessage, Topic, Tracking)
 
 
 class ClientFilteredPrimaryKeyRelatedField(
@@ -305,3 +305,15 @@ class SubscriptionFormSerializer(serializers.ModelSerializer):
             str(Site.objects.get_current()),
             reverse('newsletter-subscription-form-standalone', kwargs={'code': obj.code})
         ])
+
+class SystemMessageSerializer(serializers.ModelSerializer):
+    """ System message serializer """
+    class Meta:
+        model = SystemMessage
+        fields = (
+            'id',
+            'title',
+            'html',
+            'datetime',
+        )
+        read_only_fields = ('id', 'title', 'html', 'datetime')

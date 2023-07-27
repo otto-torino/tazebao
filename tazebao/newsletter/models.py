@@ -9,6 +9,7 @@ from django.utils.formats import date_format
 from django.utils.safestring import mark_safe
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from ckeditor_uploader.fields import RichTextUploadingField
 
 from mailqueue.models import MailerMessage
 
@@ -31,6 +32,31 @@ class Client(models.Model):
 
     def __str__(self):
         return self.name
+
+class SystemMessage(models.Model):
+    datetime = models.DateTimeField('data', auto_now_add=True)
+    title = models.CharField('titolo', max_length=255)
+    html = RichTextUploadingField(verbose_name='html')
+    clients = models.ManyToManyField(Client, verbose_name='client', blank=True, help_text='Se vuoto viene inviato a tutti')
+
+    class Meta:
+        verbose_name = "messaggio di sistema"
+        verbose_name_plural = "messaggi di sistema"
+
+    def __str__(self):
+        return self.title
+
+class SystemMessageRead(models.Model):
+    system_message = models.ForeignKey(SystemMessage, verbose_name='messaggio di sistema', on_delete=models.CASCADE)
+    client = models.ForeignKey(Client, verbose_name='client', on_delete=models.CASCADE)
+    datetime = models.DateTimeField('data', auto_now_add=True)
+
+    class Meta:
+        verbose_name = "letture messaggio di sistema"
+        verbose_name_plural = "letture messaggi di sistema"
+
+    def __str__(self):
+        return str(self.id)
 
 
 class SubscriberList(models.Model):
@@ -372,5 +398,5 @@ class SuggestionRequest(models.Model):
         verbose_name_plural = "richieste suggerimenti"
 
     def __str__(self):
-        return super(SuggestionRequest, self).__str__()
+        return str(self.id)
 

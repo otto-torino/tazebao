@@ -8,7 +8,7 @@ from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
 from .models import (Campaign, Client, Dispatch, FailedEmail, Planning,
-                     Subscriber, SubscriberList, SuggestionRequest, Topic, Tracking,
+                     Subscriber, SubscriberList, SuggestionRequest, SystemMessage, SystemMessageRead, Topic, Tracking,
                      Unsubscription, UserMailerMessage, SubscriptionForm)
 # send campaign
 from .tasks import send_campaign
@@ -873,3 +873,21 @@ class SuggestionRequestAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRow
 
 
 admin.site.register(SuggestionRequest, SuggestionRequestAdmin)
+
+
+class SystemMessageAdmin(admin.ModelAdmin):
+    '''
+        Admin View for SystemMessage
+    '''
+    list_display = ('title', 'datetime',)
+
+admin.site.register(SystemMessage, SystemMessageAdmin)
+
+class SystemMessageReadAdmin(admin.ModelAdmin):
+    '''
+        Admin View for SystemMessageRead
+    '''
+    list_display = ('datetime', 'client', 'system_message')
+    list_filter = ('client',)
+
+admin.site.register(SystemMessageRead, SystemMessageReadAdmin)

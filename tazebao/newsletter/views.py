@@ -40,13 +40,13 @@ from newsletter.forms import SubscriptionPageForm
 from .auth import PostfixNewsletterAPISignatureAuthentication
 from .context import get_campaign_context
 from .models import (Campaign, Client, Dispatch, FailedEmail, MailerMessage,
-                     Planning, Subscriber, SubscriberList, SubscriptionForm, SuggestionRequest, Topic, Tracking,
+                     Planning, Subscriber, SubscriberList, SubscriptionForm, SuggestionRequest, SystemMessage, SystemMessageRead, Topic, Tracking,
                      Unsubscription)
 from .permissions import IsClient, IsMailerMessageClient
 from .serializers import (CampaignSerializer, DispatchSerializer,
                           FailedEmailSerializer, MailerMessageSerializer,
                           PlanningSerializer, SubscriberListSerializer,
-                          SubscriberSerializer, SubscribtionsStatsSerializer, SubscriptionFormSerializer, TopicSerializer, UnsubscriptionStatsSerializer)
+                          SubscriberSerializer, SubscribtionsStatsSerializer, SubscriptionFormSerializer, TopicSerializer, UnsubscriptionStatsSerializer, SystemMessageSerializer)
 from .tasks import send_campaign, test_campaign
 from .templatetags.newsletter_tags import encrypt
 
@@ -1125,3 +1125,28 @@ class SubjectSuggestionApiView(APIView):
 
         return JsonResponse(json_response)
 
+
+class SystemMessageViewSet(viewsets.ReadOnlyModelViewSet):
+    """ Dispatches cRud
+    """
+    lookup_field = 'pk'
+    queryset = SystemMessage.objects.all()
+    serializer_class = SystemMessageSerializer
+
+    def get_queryset(self):
+        """ Retrieves only client's messages
+        """
+        qs = SystemMessage.objects.filter(
+            Q(clients__user__in=[self.request.user]) | Q(clients=None)).exclude(id__in=[SystemMessageRead.objects.filter(client__user=self.request.user).values('system_message_id')])
+        return qs
+
+    @action(detail=True, methods=['post'])
+    def mark_as_read(self, request, pk=None):
+        system_message = self.get_object()
+        system_message_read = SystemMessageRead(
+            client=request.user.client,
+            system_message=system_message,
+        )
+        system_message_read.save()
+        response = JsonResponse({'success': True}, status=201)
+        return response

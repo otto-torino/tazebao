@@ -183,6 +183,8 @@ BATON = {
         {'type': 'app', 'name': 'auth', 'label': 'Autenticazione', 'icon':'fa fa-lock'},
         {'type': 'model', 'app': 'sites', 'name': 'site', 'label': 'Siti', 'icon':'fa fa-leaf'},
         {'type': 'model', 'app': 'newsletter', 'name': 'client', 'label': 'Client', 'icon':'fa fa-laptop-code'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'systemmessage', 'label': 'Messaggi', 'icon':'fa fa-bullhorn'},
+        {'type': 'model', 'app': 'newsletter', 'name': 'systemmessageread', 'label': 'Letture messaggi', 'icon':'fa fa-check'},
         {'type': 'model', 'app': 'flatpages', 'name': 'flatpage', 'label': 'Pagine', 'icon':'fa fa-book'},
 
         {'type': 'title', 'label': 'Iscrizioni',  'apps': ('newsletter', )},
