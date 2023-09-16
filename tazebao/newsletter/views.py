@@ -1111,7 +1111,7 @@ class SubjectSuggestionApiView(APIView):
 
         ## perform a post request with requests module
         response = requests.post(
-            'https://www.abidibo.net/api/pizzagpt/suggestions',
+            'https://www.torinometeo.org/api/pizzagpt/suggestions',
             # 'http://localhost:8001/api/pizzagpt/suggestions',
             data={
                 'date': date,
