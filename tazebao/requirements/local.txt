@@ -1,5 +1,7 @@
 # Local development dependencies go here
 -r common.txt
 
+ansible==2.8.0
+fabric==2.4.0
 django-debug-toolbar>=1.5
 sqlparse>=0.2.1
