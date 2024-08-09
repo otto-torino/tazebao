@@ -682,7 +682,7 @@ class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
             qs = qs.filter(
                 last_edit_datetime__lte=datetime.strptime(date_to, "%Y-%m-%d"))
         if dispatched is not False:
-            qs = qs.filter(dispatch_set__test=False, dispatch_set__started_at__isnull=False)
+            qs = qs.filter(dispatch__test=False, dispatch__started_at__isnull=False)
         if q is not None:
             qs = qs.filter(name__icontains=q)
 
