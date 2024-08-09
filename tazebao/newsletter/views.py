@@ -664,7 +664,7 @@ class CampaignViewSet(DynamicPagination, viewsets.ModelViewSet):
         text = self.request.query_params.get('text', None)
         date_from = self.request.query_params.get('date_from', None)
         date_to = self.request.query_params.get('date_to', None)
-        dispatched = self.request.query_params.get('date_to', False)
+        dispatched = self.request.query_params.get('dispatched', False)
         sort = self.request.query_params.get('sort', None)
         sort_direction = self.request.query_params.get('sort_direction', None)
         if view_online is not None:
