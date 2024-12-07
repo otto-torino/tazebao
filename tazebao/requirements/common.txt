@@ -39,7 +39,7 @@ djangorestframework==3.9.4
 djangorestframework-httpsignature==1.0.0
 djangorestframework-jwt==1.11.0
 easy-thumbnails==2.6
-ecdsa==0.13.2
+ecdsa==0.13.3
 enum34==1.1.6
 et-xmlfile==1.0.1
 exceptiongroup==1.1.2
