@@ -64,6 +64,7 @@ meld3==1.0.2
 mock==3.0.5
 mysqlclient==1.4.6
 oauth2client==1.5.2
+openai=1.93.0
 openpyxl==2.6.2
 ordereddict==1.1
 outcome==1.2.0
