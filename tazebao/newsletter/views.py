@@ -904,32 +904,31 @@ class FailedEmailApiView(View):
                 return HttpResponseBadRequest("missing email id field")
             dt = datetime.strptime(datetime_string, "%Y-%m-%d %H:%M:%S")
             # try to get client
-            client = Client.objects.filter(
+            clients = Client.objects.filter(
                 topic__sending_address=from_email, subscriber__email=email
-            ).first()
-            if not client:
-                return HttpResponseBadRequest("unrecognized client")
-            # try to get dispatch
-            dispatch = Dispatch.objects.filter(
-                campaign__client=client,
-                finished_at__range=(dt - timedelta(hours=6), dt),
-            ).first()
-            subscriber = Subscriber.objects.filter(client=client, email=email).first()
+            )
+            for client in clients:
+                # try to get dispatch
+                dispatch = Dispatch.objects.filter(
+                    campaign__client=client,
+                    finished_at__range=(dt - timedelta(hours=6), dt),
+                ).first()
+                subscriber = Subscriber.objects.filter(client=client, email=email).first()
 
-            try:
-                failed_email = FailedEmail(
-                    datetime=dt,
-                    client=client,
-                    dispatch=dispatch,
-                    from_email=from_email,
-                    subscriber=subscriber,
-                    status=status,
-                    message=message,
-                    email_id=email_id,
-                )
-                failed_email.save()
-            except Exception as e:
-                return HttpResponseBadRequest("%s" % str(e))
+                try:
+                    failed_email = FailedEmail(
+                        datetime=dt,
+                        client=client,
+                        dispatch=dispatch,
+                        from_email=from_email,
+                        subscriber=subscriber,
+                        status=status,
+                        message=message,
+                        email_id=email_id,
+                    )
+                    failed_email.save()
+                except Exception as e:
+                    return HttpResponseBadRequest("%s" % str(e))
             # force text plain because on remote server it sends probably
             # binary data
             return HttpResponse(
