@@ -57,6 +57,7 @@ class SubscriberSerializer(serializers.ModelSerializer):
             'lists',
             'opt_in',
             'opt_in_datetime',
+            'pix_track',
         )
         read_only_fields = ('client', )
 

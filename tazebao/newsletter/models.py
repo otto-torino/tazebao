@@ -84,6 +84,7 @@ class Subscriber(models.Model):
     opt_in = models.BooleanField('accettazione GDPR', default=False)
     opt_in_datetime = models.DateTimeField(
         'data accettazione GDPR', blank=True, null=True)
+    pix_track = models.BooleanField('Tracking Pixel', default=False)
 
     class Meta:
         verbose_name = "iscritto"
