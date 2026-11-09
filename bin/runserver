@@ -1,2 +1,6 @@
 #!/bin/bash
-python 8mail/manage.py runserver 0.0.0.0:8000
+
+# Runs the django development server
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../" && pwd )"
+
+python "$DIR/tazebao/manage.py" runserver 0.0.0.0:8000

@@ -8,11 +8,16 @@ Otto srl newsletter web application.
 * [Setup](#setup)
 * [REST Web Service](#rest-webservice)
     * [REST Service Authentication](#rest-authentication)
+    * [Pagination, filtering and sorting](#rest-pagination)
     * [REST resources](#rest-resources)
+* [Unsubscription](#unsubscription)
+* [Subscription forms](#subscription-forms)
 * [Mosaico Integration](#mosaico-integration)
 * [Getting Started](#getting-started)
+* [Scheduled jobs](#scheduled-jobs)
 * [Remote setup](#remote-setup)
 * [Deploy and Stuff](#deploy)
+* [Related repositories](#related-repositories)
 
 ## <a name="what"></a>What?
 
@@ -31,24 +36,27 @@ Tazebao provides the following entities:
 - dispatch
 - dispatch queue log
 - tracking
+- bounce (failed e-mail)
+- unsubscription
+- subscription form
+- system message
 
 Each __Subscriber__ must belong to one or more lists (__SubscriberList__). Subscriber's e-mail must be unique for each client.
-Each __Campaign__ must belong to a __Topic__, which stores the information about the sender name and address.
+Each __Campaign__ must belong to a __Topic__, which stores the information about the sender name and address, and the unsubscription url.
 Tazebao integrates [mosaico](https://github.com/voidlabs/mosaico/), a responsive e-mail template generator. The generated template can be included in the campaign.
-The newsletter is sent creating a __Dispatch__, where the user chooses one or more lists of subscribers which will receive the e-mail. Newsletter can be scheduled, planning the effective dispatch.
+The newsletter is sent creating a __Dispatch__, where the user chooses one or more lists of subscribers which will receive the e-mail. Newsletter can be scheduled (__Planning__), planning the effective dispatch.
 If the html template of the email contains the closing body tag, then a tracking code is added automatically in order to track if the user opens the e-mail.
 These statistics are inaccurate, because the tracking code works only if the user loads the e-mail images.
 Tazebao provides a __link__ templatetag which can be used to track user clicks (the destination url is transformed in a Tazebao url, which executes a view which detects the event and redirects the user to the original url).
 
-The __Subscriber__ has an __info__ text field which can be used to store additional information, for example in a json format.
+The __Subscriber__ has an __info__ text field which can be used to store additional information, for example in a json format, an __opt_in__ / __opt_in_datetime__ pair which stores the GDPR acceptance, and a __pix_track__ boolean flag (tracking pixel).
 
-E-mails are prepared asynchronously through a celery task, queued and sent in blocks. The scheduling must be set with a crontab, Tazebao uses the [django-mail-queue application](https://github.com/dstegelman/django-mail-queue/) in order to manage this stuff.    
-Just set a crontab which calls 
+E-mails are prepared asynchronously through a celery task, queued and sent in blocks. The sending must be scheduled with a crontab (see [Scheduled jobs](#scheduled-jobs)), Tazebao uses the [django-mail-queue application](https://github.com/dstegelman/django-mail-queue/) in order to manage this stuff.
 
-    $ python manage.py send_queued_messages
+Tazebao provides a REST webservice in order to retrieve, create, edit and delete subscribers, lists and the other entities. Each Client can then implement its own registration form and use the provided API to update Tazebao DB, or use the [subscription forms](#subscription-forms) hosted by Tazebao.
+Unsubscription can be managed directly by Tazebao or by the Client application, see [Unsubscription](#unsubscription).
 
-Tazebao provides a REST webservice in order to retrieve, create, edit and delete subscribers and lists. Each Client can then implement its own registration form and use the provided API to update Tazebao DB. Also the unsubscription feature must be implemented by the Client, which will then use the API to delete the record from Tazebao. Tazebao provides a functionality which can be used to create a signed string of subscriber's data used to generate the unsubscription url.
-Unsubscription text is managed in the Topic section of Tazebao. For example you can generate a URL which includes a signature of the ID and EMAIL of the subscriber, then you can check the signature in your own application, and if matches call the delete action of the API.
+Bounces are collected from the mail server (postfix) through a dedicated API endpoint, and can be used to clean up the subscribers lists.
 
 ## <a name="setup"></a>Setup
 
@@ -86,40 +94,86 @@ You should also create a Client's Group, associated with each Client user, with 
 
 so that clients can manage their account through the admin interface.
 
+Each Client also has a `suggestions_per_day` field (default 3) which limits the number of AI subject suggestions it can request every day.
+
 ## <a name="rest-webservice"></a>REST Web Service
 
-The admin application authentication is a session based authentication, while the web service uses HMAC (Keyed-Hash Message Authentication Code).
+All the endpoints live under `/api/v1/`. The admin application authentication is a session based authentication, while the web service supports two methods:
 
-Each Client gets an ID_KEY and a SECRET_KEY through which authenticate to Tazebao. The Signature must be passed in the HTTP header of every request, Tazebao uses [django-rest-framework-httpsignature](https://github.com/etoccalino/django-rest-framework-httpsignature) to manage this stuff.
+- HMAC signature (Keyed-Hash Message Authentication Code), meant for server to server communication;
+- JWT, meant for frontend applications (i.e. the client web app and the desktop app).
 
 ### <a name="rest-authentication"></a>REST Service Authentication
 
-In order to perform valid requests to the REST resources, every request must be signed in the HTTP header.
+#### HMAC signature
+
+Each Client gets an ID_KEY and a SECRET_KEY through which authenticate to Tazebao. Tazebao uses [django-rest-framework-httpsignature](https://github.com/etoccalino/django-rest-framework-httpsignature) to manage this stuff.
+
+In order to perform valid requests to the REST resources, every request must be signed in the HTTP header, and the ID_KEY must be passed in the `X-Api-Key` header.
 The signature must be calculated this way:
 
     SIGNATURE = Base64(Hmac('SECRET_KEY', "date: DATETIME", 'sha256'))
 
 And the request should be:
 
-    ~$ curl -v -H 'Date: "DATETIME"' -H 'Authorization: Signature keyId="ID_KEY",algorithm="hmac-sha256",headers="date",signature="SIGNATURE"'
+    ~$ curl -v -H 'Date: "DATETIME"' -H 'X-Api-Key: ID_KEY' -H 'Authorization: Signature keyId="ID_KEY",algorithm="hmac-sha256",headers="date",signature="SIGNATURE"'
 
 this was descriptive code, take a look at the [client repository](https://github.com/otto-torino/tazebao-client) to see how to implement this stuff in real languages.
 
-### <a name="rest-resources"></a>REST resources
+#### JWT
 
-Tazebao provides a REST Web Service which allows to manage subscribers and lists data.
+    POST /api/v1/login/
+
+with `username` and `password` returns a token, which must be passed in the `Authorization` header of the following requests:
+
+    Authorization: JWT <TOKEN>
+
+The token expires after 60 minutes and can be refreshed:
+
+    POST /api/v1/refresh-token/
+
+with the `token` field.
+
+    GET /api/v1/whoami/
+
+returns the authenticated user data, including the client keys.
+
+### <a name="rest-pagination"></a>Pagination, filtering and sorting
+
+List endpoints use a dynamic pagination:
+
+- if the `page_size` query parameter is passed, results are paginated with that page size;
+- if it is not passed and the client has fewer records than a threshold (100 for campaigns, 1000 for bounces, 8000 for subscribers and mailer messages, 10000 for the other resources), the whole result set is returned as a plain array, without pagination;
+- otherwise results are paginated, 10 per page.
+
+The paginated response has the following format:
+
+    {
+        "count": 300,
+        "next": "http://localhost:8000/api/v1/newsletter/subscriber/?page=2&page_size=10",
+        "previous": null,
+        "results": [ ... ]
+    }
+
+Most list endpoints accept:
+
+- `q`: a free text search (the searched fields depend on the resource)
+- `sort`: the field used to sort results (default `-id`)
+- `sort_direction`: `asc` or `desc`
+
+### <a name="rest-resources"></a>REST resources
 
 #### Subscribers Lists
 
-This section describes possible CRUD requests to manage subscribers's lists.
+This section describes possible CRUD requests to manage subscribers's lists. `q` searches in the list name.
 
 ##### Retrieve lists
 
     GET http://localhost:8000/api/v1/newsletter/subscriberlist/
 
-returns a list of subscribers' lists associated to the authenticated client, i.e.:
+returns the subscribers' lists associated to the authenticated client, i.e.:
 
-    [{"id":1,"name":"Journalists"},{"id":8,"name":"ACABS"}]
+    [{"id":1,"name":"Journalists","tot_subscribers":120},{"id":8,"name":"ACABS","tot_subscribers":32}]
 
 ##### Get a list
 
@@ -127,7 +181,7 @@ returns a list of subscribers' lists associated to the authenticated client, i.e
 
 returns the list object represented by LIST_ID, i.e.:
 
-    {"id":1,"name":"Journalists"}
+    {"id":1,"name":"Journalists","tot_subscribers":120}
 
 ##### Add a list
 
@@ -161,11 +215,11 @@ This section describes possible CRUD requests to manage subscribers.
 
     GET http://localhost:8000/api/v1/newsletter/subscriber/
 
-returns a paginated (200 for page) list of subscribers associated to the authenticated client, i.e.:
+returns the subscribers associated to the authenticated client (see [pagination](#rest-pagination)), i.e.:
 
     {
         "count": 300,
-        "next": "http://localhost:8000/api/v1/newsletter/subscriber/?page=2",
+        "next": "http://localhost:8000/api/v1/newsletter/subscriber/?page=2&page_size=10",
         "previous": null,
         "results": [
             {
@@ -174,19 +228,21 @@ returns a paginated (200 for page) list of subscribers associated to the authent
                 "email":"email@example.com",
                 "subscription_datetime":"2016-09-08T14:49:58.860948Z",
                 "info":"custom stuff",
-                "lists":[1]
+                "lists":[1],
+                "opt_in":true,
+                "opt_in_datetime":"2016-09-08T14:49:58.860948Z",
+                "pix_track":false
             },
-            {
-                "id":2,
-                "client":1,
-                "email":"email2@example.com",
-                "subscription_datetime":"2016-09-08T14:59:58.860948Z",
-                "info":"",
-                "lists":[1, 2]
-            },
-            // ... 198 more
+            // ... more
         ]
     }
+
+additional filters:
+
+- `email`: e-mail contains
+- `info`: info contains
+- `lists`: subscribers belonging to the given list id
+- `q`: e-mail or info contains
 
 ##### Get a subscriber
 
@@ -200,7 +256,10 @@ returns the subscriber object represented by SUBSCRIBER_ID, i.e.:
         "email":"email2@example.com",
         "subscription_datetime":"2016-09-08T14:59:58.860948Z",
         "info":"",
-        "lists":[1, 2]
+        "lists":[1, 2],
+        "opt_in":false,
+        "opt_in_datetime":null,
+        "pix_track":false
     }
 
 ##### Add a subscriber
@@ -209,7 +268,7 @@ returns the subscriber object represented by SUBSCRIBER_ID, i.e.:
 
 the POST data should be a json of the following format:
 
-    "{"email":"xxx@abidibo.net","info":"\"firstname=\"meow\"\"","lists":["1"]}" 
+    "{"email":"xxx@abidibo.net","info":"\"firstname=\"meow\"\"","lists":["1"],"opt_in":true,"opt_in_datetime":"2019-06-06T10:28:34+02:00"}"
 
 email and lists fields are required. If you try to add a subscriber with an email address already associated to the client, you get a 400 response describing the error.
 
@@ -217,31 +276,57 @@ email and lists fields are required. If you try to add a subscriber with an emai
 
     PUT http://localhost:8000/api/v1/newsletter/subscriber/<SUBSCRIBER_ID>/
 
-the POST data should be a json of the following format:
-
-    "{"email":"xxx@abidibo.net","info":"\"firstname=\"meow\"\"","lists":["1"]}" 
-
-email and lists fields are required.
+the PUT data should be a json of the same format used to add a subscriber. email and lists fields are required.
 
 ##### Delete a subscriber
 
     DELETE http://localhost:8000/api/v1/newsletter/subscriber/<SUBSCRIBER_ID>/
 
+##### Bulk actions
+
+All these actions accept a json POST body:
+
+- `POST /api/v1/newsletter/subscriber/add_list/` `{"subscribers": [1, 2], "lists": [3]}` adds the subscribers to the lists
+- `POST /api/v1/newsletter/subscriber/remove_list/` `{"subscribers": [1, 2], "lists": [3]}` removes the subscribers from the lists
+- `POST /api/v1/newsletter/subscriber/delete_many/` `{"ids": [1, 2]}` deletes the subscribers
+- `POST /api/v1/newsletter/subscriber/delete_from_bounces/` `{"bounces": [10, 11]}` deletes the subscribers related to the given bounces
+- `POST /api/v1/newsletter/subscriber/delete_from_mailermessages/` `{"mailermessages": [10, 11]}` deletes the subscribers related to the given mailer messages, and the messages themselves
+
+##### Import subscribers from CSV
+
+    POST http://localhost:8000/api/v1/newsletter/subscriber/import/
+
+multipart request with the following fields:
+
+- `file`: a CSV file, without header row, with the columns `email`, `subscription_datetime`, `info`, `opt_in`, `opt_in_datetime`
+    - `subscription_datetime` can be empty (now is used)
+    - `info` can be empty, otherwise it must be a valid json
+    - `opt_in` is `0` or `1`, if `1` then `opt_in_datetime` is required
+- `lists`: comma separated list ids the subscribers will be added to
+
+At most 1000 rows can be imported at once. The import is atomic: if a row is invalid nothing is imported and a 400 response describes the error. Already existing subscribers are just added to the lists.
+
+#### Topics
+
+    GET|POST http://localhost:8000/api/v1/newsletter/topic/
+    GET|PUT|DELETE http://localhost:8000/api/v1/newsletter/topic/<TOPIC_ID>/
+
+Topic fields: `id`, `name`, `sending_address`, `sending_name`, `unsubscribe_url`. `q` searches in the topic name.
+
 #### Campaigns
 
-Campaign models are readonly, so you can only retrieve a list of paginated campaigns, or a single campaign.
-This resource is usefull in order to display the newsletter content in your own application, or to create
-a newsletter archive.
+This resource is useful in order to display the newsletter content in your own application, or to create
+a newsletter archive. It also supports create, update and delete operations, used by the Tazebao frontend.
 
 ##### Retrieve campaigns
 
     GET http://localhost:8000/api/v1/newsletter/campaign/
 
-returns a paginated (20 for page) list of campaigns associated to the authenticated client, i.e.:
+returns the campaigns associated to the authenticated client (see [pagination](#rest-pagination)), i.e.:
 
     {
         "count": 2,
-        "next": "http://localhost:8000/api/v1/newsletter/campaign/?page=2",
+        "next": "http://localhost:8000/api/v1/newsletter/campaign/?page=2&page_size=10",
         "previous": null,
         "results": [
             {
@@ -255,18 +340,25 @@ returns a paginated (20 for page) list of campaigns associated to the authentica
                 "plain_text": "plain bla bla",
                 "html_text": "html bla bla",
                 "view_online": true,
-                "url": "http://localhost:8000/newsletter/client-slug/2016/09/08/campaign-slug/"
+                "url": "http://localhost:8000/newsletter/client-slug/2016/09/08/campaign-slug/",
+                "template": 1,
+                "last_dispatch": "2016-09-22T12:00:00Z",
+                "last_not_test_dispatch": "2016-09-22T12:00:00Z"
             }
-            // ... 19 more
+            // ... more
         ]
     }
 
 additional filters can be used to retrieve campaigns:
 
-- `date_from` in the format `YYYY-MM-DD`
-- `date_to` in the format `YYYY-MM-DD`
-- `subject`
-- `text`
+- `date_from` in the format `YYYY-MM-DD` (last edit date)
+- `date_to` in the format `YYYY-MM-DD` (last edit date)
+- `subject`: subject contains
+- `text`: html text contains
+- `topic`: topic id
+- `view_online`: `1` or `0`
+- `dispatched`: if present, only campaigns which have been actually sent (not as a test)
+- `q`: name contains
 
 just add them in the query string, i.e.
 
@@ -276,41 +368,44 @@ just add them in the query string, i.e.
 
     GET http://localhost:8000/api/v1/newsletter/campaign/<CAMPAIGN_ID>/
 
-returns the campaign object represented by CAMPAIGN_ID, i.e.:
+returns the campaign object represented by CAMPAIGN_ID, with the same format of the list items.
 
-    {
-        "id": 1,
-        "topic_id": 1,
-        "topic": "New Articles",
-        "name": "Let's talk about birds!",
-        "insertion_datetime": "2016-09-08T14:51:06.980733Z",
-        "last_edit_datetime": "2016-09-22T11:42:30.398038Z",
-        "subject": "A new article on birds.com!",
-        "plain_text": "plain bla bla",
-        "html_text": "html bla bla",
-        "view_online": true,
-        "url": "http://localhost:8000/newsletter/client-slug/2016/09/08/campaign-slug/"
-    }
+##### Campaign actions
 
+- `GET /api/v1/newsletter/campaign/<CAMPAIGN_ID>/get_template/` returns the mosaico template of the campaign
+- `GET /api/v1/newsletter/campaign/<CAMPAIGN_ID>/dispatches/` returns the dispatches of the campaign
+- `POST /api/v1/newsletter/campaign/<CAMPAIGN_ID>/send/` `{"lists": [1, 2]}` queues the sending of the campaign to the given lists; add `?test=1` to mark the dispatch as a test
+- `POST /api/v1/newsletter/campaign/<CAMPAIGN_ID>/test/` `{"lists": [1, 2]}` sends a test e-mail immediately to the given lists (at most 50 recipients)
+- `POST /api/v1/newsletter/campaign/<CAMPAIGN_ID>/duplicate/` duplicates the campaign and its template, returns the new campaign id
+
+#### Plannings
+
+    GET|POST http://localhost:8000/api/v1/newsletter/planning/
+    GET|PUT|DELETE http://localhost:8000/api/v1/newsletter/planning/<PLANNING_ID>/
+
+Planning fields: `id`, `campaign`, `campaign_name`, `lists`, `schedule`, `sent`. `q` searches in the campaign name.
+Planned dispatches are launched by the `dispatch_planned_campaigns` command (see [Scheduled jobs](#scheduled-jobs)).
 
 #### Dispatches
 
-Dispatch models are readonly, so you can only retrieve a list of paginated dispatches, or a single dispatch.
+Dispatch models are readonly, so you can only retrieve a list of dispatches, or a single dispatch.
 
 ##### Retrieve dispatches
 
     GET http://localhost:8000/api/v1/newsletter/dispatch/
 
-returns a paginated (20 for page) list of dispatches associated to the authenticated client, i.e.:
+returns the dispatches associated to the authenticated client (see [pagination](#rest-pagination)), i.e.:
 
     {
         "count": 2,
-        "next": "http://localhost:8000/api/v1/newsletter/campaign/?page=2",
+        "next": "http://localhost:8000/api/v1/newsletter/dispatch/?page=2&page_size=10",
         "previous": null,
         "results": [
             {
                 "id": 800,
                 "campaign": 387,
+                "campaign_name": "Let's talk about birds!",
+                "test": false,
                 "lists": [
                     23
                 ],
@@ -322,7 +417,7 @@ returns a paginated (20 for page) list of dispatches associated to the authentic
                 "open_statistics": true,
                 "click_statistics": false,
                 "sent": 1,
-                "error_recipients": ""
+                "error_recipients": "",
                 "open_rate": 100,
                 "click_rate": 100,
                 "trackings": [
@@ -346,33 +441,133 @@ returns a paginated (20 for page) list of dispatches associated to the authentic
                         "id": 1,
                         "datetime": "2019-10-18T15:40:19+02:00",
                         "dispatch": 800,
+                        "campaign_name": "Let's talk about birds!",
                         "from_email": "test@otto.to.it",
                         "subscriber_email": "xxx@gmail.com",
-                        "message": "host gmail-smtp-in.l.google.com[108.177.15.26] said: 550-5.1.1 The email account that you tried to reach does not exist. Please try 550-5.1.1 double-checking the recipient's email address for typos or 550-5.1.1 unnecessary spaces. Learn more at 550 5.1.1 https:\/\/support.google.com\/mail\/?p=NoSuchUser f2si4669900wrx.476 - gsmtp (in reply to RCPT TO command)",
+                        "subscriber_id": 12,
+                        "message": "host gmail-smtp-in.l.google.com[108.177.15.26] said: 550-5.1.1 The email account that you tried to reach does not exist. [...]",
                         "status": "bounced"
                     }
                 ]
             },
-            // ... 19 more
+            // ... more
         ]
     }
 
-additional filters can be used to retrieve campaigns:
+additional filters can be used to retrieve dispatches:
 
-- `date_from` in the format `YYYY-MM-DD`
-- `date_to` in the format `YYYY-MM-DD`
-- `campaign`
+- `date_from` in the format `YYYY-MM-DD` (start date)
+- `date_to` in the format `YYYY-MM-DD` (start date)
+- `campaign`: campaign id
 
 just add them in the query string, i.e.
 
-    http://localhost:8000/api/v1/newsletter/dispatch/?subject=foo&date_from=2018-09-12
+    http://localhost:8000/api/v1/newsletter/dispatch/?campaign=387&date_from=2018-09-12
 
 ##### Get a dispatch
 
     GET http://localhost:8000/api/v1/newsletter/dispatch/<DISPATCH_ID>/
 
-returns the dispatch object represented by DISPATCH_ID, i.e.:
+returns the dispatch object represented by DISPATCH_ID, with the same format of the list items.
 
+#### Bounces
+
+    GET http://localhost:8000/api/v1/newsletter/bounces/
+    GET|DELETE http://localhost:8000/api/v1/newsletter/bounces/<BOUNCE_ID>/
+
+returns the failed e-mails of the authenticated client, with the same format of the dispatch `bounces` items. `q` searches in the subscriber e-mail and in the campaign name.
+
+Bounces are inserted by the mail server through:
+
+    POST http://localhost:8000/api/v1/newsletter/failedemail/
+
+this endpoint is HMAC signed with the `POSTFIX_CLIENT_ID` and `POSTFIX_CLIENT_SECRET` credentials (see the environment variables in [Getting Started](#getting-started)), and accepts a json body with the fields `datetime` (`YYYY-MM-DD HH:MM:SS`), `from_email`, `email`, `email_id`, `status`, `message`.
+
+#### Mailer messages
+
+    GET http://localhost:8000/api/v1/newsletter/mailermessage/
+    GET|DELETE http://localhost:8000/api/v1/newsletter/mailermessage/<MESSAGE_ID>/
+
+the queued/sent e-mails of the client dispatches (`id`, `created`, `subject`, `to_address`, `from_address`, `app`, `sent`, `last_attempt`). `q` searches in the recipient address.
+
+    GET http://localhost:8000/api/v1/newsletter/mailermessage/unsent/
+
+returns the number of messages still in the queue: `{"unsent": 120}`.
+
+#### Subscription forms
+
+    GET|POST http://localhost:8000/api/v1/newsletter/subscriptionform/
+    GET|PUT|DELETE http://localhost:8000/api/v1/newsletter/subscriptionform/<FORM_ID>/
+
+Subscription form fields: `id`, `created`, `last_edited`, `name`, `content`, `privacy_disclaimer`, `code`, `success_url`, `error_url`, `lists`, `standalone_link`. See [Subscription forms](#subscription-forms).
+
+#### System messages
+
+    GET http://localhost:8000/api/v1/newsletter/systemmessages/
+
+returns the unread system messages addressed to the client (or to all clients): `id`, `title`, `html`, `datetime`.
+
+    POST http://localhost:8000/api/v1/newsletter/systemmessages/<MESSAGE_ID>/mark_as_read/
+
+marks a message as read.
+
+#### Statistics
+
+    GET http://localhost:8000/api/v1/newsletter/stats/
+
+returns a summary of the client account:
+
+    {
+        "subscribers": 300,
+        "bounces": 12,
+        "dispatching": 0,
+        "lastMonthUnsubscriptions": 2,
+        "lastMonthSubscribers": 15,
+        "lastDispatch": { ... dispatch object ... },
+        "nextPlanning": { ... planning object ... }
+    }
+
+    GET http://localhost:8000/api/v1/newsletter/subscriptions/stats/
+
+returns the number of subscriptions and unsubscriptions per day:
+
+    {
+        "subscriptions_stats": [{"subscription_datetime__date": "2023-02-27", "cnt": 3}],
+        "unsubscriptions_stats": [{"datetime__date": "2023-02-27", "cnt": 1}]
+    }
+
+    GET http://localhost:8000/api/v1/newsletter/dispatches/stats/?ids=1-2-3
+
+returns `{"dispatches": [...]}`, the non test dispatches of the given campaigns (dash separated campaign ids).
+
+#### Subject suggestions
+
+    POST http://localhost:8000/api/v1/newsletter/suggestions/subject/
+
+with a json body `{"topic": "birds", "mean_age": 40}` asks an AI model (OpenAI `gpt-4o-mini`) for 5 newsletter subjects about the topic, for an audience of the given mean age. Returns `{"text": "..."}` with one subject per line.
+Each client can perform at most `suggestions_per_day` requests per day. Requires the `AI_API_KEY` and `AI_ORGANIZATION` environment variables.
+
+## <a name="unsubscription"></a>Unsubscription
+
+The unsubscription url is configured in the __Topic__ (`unsubscribe_url` field) and is available in the campaign texts as `{{ unsubscribe_url }}`. The url is a template which can use the `{{ id }}`, `{{ email }}` and `{{ subscription_datetime }}` variables of the subscriber, and the `{% encrypt id email %}` tag, which generates an HMAC signature (with the client SECRET_KEY) of the concatenation of id and email.
+
+There are two options:
+
+- let Tazebao manage the unsubscription, using this url:
+
+        https://www.tazebao.email/newsletter/unsubscribe/?id={{ id }}&email={{ email }}&sig={% encrypt id email %}
+
+    Tazebao checks the signature, deletes the subscriber and shows a confirmation page.
+
+- manage it in your own application: point the url to your application, check the signature there and, if it matches, call the delete action of the API.
+
+## <a name="subscription-forms"></a>Subscription forms
+
+Clients can create subscription forms (through the API or the admin) which are hosted by Tazebao at:
+
+    /newsletter/subscribe/<CODE>/
+
+the full url is returned in the `standalone_link` field. Subscribers registered through the form are created with `opt_in` set to true and added to the lists of the form. After the subscription the user is redirected to `success_url`, if set.
 
 ## <a name="mosaico-integration"></a>Mosaico Integration
 
@@ -381,32 +576,52 @@ The mosaico core lib has been touched only to prevent url encoding of django tem
 
 ## <a name="getting-started"></a>Getting Started
 
+Requirements: Python 3.8 (see `.python-version`), MySQL, Redis (celery broker).
+
 To be up and running for local development just follow these steps:
 
 - clone the repository    
   `$ git clone https://github.com/otto-torino/tazebao.git`
 - cd the new project    
-  `$ cd [repo_name]`
+  `$ cd tazebao`
 - create a virtualenv    
-  `$ virtualenv --no-site-packages .virtualenv`
+  `$ python3.8 -m venv .virtualenv`
 - activate it    
   `$ source .virtualenv/bin/activate`
 - install requirements    
-  `$ pip install -r [repo_name]/requirements/local.txt`
-- create a .env file    
-  `$ touch .env`
+  `$ pip install -r tazebao/requirements/local.txt`
+- create the `.env` file inside the django project folder (`tazebao/tazebao/.env`, not the repository root)    
+  `$ cd tazebao && touch .env`
 - config environment    
   `$ dotenv set DJANGO_SETTINGS_MODULE core.settings.local`    
-  `$ dotenv set DB_PASSWORD <whatever>`
-  `$ dotenv set SECRET_KEY <whatever>`
+  `$ dotenv set DB_PASSWORD <whatever>`    
+  `$ dotenv set SECRET_KEY <whatever>`    
+  `$ cd ..`
 - run the server    
   `$ bin/runserver`
 - enjoy    
   `http://localhost:8000`
 
+Available environment variables:
+
+| Variable | Description |
+| --- | --- |
+| `DJANGO_SETTINGS_MODULE` | `core.settings.local` or `core.settings.production` |
+| `SECRET_KEY` | django secret key |
+| `DB_NAME` | database name (default `dbtazebao`) |
+| `DB_HOST` | database host (default `localhost`) |
+| `DB_USER` | database user (default `tazebao`) |
+| `DB_PASSWORD` | database password (required) |
+| `POSTFIX_CLIENT_ID` | key used by the mail server to post bounces |
+| `POSTFIX_CLIENT_SECRET` | secret used by the mail server to post bounces |
+| `AI_API_KEY` | OpenAI api key, used by the subject suggestions |
+| `AI_ORGANIZATION` | OpenAI organization, used by the subject suggestions |
+| `REMOTE_DB_PWD` | remote db password, used by the fab commands |
+| `REMOTE_USER_PWD` | remote user password, used by the fab commands |
+
 E-mails are queued and sent in blocks. The scheduling is managed with crontab, but the queue preparation is managed asynchronously with a celery task. That's because preparing thousand of e-mails for sending is a dispendious job to do within a request, and it would require a not-pleasant timeout setting.
 
-To start celery services:
+To start celery services (first edit the paths in the `[program:tazebao-workers]` section of `supervisord.conf.local` to match your local setup):
 
 - `supervisord -c supervisord.conf.local`
 
@@ -417,6 +632,18 @@ To monitor celery workers:
   - start all
   - stop all
   - status
+
+## <a name="scheduled-jobs"></a>Scheduled jobs
+
+Two management commands must be scheduled with a crontab:
+
+    $ python manage.py send_queued_messages [--limit N]
+
+sends the queued e-mails (in blocks of N e-mails if `--limit` is given), and
+
+    $ python manage.py dispatch_planned_campaigns
+
+launches the planned dispatches whose schedule date has passed.
 
 ## <a name="remote-setup"></a>Remote setup
 
@@ -449,13 +676,17 @@ and provide the remote root password when prompted.
 If all goes well, now you should have your remote machine ready for deploy.
 Visit your domain and you should see a maintenance page already there.
 
+A staging environment can be provisioned the same way, creating the `provisioning/ansible_staging_inventory` and `provisioning/ansible_staging_variables` files and launching
+
+    $ bin/ansible_staging
+
 ### Celery configuration
 
 Celery has a production ready configuration file you find in the ROOT of the repository:
 
 `supervisord.conf.production`
 
-You need to customize it in order to match your remote user and rempte paths, just edit the following section:
+You need to customize it in order to match your remote user and remote paths, just edit the following section:
 
     [program:tazebao-workers]
     command=/home/tazebao/www/tazebao/.virtualenv/bin/celery --app=core.celery:app worker --loglevel=INFO
@@ -481,7 +712,7 @@ If you see this error
 
     fatal: [remote] => Using a SSH password instead of a key is not possible because Host Key checking is enabled and sshpass does not support this.  Please add this host's fingerprint to your known_hosts file to manage this host.
 
-means you missed adding an entry for one or more hosts in the ~/.ssh/known_hosts file, it's enough to 
+means you missed adding an entry for one or more hosts in the `~/.ssh/known_hosts` file, it's enough to connect once to the host via ssh and accept its fingerprint.
 
 #### DB task error
 If an error occurs in the create db user task:
@@ -492,10 +723,17 @@ maybe you're trying to create a user which already existed and was delete. In th
 
     FLUSH PRIVILEGES;
 
-see [this answer on stack overflow](http://stackoverflow.com/questions/5555328/error-1396-hy000-operation-create-user-failed-for-jacklocalhost])
+see [this answer on stack overflow](http://stackoverflow.com/questions/5555328/error-1396-hy000-operation-create-user-failed-for-jacklocalhost)
 
 
 ## <a name="deploy"></a>Deploy and Stuff
+
+Deploy is done with [fabric](https://www.fabfile.org/) 2. Two environments are configured in `tazebao/fabfile.py`:
+
+- `production`: `otto@tazebao.email`, webapp dir `/home/otto/www/tazebao`
+- `staging`: `otto@tazebao.sqrt64.it`, webapp dir `/home/otto/www/tazebao`
+
+The fab commands read the `REMOTE_DB_PWD` and `REMOTE_USER_PWD` variables from the `.env` file.
 
 In the deployment process, the last revision of the git repository is deployed to the remote server.
 So be sure to have committed all your changes:
@@ -505,10 +743,10 @@ So be sure to have committed all your changes:
 
 Be sure the provided remote user has ssh access to the remote host, then deploy should be as easy as:
 
-    $ cd [repo_name]
+    $ cd tazebao
     $ fab production deploy
 
-launched inside the root/repo\_name folder. This command does the following things:
+launched from the repository root after moving into the django project folder (where `fabfile.py` lives). Use `fab staging deploy` to deploy to staging. This command does the following things:
 
 - create an archive of the last repository revision
 - upload it to the server
@@ -519,7 +757,7 @@ launched inside the root/repo\_name folder. This command does the following thin
 - migrations
 - move the current release in the previous release (releases/previous)
 - link the releases/current folder to the new release folder
-- restart uwsgi and nginx
+- restart uwsgi and reload nginx
 - open a shell in the remote
 
 When performing the first deploy you can create a superuser account using the shell which the script leaves open at the end.
@@ -544,6 +782,8 @@ Then just check with `ps ax | grep supervisor` and `ps ax | grep celery` if all 
 
 ### Other useful fab commands
 
+Run `fab -l` to list all the available commands.
+
 #### rollback
 
     $ fab production rollback
@@ -551,36 +791,60 @@ Then just check with `ps ax | grep supervisor` and `ps ax | grep celery` if all 
 If the deploy revision is broken, or introduces unexpected errors, with this command
 it is possible to rollback to the previous revision. Launching it another time will swap between the two revisions.
 
-#### restart\_uwsgi
+#### restart-uwsgi
 
-    $ fab production restart_uwsgi
+    $ fab production restart-uwsgi
 
 Restarts the uwsgi service
 
-#### restart\_server
+#### reloadServer
 
-    $ fab production restart_server
+    $ fab production reloadServer
 
-Restarts the web server
+Reloads the web server (nginx)
 
 #### restart
 
     $ fab production restart
 
-Restarts the uwsgi service and the web server
+Restarts the uwsgi service and reloads the web server
 
-#### dump\_db\_snapshot
+#### offline / online
 
-    $ fab production dump_db_snapshot
+    $ fab production offline
+    $ fab production online
 
-Downloads the production current db snapshot in the backup folders. The dumped file has the remote current revision name.
+Puts the site in maintenance mode / exits from maintenance mode
+
+#### getRemoteRevision
+
+    $ fab production getRemoteRevision
+
+Shows the revision currently deployed on the remote server
+
+#### dumpDbSnapshot
+
+    $ fab production dumpDbSnapshot
+
+Downloads the production current db snapshot in the backups folder. The dumped file has the remote current revision name.
 
 Requires the remote db user password.
 
-#### load\_db\_snapshot
+#### loadDbSnapshot
 
-    $ fab production load_db_snapshot
+    $ fab production loadDbSnapshot
 
-Loads the current remote db snapshot in the local db.
+Dumps the current remote db snapshot, downloads it and loads it in the local db (the local db is reset).
 
 Requires the remote db user password.
+
+#### loadDb
+
+    $ fab production loadDb
+
+Loads an already downloaded db snapshot in the local db.
+
+## <a name="related-repositories"></a>Related repositories
+
+- [tazebao-client](https://github.com/otto-torino/tazebao-client): client libraries for the REST web service
+- [tazebao-desktop](https://github.com/otto-torino/tazebao-desktop): desktop application
