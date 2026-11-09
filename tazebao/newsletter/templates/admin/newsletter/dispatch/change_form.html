@@ -3,7 +3,7 @@
 {% load i18n admin_urls static admin_modify %}
 
 {% block extrahead %}{{ block.super }}
-<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://www.gstatic.com/charts/loader.js"></script>
 {% endblock %}
 
 {% block object-tools %}{% endblock %}
@@ -11,112 +11,67 @@
 
 {% block after_field_sets %}
 <h2 style="margin: 20px 0">Statistiche</h2>
-{% if not original.open_statistics %}
-<p class="alert alert-danger">
-    Non sono disponibili statistiche di apertura delle e-mail. Il corpo html dell'e-mail inviata non conteneva il tag di chiusura &lt;/body&gt;
-</p>
-{% else %}
-<div id="open-chart" style="float: left; width: 49%;"></div>
+<div class="row">
+    <div class="col-lg-6">
+        {% if original.open_statistics %}
+            <div id="open-chart"></div>
+        {% else %}
+            <p class="alert alert-danger">
+                Non sono disponibili statistiche di apertura delle e-mail. Il corpo html dell'e-mail inviata non conteneva il tag di chiusura &lt;/body&gt;
+            </p>
+        {% endif %}
+    </div>
+    <div class="col-lg-6">
+        {% if original.click_statistics %}
+            <div id="click-chart"></div>
+        {% else %}
+            <p class="alert alert-danger">
+                Non sono disponibili statistiche sui click a link interni all'e-mail. L'e-mail inviata non conteneva link tracciati.
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% localize off %}
 <script>
-(function ($) {
-    var openChart = new Highcharts.Chart({
-        chart: {
-            renderTo: 'open-chart',
-            plotBackgroundColor: null,
-            plotBorderWidth: null,
-            plotShadow: false,
-            type: 'pie'
-        },
-        title: {
-            text: 'Open Rate'
-        },
-        tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-        },
-        plotOptions: {
-            pie: {
-                allowPointSelect: true,
-                cursor: 'pointer',
-                dataLabels: {
-                    enabled: true,
-                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
-                    style: {
-                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
-                    }
-                }
-            }
-        },
-        series: [{
-            name: 'Open Rate',
-            colorByPoint: true,
-            data: [{
-                name: 'E-mail aperte',
-                y: {% localize off %}{{ original.open_rate }}{% endlocalize %},
-                sliced: true,
-                selected: true
-            }, {
-                name: 'E-mail non aperte',
-                y: {% localize off %}{{ original.unopen_rate }}{% endlocalize %}
-            }]
-        }]
-    });
-})(django.jQuery);
-</script>
-{% endif %}
+(function () {
+    var charts = [
+        {% if original.open_statistics %}
+        {id: 'open-chart', title: 'Open Rate', color: '#ffc107',
+         rows: [['E-mail aperte', {{ original.open_rate|default_if_none:0 }}], ['E-mail non aperte', {{ original.unopen_rate|default_if_none:0 }}]]},
+        {% endif %}
+        {% if original.click_statistics %}
+        {id: 'click-chart', title: 'Click Rate', color: '#c32f00',
+         rows: [['Utenti uno o più click', {{ original.click_rate|default_if_none:0 }}], ['Utenti nessun click', {{ original.unclick_rate|default_if_none:0 }}]]},
+        {% endif %}
+    ];
+    if (!charts.length) return;
 
-{% if not original.click_statistics %}
-<p class="alert alert-danger" style="clear:both">
-    Non sono disponibili statistiche sui click a link interni all'e-mail. L'e-mail inviata non conteneva link tracciati.
-</p>
-{% else %}
-<div id="click-chart" style="float: right; width: 49%;"></div>
-<script>
-(function ($) {
-    var clickChart = new Highcharts.Chart({
-        chart: {
-            renderTo: 'click-chart',
-            plotBackgroundColor: null,
-            plotBorderWidth: null,
-            plotShadow: false,
-            type: 'pie'
-        },
-        title: {
-            text: 'Click Rate'
-        },
-        tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-        },
-        plotOptions: {
-            pie: {
-                allowPointSelect: true,
-                cursor: 'pointer',
-                dataLabels: {
-                    enabled: true,
-                    format: '<b>{point.name}</b>: {point.percentage:.1f} %',
-                    style: {
-                        color: (Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black'
-                    }
-                }
-            }
-        },
-        series: [{
-            name: 'Click Rate',
-            colorByPoint: true,
-            data: [{
-                name: 'Utenti uno o più click',
-                y: {% localize off %}{{ original.click_rate }}{% endlocalize %},
-                sliced: true,
-                selected: true
-            }, {
-                name: 'Utenti nessun click',
-                y: {% localize off %}{{ original.unclick_rate }}{% endlocalize %}
-            }]
-        }]
-    });
-})(django.jQuery);
+    // baton has a light and a dark theme: transparent charts with the theme text color
+    function draw() {
+        var color = getComputedStyle(document.body).color;
+        charts.forEach(function (c) {
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Stato');
+            data.addColumn('number', '%');
+            data.addRows(c.rows);
+            new google.visualization.PieChart(document.getElementById(c.id)).draw(data, {
+                title: c.title,
+                height: 360,
+                backgroundColor: 'transparent',
+                titleTextStyle: {color: color, fontSize: 18},
+                legend: {position: 'bottom', textStyle: {color: color}},
+                colors: [c.color, '#9e9e9e'],
+                slices: {0: {offset: 0.08}},
+                pieSliceText: 'percentage'
+            });
+        });
+    }
+    google.charts.load('current', {packages: ['corechart']});
+    google.charts.setOnLoadCallback(draw);
+    new MutationObserver(draw).observe(document.documentElement, {attributes: true, attributeFilter: ['data-bs-theme']});
+})();
 </script>
-
-{% endif %}
+{% endlocalize %}
 
 <div style="clear:both; padding-top: 3rem;">
     <h2>E-mail bounced</h2>
