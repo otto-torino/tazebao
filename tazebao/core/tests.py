@@ -167,3 +167,46 @@ class SubscriptionFormPageTest(TestCase):
         response = self.client.post(self.url, {'email': 'new@example.com', 'captcha_0': 'x', 'captcha_1': 'PASSED'})
         self.assertContains(response, 'alert-error')
         self.assertFalse(self.subscriber_list.subscriber_set.exists())
+
+
+class FlatpagesExamplesMigrationTest(TestCase):
+    """core.0002 replaces the dead rawgit iframes with local static copies."""
+
+    def test_rawgit_iframes(self):
+        import importlib
+        import re
+
+        from django.contrib.staticfiles import finders
+        convert = importlib.import_module('core.migrations.0002_flatpages_examples_without_rawgit').convert
+        html = convert(
+            '<p><iframe frameborder="0" src="https://cdn.rawgit.com/abidibo/1429d3225631bd6d6043591e843d7847/raw/'
+            'ca7cd40bcc8e320b88bb65f120748113ddfe50cf/tazebao-campaign-template-1.html" style="width:100%"></iframe></p>')
+        self.assertEqual(html, '<p><iframe frameborder="0" sandbox="" src="/static/core/help/examples/'
+                               'tazebao-campaign-template-1.html" style="width:100%"></iframe></p>')
+        self.assertEqual(convert(html), html)
+        for name in ('tazebao-campaign-template-1.html', 'tazebao-campaign-template-1-mobile.html',
+                     'tazebao-campaign-template-2.html'):
+            path = finders.find('core/help/examples/' + name)
+            self.assertTrue(path, name)
+            content = open(path, encoding='utf-8').read()
+            self.assertNotIn('http://lorempixel', content)
+            self.assertFalse(re.search(r'<script', content, re.I))
+
+
+class DispatchAdminChartsTest(TestCase):
+    def test_charts_without_highcharts(self):
+        from django.utils import timezone
+        from newsletter.models import Campaign, Client, Dispatch, Topic
+        user = User.objects.create_superuser('admin', 'admin@example.com', 'pwd')
+        client = Client.objects.create(user=user, name='C', slug='c', domain='example.com', id_key='key00008', secret_key='q' * 32)
+        topic = Topic.objects.create(client=client, name='T', sending_address='t@example.com', sending_name='T')
+        campaign = Campaign.objects.create(client=client, name='C', slug='c', topic=topic, subject='S', plain_text='x', html_text='x')
+        dispatch = Dispatch.objects.create(campaign=campaign, started_at=timezone.now(), sent=4,
+                                           open_statistics=True, click_statistics=True)
+        self.client.force_login(user)
+        response = self.client.get(reverse('admin:newsletter_dispatch_change', args=[dispatch.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'highcharts')
+        self.assertContains(response, 'id="open-chart"')
+        self.assertContains(response, 'id="click-chart"')
+        self.assertContains(response, "['E-mail aperte', 0.0]")
