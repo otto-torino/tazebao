@@ -1,6 +1,5 @@
 {% extends "admin/change_form.html" %}
-{% load i18n admin_urls admin_static admin_modify %}
-{% load jsonify %}
+{% load i18n admin_urls static admin_modify %}
 
 {% block object-tools-items %}
 <li><a class="edit-in-mosaico" href="{% url 'mosaico:editor'%}#{{ original.key }}"><i class="fa fa-paint-brush"></i> Modifica in Mosaico</a></li>
@@ -12,8 +11,8 @@
     <script type="text/javascript">
         (function($) {
             $(document).ready(function() {
-                var mosaico_template_data = {{ original.template_data|jsonify }};
-                var mosaico_meta_data = {{ original.meta_data|jsonify }};
+                var mosaico_template_data = {{ original.template_data_json|safe }};
+                var mosaico_meta_data = {{ original.meta_data_json|safe }};
 
                 $('.edit-in-mosaico').click(function(e) {
                     var mdkey = mosaico_meta_data.key;

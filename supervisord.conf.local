@@ -58,7 +58,7 @@ serverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket
 ; ================================
 
 [program:tazebao-workers]
-command=/home/abidibo/Web/www/tazebao/.virtualenv/bin/celery --app=core.celery:app worker --loglevel=INFO
+command=/home/abidibo/Web/www/tazebao/.venv312/bin/celery --app=core.celery:app worker --loglevel=INFO
 directory=/home/abidibo/Web/www/tazebao/tazebao
 user=abidibo
 numprocs=1

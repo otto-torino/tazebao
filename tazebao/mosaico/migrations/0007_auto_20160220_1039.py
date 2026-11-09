@@ -4,9 +4,8 @@ from __future__ import unicode_literals
 
 import datetime
 from django.db import migrations, models
-from django.utils.timezone import utc
-import jsonfield.fields
-
+from datetime import timezone
+utc = timezone.utc
 
 class Migration(migrations.Migration):
 
@@ -30,7 +29,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='template',
             name='meta_data',
-            field=jsonfield.fields.JSONField(default='{}'),
+            field=models.TextField(default='{}'),  # was jsonfield.JSONField, stored as longtext
             preserve_default=False,
         ),
         migrations.AddField(

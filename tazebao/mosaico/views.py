@@ -176,7 +176,7 @@ def image(request):
                     break
             image = Image.open(upload.image.file)
             if width is not None and height is not None:
-                image.thumbnail((width, height), Image.ANTIALIAS)
+                image.thumbnail((width, height), Image.LANCZOS)
             response = HttpResponse(content_type="image/%s" % image.format.lower())
             image.save(response, image.format)
         elif method == 'resize':
@@ -191,7 +191,7 @@ def image(request):
                 width = upload.image.width
             if not height:
                 height = upload.image.height
-            image.thumbnail((width, height), Image.ANTIALIAS)
+            image.thumbnail((width, height), Image.LANCZOS)
             response = HttpResponse(content_type="image/%s" % image.format.lower())
             image.save(response, image.format)
         return response

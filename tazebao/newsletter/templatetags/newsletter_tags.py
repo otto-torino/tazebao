@@ -5,9 +5,9 @@ from urllib.parse import quote_plus
 
 from django import template
 from django.contrib.sites.models import Site
-from django.core.signing import Signer
 from django.urls import reverse
 
+from .. import signing
 from ..models import Dispatch, Subscriber, SubscriberList, Tracking, FailedEmail
 
 register = template.Library()
@@ -80,10 +80,7 @@ def link(context, url):
 
     current_site = Site.objects.get_current()
 
-    signer = Signer()
-    s = signer.sign('%s-%s-%s' % (str(context['dispatch_id']),
-                                  str(context['subscriber_id']), url)).rsplit(
-                                      ':', 1)[1]
+    s = signing.sign(signing.click_tracking_value(context['dispatch_id'], context['subscriber_id'], url))
     return ''.join([
         'http://', current_site.domain,
         reverse(
