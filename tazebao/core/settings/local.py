@@ -30,9 +30,6 @@ CKEDITOR_CONFIGS['default']['contentsCss'] = [
     STATIC_URL + 'core/src/scss/styles.css',
     STATIC_URL + 'core/src/css/ckeditor.css']
 
-# DEBUG_TOOLBAR
-JQUERY_URL = ''
-
 # DEBUG TOOLBAR
 DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.versions.VersionsPanel',
@@ -45,14 +42,8 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.templates.TemplatesPanel',
     'debug_toolbar.panels.cache.CachePanel',
     'debug_toolbar.panels.signals.SignalsPanel',
-    'debug_toolbar.panels.logging.LoggingPanel',
     'debug_toolbar.panels.redirects.RedirectsPanel',
     'debug_toolbar.panels.profiling.ProfilingPanel',
     # 'cachalot.panels.CachalotPanel',
 ]
 
-# CELERY
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERYD_HIJACK_ROOT_LOGGER = False

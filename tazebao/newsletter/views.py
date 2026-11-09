@@ -7,14 +7,11 @@ import time
 import logging
 from datetime import date, datetime, timedelta
 from urllib.parse import unquote, unquote_plus
-from rest_framework.compat import requests
 from openai import OpenAI
-from getenv import env
 
 from dateutil.relativedelta import relativedelta
 from django import http, template
 from django.conf import settings
-from django.core.signing import Signer
 from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
 from django.db.models import Q, Count
@@ -32,7 +29,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import AuthenticationFailed, ValidationError
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import FormParser, MultiPartParser
 from rest_framework.response import Response
@@ -42,6 +39,7 @@ from mosaico.models import Template
 from mosaico.serializers import TemplateSerializer
 from newsletter.forms import SubscriptionPageForm
 
+from . import signing
 from .auth import PostfixNewsletterAPISignatureAuthentication
 from .context import get_campaign_context
 from .models import (
@@ -244,9 +242,7 @@ def campaign_detail_view(request, client_slug, year, month, day, campaign_slug):
 
 def email_tracking(request, dispatch_id, subscriber_id):
     # check signature
-    signer = Signer()
-    s = signer.sign("%s-%s" % (str(dispatch_id), str(subscriber_id))).split(":")[1]  # noqa
-    if s != request.GET.get("s", ""):
+    if not signing.is_valid(signing.open_tracking_value(dispatch_id, subscriber_id), request.GET.get("s", "")):
         raise http.Http404()
 
     dispatch = get_object_or_404(Dispatch, id=dispatch_id)
@@ -270,11 +266,11 @@ def email_tracking(request, dispatch_id, subscriber_id):
 
 # add url
 def link_tracking(request, dispatch_id, subscriber_id):
-    signer = Signer()
-    s = signer.sign(
-        "%s-%s-%s" % (str(dispatch_id), str(subscriber_id), request.GET.get("url", ""))
-    ).rsplit(":", 1)[1]
-    if s != request.GET.get("s", ""):
+    value = signing.click_tracking_value(dispatch_id, subscriber_id, request.GET.get("url", ""))
+    # {% link %} renders "&amp;s=": decoded by mail clients in HTML, but left as is in
+    # the plain text part. Django < 3.2 also split the query string on ";" and found "s".
+    sig = request.GET.get("s") or request.GET.get("amp;s", "")
+    if not signing.is_valid(value, sig):
         raise http.Http404()
 
     dispatch = get_object_or_404(Dispatch, id=dispatch_id)
@@ -886,7 +882,11 @@ class FailedEmailApiView(View):
 
     def post(self, request):
         authentication = PostfixNewsletterAPISignatureAuthentication()
-        if authentication.authenticate(request):
+        try:
+            authenticated = authentication.authenticate(request)
+        except AuthenticationFailed:
+            authenticated = False
+        if authenticated:
             data = json.loads(request.body.decode("utf-8"))
             datetime_string = data.get("datetime")
             from_email = data.get("from_email")

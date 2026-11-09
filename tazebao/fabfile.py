@@ -4,10 +4,21 @@ import time
 import threading
 
 from dotenv import load_dotenv  # type: ignore
-from getenv import env  # type: ignore
 from fabric import Connection, task  # type: ignore
-from patchwork import files  # type: ignore
 from invoke import Responder  # type: ignore
+
+# virtualenv directory, relative to the project root (local) or to the remote path
+VIRTUALENV_DIR = '.venv312'
+# interpreter used to create the remote virtualenv (Ubuntu 24.04 system python)
+REMOTE_PYTHON = '/usr/bin/python3.12'
+
+
+def env(name, default=None):
+    return os.environ.get(name, default)
+
+
+def remote_exists(c, path):
+    return c.run(f"test -e {path}", warn=True, hide=True).ok
 
 
 def here(*args):
@@ -120,8 +131,9 @@ def get_release_filepath(ctx, head='HEAD', log=True):
 def sync_virtualenv(ctx, virtualenv_path, requirements_path):
     """ Updates a virtualenv with requirements file """
     c = get_connection(ctx)
-    if not files.exists(c, virtualenv_path):
-        c.run(f"python3 -m venv {virtualenv_path}")
+    if not remote_exists(c, virtualenv_path):
+        c.run(f"{REMOTE_PYTHON} -m venv {virtualenv_path}")
+        c.run(f"{virtualenv_path}/bin/pip install --upgrade pip", hide='stdout')
 
     result = c.run(f"source {virtualenv_path}/bin/activate && pip install -r {requirements_path}", hide='stdout')  # noqa
     counter = 0
@@ -141,7 +153,7 @@ def reset_db(ctx):
     """ Resets the local db """
     c = get_connection(ctx)
     print_('Flushing local db', 'INFO')
-    c.local(f"source {here('..', '.virtualenv', 'bin', 'activate')} && python manage.py flush")
+    c.local(f"source {here('..', VIRTUALENV_DIR, 'bin', 'activate')} && python manage.py flush")
     print_('Done!', 'SUCCESS')
 
 
@@ -200,11 +212,11 @@ def deploy(ctx, head='HEAD', requirements='requirements/production.txt'):
     print(f"Remote new release directory: {release_dir}")
     current_release_dir = os.path.join(remote_path, 'current')
     previous_release_dir = os.path.join(remote_path, 'previous')
-    virtualenv_path = os.path.abspath(os.path.join(get_env(ctx, 'path'), '.virtualenv'))  # noqa
+    virtualenv_path = os.path.abspath(os.path.join(get_env(ctx, 'path'), VIRTUALENV_DIR))  # noqa
     print(f"Remote virtualenv path: {virtualenv_path}")
 
     # and upload it to the server
-    if not files.exists(c, release_dir):
+    if not remote_exists(c, release_dir):
         print('Uploading package, be patient')
         with Spinner():
             c.put(get_release_filepath(ctx, head, False), remote=remote_path)
@@ -216,7 +228,7 @@ def deploy(ctx, head='HEAD', requirements='requirements/production.txt'):
 
     try:
         # if exists remove dir
-        if files.exists(c, release_dir):
+        if remote_exists(c, release_dir):
             c.run(f"rm -vfr {release_dir}", hide='stdout')
         # create the remote dir
         c.run(f"mkdir -p {release_dir}")
@@ -243,13 +255,13 @@ def deploy(ctx, head='HEAD', requirements='requirements/production.txt'):
 
         print_('Setting current/previous releases', 'INFO')
         # find the previous release and move/unlink it
-        if files.exists(c, current_release_dir):
+        if remote_exists(c, current_release_dir):
             previous_deploy_path = c.run(f"basename $(readlink -f {current_release_dir})", hide='stdout').stdout.rstrip()
             idx = previous_deploy_path.index('-')
             previous_version = previous_deploy_path[idx + 1:]
 
             if previous_version != current_version:
-                if files.exists(c, previous_release_dir):
+                if remote_exists(c, previous_release_dir):
                     c.run(f"rm -R {previous_release_dir}")
                 c.run(f"mv {current_release_dir} {previous_release_dir}")
 
@@ -273,8 +285,8 @@ def deploy(ctx, head='HEAD', requirements='requirements/production.txt'):
         print_('Fallback to shell', 'HEADER')
         print('''
         %s --> %s
-            Use '../../.virtualenv/bin/uwsgi --ini uwsgi.ini' to start uwsgi
-        ''' % (previous_version, current_version))
+            Use '../../%s/bin/uwsgi --ini uwsgi.ini' to start uwsgi
+        ''' % (previous_version, current_version, VIRTUALENV_DIR))
         c.run(f"cd {release_dir} && source {virtualenv_path}/bin/activate && /bin/bash", pty=True)
 
 
@@ -351,7 +363,7 @@ def loadDb(ctx):
     """ Loads the downloaded production db snapshot in the local db """
     c = get_connection(ctx)
     print_('Loading db snapshot', 'INFO')
-    c.local(f"source {here('..', '.virtualenv', 'bin', 'activate')} && cat {get_dump_filepath(ctx, log=False)} | python manage.py dbshell")  # noqa
+    c.local(f"source {here('..', VIRTUALENV_DIR, 'bin', 'activate')} && cat {get_dump_filepath(ctx, log=False)} | python manage.py dbshell")  # noqa
     print_('Done!', 'SUCCESS')
 
 
@@ -398,7 +410,7 @@ def restart_uwsgi(ctx):
     print_("Restarting uWSGI...", 'INFO')
     c = get_connection(ctx)
     set_env(ctx, 'virtualenv_path',
-            os.path.abspath(os.path.join(get_env(ctx, 'path'), '.virtualenv')))
+            os.path.abspath(os.path.join(get_env(ctx, 'path'), VIRTUALENV_DIR)))
     c.run('kill -9 `cat /tmp/project-master_tazebao.pid`', warn=True)
     c.run('rm /tmp/project-master_tazebao.pid /tmp/uwsgi_tazebao.sock', warn=True)  # noqa
     c.run('cd %(path)s/releases/current; %(virtualenv_path)s/bin/uwsgi -H %(virtualenv_path)s --ini %(path)s/releases/current/uwsgi.ini' % get_env(ctx)) # noqa

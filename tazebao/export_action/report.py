@@ -8,16 +8,14 @@ import csv
 import re
 
 from django.http import HttpResponse
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 from django.template.loader import render_to_string
 from django.utils import timezone
 
 from openpyxl.styles import Font
 from openpyxl.utils import get_column_letter
 from openpyxl.workbook import Workbook
-from openpyxl.writer.excel import save_virtual_workbook
-
-from django.utils.six import BytesIO, text_type
+from io import BytesIO
 
 from .introspection import get_model_from_path_string
 
@@ -128,11 +126,11 @@ def build_sheet(data, ws, sheet_name='report', header=None, widths=None):
             if isinstance(item, str):
                 # Change it to a unicode string
                 try:
-                    row[i] = text_type(item)
+                    row[i] = str(item)
                 except UnicodeDecodeError:
-                    row[i] = text_type(item.decode('utf-8', 'ignore'))
+                    row[i] = str(item.decode('utf-8', 'ignore'))
             elif type(item) is dict:
-                row[i] = text_type(item)
+                row[i] = str(item)
         try:
             ws.append(row)
         except ValueError as e:
@@ -165,7 +163,7 @@ def build_xlsx_response(wb, title="report"):
     """ Take a workbook and return a xlsx file response """
     title = generate_filename(title, '.xlsx')
     myfile = BytesIO()
-    myfile.write(save_virtual_workbook(wb))
+    wb.save(myfile)
     response = HttpResponse(
         myfile.getvalue(),
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
@@ -190,7 +188,7 @@ def list_to_csv_response(data, title='report', header=None, widths=None):
     response = HttpResponse(content_type="text/csv; charset=UTF-8")
     cw = csv.writer(response)
     for row in chain([header] if header else [], data):
-        cw.writerow([force_text(s) for s in row])
+        cw.writerow([force_str(s) for s in row])
     return response
 
 

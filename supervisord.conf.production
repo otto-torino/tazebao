@@ -58,12 +58,12 @@ serverurl=unix:///tmp/supervisor.sock ; use a unix:// URL  for a unix socket
 ; ================================
 
 [program:tazebao-workers]
-command=/home/tazebao/www/tazebao/.virtualenv/bin/celery --app=core.celery:app worker --loglevel=INFO
-directory=/home/tazebao/www/tazebao/releases/current
-user=tazebao
+command=/home/otto/www/tazebao/.venv312/bin/celery --app=core.celery:app worker --loglevel=INFO
+directory=/home/otto/www/tazebao/releases/current
+user=otto
 numprocs=1
-stdout_logfile=/home/tazebao/www/tazebao/logs/celery-beat.log
-stderr_logfile=/home/tazebao/www/tazebao/logs/celery-beat.log
+stdout_logfile=/home/otto/www/tazebao/logs/celery-worker.log
+stderr_logfile=/home/otto/www/tazebao/logs/celery-worker.log
 autostart=true
 autorestart=true
 startsecs=10

@@ -9,8 +9,6 @@ from urllib.parse import urlparse, urlunparse
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.db import models
-from jsonfield import JSONField
-from sorl.thumbnail import ImageField
 
 from newsletter.models import Campaign, Client
 
@@ -19,9 +17,9 @@ class Upload(models.Model):
     client = models.ForeignKey(
         Client, verbose_name='client', on_delete=models.CASCADE)
     name = models.CharField('nome', max_length=200)
-    image = ImageField('immagine', upload_to="uploads")
+    image = models.ImageField('immagine', upload_to="uploads")
 
-    def __unicode__(self):
+    def __str__(self):
         return posixpath.basename(self.image.name)
 
     def to_json_data(self):
@@ -64,10 +62,10 @@ class Template(models.Model):
     html = models.TextField()
     last_modified = models.DateTimeField('ultima modifica', auto_now=True)
     created = models.DateTimeField('inserimento', auto_now_add=True)
-    template_data = JSONField()
-    meta_data = JSONField()
+    template_data = models.JSONField(default=dict)
+    meta_data = models.JSONField(default=dict)
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s - %s" % (self.name, self.key)
 
     def meta_data_json(self):
@@ -78,7 +76,7 @@ class Template(models.Model):
 
     def save(self, *args, **kwargs):
         self.meta_data['name'] = self.name
-        """
+        r"""
         uncomment this if you want to have images served directly as static
         files from media folder. The drawback is images are not resized on
         the fly if served statically, causing rendering problems on some

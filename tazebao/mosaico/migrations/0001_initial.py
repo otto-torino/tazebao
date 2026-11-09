@@ -3,8 +3,6 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import sorl.thumbnail.fields
-
 
 class Migration(migrations.Migration):
 
@@ -18,7 +16,7 @@ class Migration(migrations.Migration):
             name='Upload',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', sorl.thumbnail.fields.ImageField(upload_to='uploads')),
+                ('image', models.ImageField(upload_to='uploads')),
             ],
         ),
     ]
