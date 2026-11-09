@@ -622,6 +622,32 @@ Available environment variables:
 
 Dependencies: `tazebao/requirements/common.in` lists the direct dependencies, `common.txt` is the frozen full set generated from it. To upgrade, edit `common.in`, install it in a clean Python 3.12 virtualenv and regenerate `common.txt` with `pip freeze`.
 
+### Docker
+
+`docker-compose.yml` runs the whole stack locally: MySQL 8, Redis, the Django dev server, a celery worker and a `mailqueue` service doing what cron does in production (`send_queued_messages`, `dispatch_planned_campaigns` every minute). The code is mounted in the containers, changes are picked up by the dev server. E-mails are printed on the console.
+
+    $ docker compose up --build                   # http://localhost:8000
+    $ docker compose exec web python manage.py createsuperuser
+    $ docker compose logs -f mailqueue            # e-mails sent
+    $ docker compose run --rm test                # test suite
+    $ docker compose --profile css up css         # rebuild site.css while editing templates
+    $ docker compose --profile app up app         # React web app (app.tazebao.email) on http://localhost:3000
+    $ docker compose down                         # add -v to also drop the database
+
+- `TAZEBAO_PORT=8010 docker compose up` if port 8000 is taken
+- containers run as root, right with Docker rootless or userns-remap (container root is your user); with plain Docker set `DOCKER_USER=$(id -u):$(id -g)` so the files created in the checkout are owned by you
+- the superuser needs a newsletter Client (admin > Client) to use campaigns, lists and mosaico
+- the `app` service runs the web app from a checkout of [tazebao-app](https://github.com/otto-torino/tazebao-app) next to this repository (`TAZEBAO_APP_DIR` to change the path), with Node 12 as required by its react-scripts 3 / node-sass 4, pointed to the API and mosaico of the `web` service
+
+### Public pages stylesheet
+
+The public pages (home, flatpages, unsubscribe and subscription forms) use [Tailwind CSS](https://tailwindcss.com), no JavaScript library. The source is `tazebao/core/tailwind/site.css`, the compiled `tazebao/core/static/core/css/site.css` is committed, so the server needs no Node. After changing the templates or the source, from the repository root:
+
+    $ npm install
+    $ npm run build:css      # or npm run watch:css while developing
+
+Flatpage contents live in the database, where Tailwind cannot find their classes: they must only use the component classes defined in `site.css` (`page-body` rules for plain HTML, `btn`, `alert`, `cols-2`, `api-*`).
+
 ### Tests
 
 The test suite pins the behaviour seen by external clients (HMAC and JWT API, Postfix bounces, tracking links in e-mails already sent, campaign sending, admin pages). It needs a throwaway MySQL server, by default on `127.0.0.1:3317`:
@@ -746,7 +772,13 @@ Deploy is done with [fabric](https://www.fabfile.org/) 3 (installed by `requirem
 - `production`: `otto@tazebao.email`, webapp dir `/home/otto/www/tazebao`
 - `staging`: `otto@tazebao.sqrt64.it`, webapp dir `/home/otto/www/tazebao`
 
-The fab commands read the `REMOTE_DB_PWD` and `REMOTE_USER_PWD` variables from the `.env` file.
+Every task runs without prompts. Optional variables, read from `tazebao/.env` or the shell:
+
+| Variable | Description |
+| --- | --- |
+| `PRODUCTION_HOST` / `STAGING_HOST` | ssh host, when the server is known by another name in your ssh config (default `tazebao.email` / `tazebao.sqrt64.it`) |
+| `REMOTE_DB_PWD` | remote db password, only for `dumpDbSnapshot` |
+| `REMOTE_USER_PWD` | remote user password, only for `reloadServer` (sudo) |
 
 In the deployment process, the last revision of the git repository is deployed to the remote server.
 So be sure to have committed all your changes:
@@ -759,39 +791,21 @@ Be sure the provided remote user has ssh access to the remote host, then deploy 
     $ cd tazebao
     $ fab production deploy
 
-launched from the repository root after moving into the django project folder (where `fabfile.py` lives). Use `fab staging deploy` to deploy to staging. This command does the following things:
+launched from the repository root after moving into the django project folder (where `fabfile.py` lives). Use `fab staging deploy` to deploy to staging, `fab production deploy --head=<revision>` to deploy another revision, `--shell` to get a shell on the server at the end. This command does the following things:
 
-- create an archive of the last repository revision
-- upload it to the server
-- untar it in a folder "app-revision\_id" inside the releases folder
-- copy the .env file inside this folder
+- create an archive of the last committed revision (it warns about uncommitted changes, which are not deployed)
+- upload it to the server, untar it in a folder "app-revision\_id" inside the releases folder and copy the .env file inside it
 - upgrade the virtualenv (`.venv312` in the webapp dir, created with `/usr/bin/python3.12` if missing)
-- collectstatic
-- migrations
-- move the current release in the previous release (releases/previous)
-- link the releases/current folder to the new release folder
-- restart uwsgi and reload nginx
-- open a shell in the remote
+- `check`, `collectstatic`, `migrate`
+- move the current release in the previous release (releases/previous) and link releases/current to the new one
+- restart: stop every uWSGI process of the app (orphans included) and start it again, restart the celery workers (starting supervisord if it is not running), check that the site answers 200
 
-When performing the first deploy you can create a superuser account using the shell which the script leaves open at the end.
+nginx is not reloaded: it is not needed, and it would need the sudo password (`fab production reloadServer`).
 
-When deploying the first time you need also to start celery workers, so inside the open shell session:
+The celery workers are managed by supervisord, configured by `supervisord.conf.production` in the webapp dir (it is not part of the release: copy it there when it changes). To inspect them on the server:
 
-    $ supervisord -c ../../supervisord.conf.production
-
-As in locale you can monitor the supervisor status and start and stop processes:
-
-    $ supervisorctl -c ../../supervisord.conf.production
-
-When you deploy again it won't be necessary to repeat the command above, because the processes are already running. But if you changed the configuration or the tasks you may need to restart this stuff, so:
-
-
-    $ supervisorctl -c ../../supervisord.conf.production
-    $ > stop all
-    $ > exit
-    $ supervisord -c ../../supervisord.conf.production
-
-Then just check with `ps ax | grep supervisor` and `ps ax | grep celery` if all is ok, if not just `kill -9` the processes and restart supervisord.
+    $ cd /home/otto/www/tazebao
+    $ .venv312/bin/supervisorctl -c supervisord.conf.production status
 
 ### <a name="upgrade-2026"></a>Upgrade to Python 3.12 / Django 5.2 (one-time)
 
@@ -830,24 +844,43 @@ Run `fab -l` to list all the available commands.
 
 If the deploy revision is broken, or introduces unexpected errors, with this command
 it is possible to rollback to the previous revision. Launching it another time will swap between the two revisions.
+The previous revision runs with the current virtualenv and database: a rollback across requirement changes or migrations needs to restore those too.
 
 #### restart-uwsgi
 
     $ fab production restart-uwsgi
 
-Restarts the uwsgi service
+Stops every uWSGI process of the app, starts it from releases/current and waits for its socket
 
 #### reloadServer
 
     $ fab production reloadServer
 
-Reloads the web server (nginx)
+Reloads the web server (nginx), needs `REMOTE_USER_PWD` (sudo)
 
 #### restart
 
     $ fab production restart
 
-Restarts the uwsgi service and reloads the web server
+Restarts uWSGI and the celery workers, then checks that the site answers 200
+
+#### restart-workers
+
+    $ fab production restart-workers
+
+Restarts the celery workers, starting supervisord if it is not running
+
+#### status
+
+    $ fab production status
+
+Deployed revision, current/previous releases, uWSGI processes, celery workers, site status
+
+#### cleanReleases
+
+    $ fab production cleanReleases --keep=5
+
+Removes the old release folders, keeping the newest 5 besides current and previous
 
 #### offline / online
 
@@ -887,4 +920,5 @@ Loads an already downloaded db snapshot in the local db.
 ## <a name="related-repositories"></a>Related repositories
 
 - [tazebao-client](https://github.com/otto-torino/tazebao-client): client libraries for the REST web service
+- [tazebao-app](https://github.com/otto-torino/tazebao-app): React web app (app.tazebao.email)
 - [tazebao-desktop](https://github.com/otto-torino/tazebao-desktop): desktop application

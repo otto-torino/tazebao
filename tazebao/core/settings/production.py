@@ -29,9 +29,8 @@ MAILQUEUE_LIMIT = 100
 
 # CKEDITOR
 CKEDITOR_CONFIGS['default']['contentsCss'] = [
-    STATIC_URL + 'core/css/vendor.min.css',
-    STATIC_URL + 'core/css/core.min.css',
-    STATIC_URL + 'core/src/css/ckeditor.css']
+    STATIC_URL + 'core/css/site.css',
+    STATIC_URL + 'core/css/ckeditor.css']
 
 LOGGING['handlers']['file']['filename'] = here('..', '..', '..', '..', os.path.join('logs', 'debug.log')) # noqa
 LOGGING['handlers']['file_email']['filename'] = here('..', '..', '..', '..', os.path.join('logs', 'mail.log')) # noqa

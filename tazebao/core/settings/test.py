@@ -58,3 +58,6 @@ LOGGING = {
     "handlers": {"null": {"class": "logging.NullHandler"}},
     "root": {"handlers": ["null"]},
 }
+
+# django-simple-captcha accepts "PASSED" as answer
+CAPTCHA_TEST_MODE = True

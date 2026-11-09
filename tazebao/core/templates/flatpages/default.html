@@ -1,16 +1,12 @@
 {% extends 'base.html' %}
 
-{% block title %}
-{{ flatpage.title }} | {{ block.super }}
-{% endblock %}
+{% block title %}{{ flatpage.title }} | {{ block.super }}{% endblock %}
 
 {% block content %}
-  <div class="page-title">
-    <h1 class="mt-4">{{ flatpage.title }}</h1>
-  </div>
-  <div class="ui container">
-      <div class="page-body">
-          {{ flatpage.content|safe }}
-      </div>
-  </div>
+    <div class="page-hero">
+        <h1 class="text-4xl">{{ flatpage.title }}</h1>
+    </div>
+    <div class="page-body mx-auto max-w-6xl px-4 py-12">
+        {{ flatpage.content|safe }}
+    </div>
 {% endblock %}

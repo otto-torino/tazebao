@@ -16,6 +16,20 @@
     clickChart();
   }
 
+  // baton has a light and a dark theme (data-bs-theme on <html>): transparent
+  // charts with the text color of the current theme, redrawn when it changes
+  function themed(options) {
+    var color = getComputedStyle(document.body).color;
+    var text = {color: color};
+    options.backgroundColor = 'transparent';
+    options.legend = Object.assign({}, options.legend, {textStyle: text});
+    options.hAxis = Object.assign({}, options.hAxis, {textStyle: text, baselineColor: color});
+    options.vAxis = Object.assign({}, options.vAxis, {textStyle: text, baselineColor: color});
+    return options;
+  }
+  new MutationObserver(function () { drawCharts(); })
+    .observe(document.documentElement, {attributes: true, attributeFilter: ['data-bs-theme']});
+
   function listsChart () {
 
     // Create the data table.
@@ -29,8 +43,8 @@
     data.addRows(rows);
 
     // Set chart options
-    var options = {'width':'100%',
-                   'height':300};
+    var options = themed({'width':'100%',
+                   'height':300});
 
     // Instantiate and draw our chart, passing in some options.
     var chart = new google.visualization.PieChart(document.getElementById('lists-chart'));
@@ -51,7 +65,7 @@
         data.addRows(rows);
 
 
-        var options = {
+        var options = themed({
           width: '100%',
           height: 500,
           legend: {position: 'bottom'},
@@ -64,7 +78,7 @@
             gridlines: {color: 'none'},
             minValue: 0
           }
-        };
+        });
 
         var chart = new google.visualization.LineChart(document.getElementById('opening-chart'));
 
@@ -85,7 +99,7 @@
         data.addRows(rows);
 
 
-        var options = {
+        var options = themed({
           width: '100%',
           height: 500,
           legend: {position: 'bottom'},
@@ -98,7 +112,7 @@
             gridlines: {color: 'none'},
             minValue: 0
           }
-        };
+        });
 
         var chart = new google.visualization.LineChart(document.getElementById('click-chart'));
 

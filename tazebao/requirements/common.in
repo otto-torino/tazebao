@@ -12,9 +12,6 @@ django-cleanup
 django-cors-headers>=4
 # 3.2.6 adds migration 0008 with an index on a TEXT column, which fails on MySQL (error 1170)
 django-mail-queue==3.2.5
-django-pipeline>=4
-# provides the pysassc binary used by pipeline to compile scss (replaces Ruby Sass)
-libsass
 django-simple-captcha>=0.6
 premailer
 mysqlclient>=2.2

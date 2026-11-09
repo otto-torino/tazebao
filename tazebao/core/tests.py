@@ -80,3 +80,90 @@ class StaticReferencesTest(TestCase):
 
     def test_public_pages_render(self):
         self.assertEqual(self.client.get('/').status_code, 200)
+
+
+class FlatpagesMigrationTest(TestCase):
+    """core.0001 rewrites the Semantic UI / jQuery markup of the flatpages."""
+
+    API_SAMPLE = (
+        '<div class="ui info message"><i class="ui info circle icon">&nbsp;</i> <strong>In aggiornamento</strong></div>\n'
+        '<div class="ui two columns stackable grid">\n<div class="ui four wide column">\n'
+        '<div class="ui vertical menu" id="api-menu" style="width: auto; !important">\n<div class="item">\n'
+        '<div class="header"><a href="javascript:void(0)" onclick="goto(\'iscritti\')">Iscritti</a></div>\n'
+        '<div class="menu"><a class="item" href="javascript:void(0)" onclick="goto(\'iscritti-lista\')">Lista</a></div>\n'
+        '</div>\n</div>\n</div>\n<div class="ui twelve wide column">\n'
+        '<table border="1" cellpadding="1" cellspacing="1" class="ui celled table"><tr><td>q</td></tr></table>\n'
+        '</div>\n</div>\n<script>\nfunction goto(hash) {\n  location.hash = \'#\' + hash;\n'
+        '  $(\'#api-menu .item\').removeClass(\'active\');\n}\n\n</script>'
+    )
+
+    def convert(self, content):
+        import importlib
+        return importlib.import_module('core.migrations.0001_flatpages_without_semantic_ui').convert(content)
+
+    def test_api_page(self):
+        html = self.convert(self.API_SAMPLE)
+        for gone in ('class="ui', 'goto(', 'javascript:void', '$(', '<script', '<i '):
+            self.assertNotIn(gone, html)
+        self.assertIn('<div class="alert alert-info"><strong>In aggiornamento</strong></div>', html)
+        self.assertIn('<div class="api-layout">', html)
+        self.assertIn('<div class="api-menu-header"><a href="#iscritti">Iscritti</a></div>', html)
+        self.assertIn('<div class="api-menu-items"><a href="#iscritti-lista">Lista</a></div>', html)
+        self.assertIn('<table><tr>', html)
+
+    def test_help_page_and_idempotency(self):
+        html = self.convert('<div class="row">\n<div class="col-md-6">x</div>\n</div>'
+                            '<p class="text-right"><a class="btn btn-success" href="/help/">Indice</a></p>')
+        self.assertEqual(html, '<div class="cols-2">\n<div>x</div>\n</div>'
+                               '<p class="text-right"><a class="btn btn-success" href="/help/">Indice</a></p>')
+        self.assertEqual(self.convert(html), html)
+
+
+class PublicPagesTest(TestCase):
+    def test_no_jquery_nor_semantic_ui(self):
+        for url in ('/',):
+            html = self.client.get(url).content.decode()
+            for gone in ('jquery', 'semantic', 'class="ui ', 'core.Modal'):
+                self.assertNotIn(gone, html.lower() if gone != 'class="ui ' else html)
+            self.assertIn('core/css/site.css', html)
+
+    def test_flatpage(self):
+        from django.contrib.flatpages.models import FlatPage
+        from django.contrib.sites.models import Site
+        page = FlatPage.objects.create(url='/api/', title='API Rest', content='<div class="api-layout">doc</div>')
+        page.sites.add(Site.objects.get_current())
+        response = self.client.get('/api/')
+        self.assertContains(response, '<h1 class="text-4xl">API Rest</h1>', html=False)
+        self.assertContains(response, '<div class="api-layout">doc</div>')
+
+
+class SubscriptionFormPageTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        from newsletter.models import Client, SubscriberList, SubscriptionForm
+        user = User.objects.create_user('client', 'client@example.com', 'pwd')
+        client = Client.objects.create(user=user, name='C', slug='c', domain='example.com', id_key='key00007', secret_key='k' * 32)
+        cls.subscriber_list = SubscriberList.objects.create(client=client, name='L')
+        cls.form = SubscriptionForm.objects.create(
+            client=client, name='Form', content='<p>Iscriviti!</p>', privacy_disclaimer='Accetto la <b>privacy</b>')
+        cls.form.lists.add(cls.subscriber_list)
+        cls.url = '/newsletter/subscribe/%s/' % cls.form.code
+
+    def test_get(self):
+        response = self.client.get(self.url)
+        self.assertContains(response, '<p>Iscriviti!</p>')
+        self.assertContains(response, 'Accetto la <b>privacy</b>')
+        self.assertNotContains(response, '<dialog')
+
+    def test_subscribe(self):
+        response = self.client.post(self.url, {
+            'email': 'new@example.com', 'opt_in': 'on', 'captcha_0': 'x', 'captcha_1': 'PASSED'})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<dialog id="messages-dialog"')
+        self.assertContains(response, 'avvenuta con successo')
+        self.assertTrue(self.subscriber_list.subscriber_set.filter(email='new@example.com').exists())
+
+    def test_privacy_required(self):
+        response = self.client.post(self.url, {'email': 'new@example.com', 'captcha_0': 'x', 'captcha_1': 'PASSED'})
+        self.assertContains(response, 'alert-error')
+        self.assertFalse(self.subscriber_list.subscriber_set.exists())
