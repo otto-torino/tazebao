@@ -631,11 +631,13 @@ Dependencies: `tazebao/requirements/common.in` lists the direct dependencies, `c
     $ docker compose logs -f mailqueue            # e-mails sent
     $ docker compose run --rm test                # test suite
     $ docker compose --profile css up css         # rebuild site.css while editing templates
+    $ docker compose --profile app up app         # React web app (app.tazebao.email) on http://localhost:3000
     $ docker compose down                         # add -v to also drop the database
 
 - `TAZEBAO_PORT=8010 docker compose up` if port 8000 is taken
 - containers run as root, right with Docker rootless or userns-remap (container root is your user); with plain Docker set `DOCKER_USER=$(id -u):$(id -g)` so the files created in the checkout are owned by you
 - the superuser needs a newsletter Client (admin > Client) to use campaigns, lists and mosaico
+- the `app` service runs the web app from a checkout of [tazebao-app](https://github.com/otto-torino/tazebao-app) next to this repository (`TAZEBAO_APP_DIR` to change the path), with Node 12 as required by its react-scripts 3 / node-sass 4, pointed to the API and mosaico of the `web` service
 
 ### Public pages stylesheet
 
@@ -918,4 +920,5 @@ Loads an already downloaded db snapshot in the local db.
 ## <a name="related-repositories"></a>Related repositories
 
 - [tazebao-client](https://github.com/otto-torino/tazebao-client): client libraries for the REST web service
+- [tazebao-app](https://github.com/otto-torino/tazebao-app): React web app (app.tazebao.email)
 - [tazebao-desktop](https://github.com/otto-torino/tazebao-desktop): desktop application

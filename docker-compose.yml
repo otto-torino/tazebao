@@ -93,6 +93,30 @@ services:
       - node-modules:/app/node_modules
     command: sh -c "npm ci --no-audit --no-fund && npm run watch:css"
 
+  # the React web app (app.tazebao.email), from github.com/otto-torino/tazebao-app
+  # cloned next to this repository (TAZEBAO_APP_DIR to change the path):
+  #   docker compose --profile app up app   -> http://localhost:3000
+  app:
+    image: node:12-buster  # node-sass 4 (react-scripts 3) ships binaries up to Node 12
+    profiles: [app]
+    user: "${DOCKER_USER:-0:0}"
+    working_dir: /app
+    environment:
+      HOME: /tmp
+      PORT: "3000"
+      BROWSER: none
+      CI: "true"
+      REACT_APP_BASE_PATH: http://localhost:3000/
+      REACT_APP_API_BASE_PATH: http://localhost:${TAZEBAO_PORT:-8000}/api/v1
+      REACT_APP_MOSAICO_BASE_PATH: http://localhost:${TAZEBAO_PORT:-8000}/mosaico
+    volumes:
+      - ${TAZEBAO_APP_DIR:-../tazebao-app}:/app
+      - tazebao-app-node-modules:/app/node_modules
+    ports:
+      - "127.0.0.1:3000:3000"
+    command: sh -c "yarn install --frozen-lockfile --ignore-engines && yarn start"
+
 volumes:
   db-data:
   node-modules:
+  tazebao-app-node-modules:
