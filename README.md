@@ -622,6 +622,21 @@ Available environment variables:
 
 Dependencies: `tazebao/requirements/common.in` lists the direct dependencies, `common.txt` is the frozen full set generated from it. To upgrade, edit `common.in`, install it in a clean Python 3.12 virtualenv and regenerate `common.txt` with `pip freeze`.
 
+### Docker
+
+`docker-compose.yml` runs the whole stack locally: MySQL 8, Redis, the Django dev server, a celery worker and a `mailqueue` service doing what cron does in production (`send_queued_messages`, `dispatch_planned_campaigns` every minute). The code is mounted in the containers, changes are picked up by the dev server. E-mails are printed on the console.
+
+    $ docker compose up --build                   # http://localhost:8000
+    $ docker compose exec web python manage.py createsuperuser
+    $ docker compose logs -f mailqueue            # e-mails sent
+    $ docker compose run --rm test                # test suite
+    $ docker compose --profile css up css         # rebuild site.css while editing templates
+    $ docker compose down                         # add -v to also drop the database
+
+- `TAZEBAO_PORT=8010 docker compose up` if port 8000 is taken
+- containers run as root, right with Docker rootless or userns-remap (container root is your user); with plain Docker set `DOCKER_USER=$(id -u):$(id -g)` so the files created in the checkout are owned by you
+- the superuser needs a newsletter Client (admin > Client) to use campaigns, lists and mosaico
+
 ### Public pages stylesheet
 
 The public pages (home, flatpages, unsubscribe and subscription forms) use [Tailwind CSS](https://tailwindcss.com), no JavaScript library. The source is `tazebao/core/tailwind/site.css`, the compiled `tazebao/core/static/core/css/site.css` is committed, so the server needs no Node. After changing the templates or the source, from the repository root:

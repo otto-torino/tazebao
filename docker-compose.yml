@@ -1,0 +1,98 @@
+# Local environment: MySQL 8, Redis, Django dev server, celery worker and the
+# mail queue jobs that cron runs in production.
+#
+#   docker compose up --build              -> http://localhost:8000 (TAZEBAO_PORT to change it)
+#   docker compose exec web python manage.py createsuperuser
+#   docker compose run --rm test           -> test suite
+#   docker compose --profile css up css    -> rebuild site.css on template changes
+#
+# E-mails are printed on the console (docker compose logs -f mailqueue).
+#
+# Containers run as root by default, right with Docker rootless / userns-remap
+# (container root is your user). With plain Docker use DOCKER_USER=$(id -u):$(id -g)
+# so that the files created in the checkout (logs, media) are owned by you.
+name: tazebao
+
+x-env: &env
+  DJANGO_SETTINGS_MODULE: core.settings.local
+  SECRET_KEY: docker-local-secret-key
+  DB_HOST: db
+  DB_NAME: dbtazebao
+  DB_USER: root
+  DB_PASSWORD: tazebao
+  CELERY_BROKER_URL: redis://redis:6379/0
+  REDIS_CACHE_URL: redis://redis:6379/10
+  HOME: /tmp
+
+x-app: &app
+  build: .
+  image: tazebao-dev
+  user: "${DOCKER_USER:-0:0}"
+  volumes:
+    - .:/app
+  environment: *env
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_started
+
+services:
+  db:
+    image: mysql:8.0
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: tazebao
+      MYSQL_DATABASE: dbtazebao
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-ptazebao"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:7
+
+  web:
+    <<: *app
+    command: sh -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "127.0.0.1:${TAZEBAO_PORT:-8000}:8000"
+
+  worker:
+    <<: *app
+    command: celery --app=core.celery:app worker --loglevel=INFO --concurrency=2
+
+  # what cron does in production: send the queued e-mails, launch the planned dispatches
+  mailqueue:
+    <<: *app
+    command: sh -c "while true; do python manage.py send_queued_messages; python manage.py dispatch_planned_campaigns; sleep 60; done"
+
+  test:
+    <<: *app
+    profiles: [test]
+    environment:
+      <<: *env
+      TEST_DB_HOST: db
+      TEST_DB_PORT: "3306"
+      TEST_DB_USER: root
+      TEST_DB_PASSWORD: tazebao
+    command: python manage.py test --settings=core.settings.test --noinput
+
+  css:
+    image: node:24-slim
+    profiles: [css]
+    user: "${DOCKER_USER:-0:0}"
+    working_dir: /app
+    environment:
+      HOME: /tmp
+    volumes:
+      - .:/app
+      - node-modules:/app/node_modules
+    command: sh -c "npm ci --no-audit --no-fund && npm run watch:css"
+
+volumes:
+  db-data:
+  node-modules:
