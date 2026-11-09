@@ -1,13 +1,12 @@
-from pipeline.storage import PipelineManifestStorage
+from django.contrib.staticfiles.storage import ManifestStaticFilesStorage
 
 
-class StaticStorage(PipelineManifestStorage):
+class StaticStorage(ManifestStaticFilesStorage):
     """Hashed static files, without rewriting "sourceMappingURL" comments.
 
     Since Django 4 the manifest storage also hashes source map references, and
-    fails when a file is missing: several vendor libraries (e.g. swiper) point
-    to source maps they do not ship. Only CSS url() and @import are processed,
-    as the storage used with Django 2.2 did.
+    fails when a file is missing: several vendor libraries point to source maps
+    they do not ship. Only CSS url() and @import are processed.
     """
 
     patterns = (

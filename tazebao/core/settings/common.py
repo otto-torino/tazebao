@@ -89,7 +89,6 @@ INSTALLED_APPS = (
     "django.contrib.flatpages",
     "ckeditor",
     "ckeditor_uploader",
-    "pipeline",
     "django_cleanup",
     "export_action",
     "captcha",
@@ -178,7 +177,6 @@ STORAGES = {
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "pipeline.finders.PipelineFinder",
 )
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "static")
@@ -368,6 +366,8 @@ CKEDITOR_IMAGE_BACKEND = "pillow"
 CKEDITOR_CONFIGS = {
     "default": {
         "skin": "moono",
+        # same look as the public pages (core/tailwind/site.css)
+        "bodyClass": "page-body",
         "toolbar_Basic": [["Source", "-", "Bold", "Italic"]],
         "toolbar_Full": [
             [
@@ -400,54 +400,6 @@ CKEDITOR_CONFIGS = {
     }
 }
 
-# pipeline
-PIPELINE = {
-    "STYLESHEETS": {
-        "vendor": {
-            "source_filenames": (
-                "core/src/vendor/Font-Awesome/scss/font-awesome.scss",  # noqa
-                "core/src/vendor/swiper/css/swiper.min.css",  # noqa
-                "core/src/vendor/semantic-ui/semantic.min.css",  # noqa
-            ),
-            "output_filename": "core/css/vendor.min.css",  # noqa
-        },
-        "tazebao": {  # custom
-            "source_filenames": ("core/src/scss/styles.scss",),
-            "output_filename": "core/css/core.min.css",  # noqa
-        },
-    },
-    "JAVASCRIPT": {
-        "vendor": {
-            "source_filenames": (
-                "core/src/vendor/jquery/jquery.min.js",  # noqa
-                # 'core/src/vendor/jquery.form/jquery.form.js', # noqa
-                # 'core/src/vendor/jquery.formset/jquery.formset.js', # noqa
-                "core/src/vendor/tocca/tocca.min.js",  # noqa
-                "core/src/vendor/semantic-ui/semantic.min.js",  # noqa
-                "core/src/vendor/moment/moment-with-locales.min.js",  # noqa
-            ),
-            "output_filename": "core/js/vendor.min.js",
-        },
-        "tazebao": {
-            "source_filenames": (
-                "core/src/js/core.js",  # noqa
-            ),
-            "output_filename": "core/js/core.min.js",  # noqa
-        },
-    },
-    "COMPILERS": ("pipeline.compilers.sass.SASSCompiler",),
-    # pysassc comes with the libsass package, installed in the same virtualenv
-    "SASS_BINARY": os.path.join(os.path.dirname(sys.executable), "pysassc"),
-    "CSS_COMPRESSOR": None,
-    "JS_COMPRESSOR": None,
-    "MIMETYPES": (
-        ("text/coffeescript", ".coffee"),
-        ("text/less", ".less"),
-        ("text/javascript", ".js"),
-        ("text/x-sass", ".sass"),
-        ("text/x-scss", ".scss"),
-    ),
-}
 
 # API
 # Sliding tokens keep the old django-rest-framework-jwt contract:
