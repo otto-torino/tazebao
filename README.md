@@ -492,7 +492,7 @@ the queued/sent e-mails of the client dispatches (`id`, `created`, `subject`, `t
 
     GET http://localhost:8000/api/v1/newsletter/mailermessage/unsent/
 
-returns the number of messages still in the queue: `{"unsent": 120}`.
+returns the total number of messages still in the shared sending queue, i.e. of all clients: `{"unsent": 120}`. It is meant to give an idea of the queue length before the client's own messages are sent. The number of unsent messages of the authenticated client is the `dispatching` field of the [statistics](#statistics) endpoint.
 
 #### Subscription forms
 
