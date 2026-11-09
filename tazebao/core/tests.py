@@ -55,3 +55,28 @@ class AdminSmokeTest(TestCase):
         response = self.client.post(url, {'email': 'on', '__format': 'xlsx'})
         self.assertEqual(response.status_code, 200)
         self.assertTrue(response.content.startswith(b'PK'))  # zip container
+
+
+class StaticReferencesTest(TestCase):
+    """Every {% static %} file used by templates must exist: with the manifest
+    storage a missing file is a 500 (e.g. the home page and public newsletter pages)."""
+
+    def test_static_files_exist(self):
+        import re
+        from pathlib import Path
+
+        from django.conf import settings
+        from django.contrib.staticfiles import finders
+
+        pattern = re.compile(r"""\{%\s*static\s+['"]([^'"]+)['"]""")
+        missing = []
+        for template in Path(settings.BASE_DIR).glob('*/templates/**/*.html'):
+            for path in pattern.findall(template.read_text(encoding='utf-8')):
+                if path.endswith('/'):  # directories are not hashed by the storage
+                    continue
+                if not finders.find(path):
+                    missing.append('%s: %s' % (template.relative_to(settings.BASE_DIR), path))
+        self.assertEqual(missing, [])
+
+    def test_public_pages_render(self):
+        self.assertEqual(self.client.get('/').status_code, 200)
