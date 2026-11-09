@@ -1,0 +1,11 @@
+.git
+.venv312
+.virtualenv
+node_modules
+releases
+backups
+logs
+tazebao/media
+tazebao/static
+tazebao/.env
+**/__pycache__

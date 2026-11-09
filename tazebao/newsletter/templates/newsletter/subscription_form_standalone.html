@@ -1,78 +1,42 @@
 {% extends "base.html" %}
-{% block menu %}
-{% endblock menu %}
-{% block menu_toggle %}
-{% endblock menu_toggle %}
-{% block logo %}
-{% endblock logo %}
-{% block content %}
-    <div class="page-title">
-        <h1 class="mt-4">{{ subscription_form.title }}</h1>
-    </div>
-    <div class="ui container newsletter-subscription-form">
-        <div class="page-body">
-            <div class="ui centered grid">
-                <div class="twelve wide tablet twelve wide computer column">
-                    {{ subscription_form.content|safe }}
-                    <form action=""
-                          method="post"
-                          accept-charset="utf-8"
-                          class="ui form{% if form.errors %} error{% endif %}">
-                        {% csrf_token %}
-                        {{ forms.non_field_errors }}
-                        <div class="field">
-                            <label>E-mail</label>
-                            {{ form.email }}
-                        </div>
-                        {% if form.email.errors %}
-                            <div class="ui error message">
-                                {% for error in form.email.errors %}
-                                    <div>
-                                        <strong>{{ error|escape }}</strong>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="field">
-                            <div class="ui toggle checkbox">
-                                {{ form.opt_in }}
-                                <label>{{ subscription_form.privacy_disclaimer|safe }}</label>
-                            </div>
-                        </div>
-                        <div class="field mt-4">
-                            <label>Codice di controllo</label>
-                            <div style="display: flex; align-items: center; gap: 1rem;">{{ form.captcha }}</div>
-                        </div>
-                        {% if form.captcha.errors %}
-                            <div class="ui error message">
-                                {% for error in form.captcha.errors %}
-                                    <div>
-                                        <strong>{{ error|escape }}</strong>
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        {% endif %}
-                        <div class="text-center">
-                            <input class="ui button" type="submit" value="Invia" />
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
+{% comment %}Subscription form hosted by Tazebao for a client: no site menu, no Otto logo.{% endcomment %}
+{% block menu %}{% endblock menu %}
+{% block logo %}{% endblock logo %}
+{% block messages_title %}{{ subscription_form.title|default:"Tazebao" }}{% endblock %}
 
-    {% block messages %}
-    {% if messages %}
-        <script>
-            var html = '<ul style="list-style-type: none; padding-left: 0;">';
-            var title = "{{ subscription_form.title|escapejs}}";
-            {% for message in messages %}
-                    html += '<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{% if message.tags == 'error' %}<i class="exclamation red icon"></i>{% elif message.tags == 'success' %}<i class="check green icon"></i>{% elif message.tags == 'info' %}<i class="info teal icon"></i>{% endif %} {{ message }}</li>';
-            {% endfor %}
-            html += '</ul>';
-            var m = new core.Modal({title: title, content: html, basic: true});
-            m.open();
-        </script>
-    {% endif %}
-    {% endblock %}
+{% block content %}
+    <div class="page-hero">
+        <h1 class="text-4xl">{{ subscription_form.title }}</h1>
+    </div>
+    <div class="mx-auto max-w-2xl px-4 py-12">
+        <div class="page-body">{{ subscription_form.content|safe }}</div>
+        <form action="" method="post" accept-charset="utf-8" class="mt-6 space-y-6">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            <div>
+                <label class="mb-1 block font-bold" for="{{ form.email.id_for_label }}">E-mail</label>
+                <div class="[&_input]:w-full [&_input]:rounded-md [&_input]:border [&_input]:border-neutral-300 [&_input]:px-3 [&_input]:py-2">{{ form.email }}</div>
+                {% if form.email.errors %}
+                    <div class="alert alert-error">{% for error in form.email.errors %}<div><strong>{{ error|escape }}</strong></div>{% endfor %}</div>
+                {% endif %}
+            </div>
+            <div class="flex items-start gap-3">
+                <span class="mt-1 [&_input]:size-5 [&_input]:accent-brand">{{ form.opt_in }}</span>
+                <label for="{{ form.opt_in.id_for_label }}">{{ subscription_form.privacy_disclaimer|safe }}</label>
+            </div>
+            {% if form.opt_in.errors %}
+                <div class="alert alert-error">{% for error in form.opt_in.errors %}<div><strong>{{ error|escape }}</strong></div>{% endfor %}</div>
+            {% endif %}
+            <div>
+                <label class="mb-1 block font-bold">Codice di controllo</label>
+                <div class="flex flex-wrap items-center gap-4 [&_input[type=text]]:rounded-md [&_input[type=text]]:border [&_input[type=text]]:border-neutral-300 [&_input[type=text]]:px-3 [&_input[type=text]]:py-2">{{ form.captcha }}</div>
+                {% if form.captcha.errors %}
+                    <div class="alert alert-error">{% for error in form.captcha.errors %}<div><strong>{{ error|escape }}</strong></div>{% endfor %}</div>
+                {% endif %}
+            </div>
+            <div class="text-center">
+                <input class="btn btn-pill cursor-pointer" type="submit" value="Invia" />
+            </div>
+        </form>
+    </div>
 {% endblock content %}

@@ -1,0 +1,96 @@
+/*
+ * Public pages stylesheet (home, flatpages, unsubscribe, subscription forms).
+ * Build: `npm run build:css` from the repository root, the output
+ * core/static/core/css/site.css is committed.
+ *
+ * Flatpage contents live in the DB, where Tailwind cannot scan them: they only use
+ * the component classes defined below (page-body, btn, alert, cols-2, api-*).
+ */
+@import "tailwindcss" source(none);
+
+@source "../templates";
+@source "../../newsletter/templates/newsletter";
+@source inline("text-right");
+
+@theme {
+  --font-sans: "Lato", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Oswald", ui-sans-serif, system-ui, sans-serif;
+  --color-brand: #f50e03;
+  --color-brand-dark: #b30a02;
+  --color-success: #3eba45;
+  --color-section-subscribers: #fff3cb;
+  --color-section-contents: #cdc9f4;
+  --color-section-planning: #ffeacb;
+  --color-section-report: #c5dbf3;
+  --color-section-integration: #f6f6f4;
+  --color-section-contacts: #cbcbc0;
+}
+
+@layer base {
+  html {
+    font-size: 18px;
+  }
+  body {
+    @apply font-sans text-neutral-800 bg-white;
+  }
+  a {
+    @apply text-brand hover:underline;
+  }
+  h1, h2 {
+    @apply font-display;
+  }
+}
+
+@layer components {
+  /* page header band with the background picture */
+  .page-hero {
+    @apply bg-cover bg-center text-white text-center px-6 py-16 md:py-20;
+    background-image: url("../img/bg.jpg");
+  }
+
+  .btn {
+    @apply inline-block rounded-md px-4 py-2 font-bold no-underline text-white bg-neutral-600 hover:no-underline hover:brightness-90;
+  }
+  .btn-success { @apply bg-success; }
+  .btn-warning { @apply bg-amber-500; }
+  .btn-sm { @apply px-2 py-0.5 text-sm; }
+  .btn-pill {
+    @apply rounded-full px-6 py-4 font-display uppercase bg-brand hover:bg-brand-dark;
+  }
+
+  .alert { @apply rounded-md border-l-4 px-4 py-3 my-4; }
+  .alert-info { @apply border-sky-500 bg-sky-50 text-sky-900; }
+  .alert-warning { @apply border-amber-500 bg-amber-50 text-amber-900; }
+  .alert-error { @apply border-red-600 bg-red-50 text-red-900; }
+
+  .cols-2 { @apply grid gap-8 md:grid-cols-2; }
+
+  /* /api/ flatpage: index on the left, documentation on the right */
+  .api-layout { @apply grid gap-8 md:grid-cols-[16rem_minmax(0,1fr)]; }
+  .api-menu { @apply md:sticky md:top-4 self-start text-sm rounded-md border border-neutral-200 divide-y divide-neutral-200; }
+  .api-menu > div { @apply px-4 py-3; }
+  .api-menu .api-menu-header { @apply font-bold; }
+  .api-menu .api-menu-items { @apply mt-1 flex flex-col pl-3; }
+
+  /* rich text coming from the DB (flatpages) */
+  .page-body {
+    @apply leading-relaxed;
+  }
+  .page-body h2 { @apply text-2xl mt-10 mb-4; }
+  .page-body h3 { @apply text-xl font-bold mt-8 mb-3; }
+  .page-body h4 { @apply font-bold mt-6 mb-2; }
+  .page-body p { @apply my-4; }
+  .page-body ul { @apply list-disc pl-6 my-4; }
+  .page-body ol { @apply list-decimal pl-6 my-4; }
+  .page-body li { @apply my-1; }
+  .page-body table { @apply w-full my-6 border-collapse text-sm block overflow-x-auto md:table; }
+  .page-body th,
+  .page-body td { @apply border border-neutral-300 px-3 py-2 text-left align-top; }
+  .page-body thead tr:first-child td,
+  .page-body th { @apply bg-neutral-100 font-bold; }
+  .page-body pre { @apply my-4 overflow-x-auto rounded-md bg-black text-[#eeffff] px-6 py-4 font-mono text-sm; }
+  .page-body pre.light { @apply bg-transparent text-black px-0; }
+  .page-body code { @apply font-mono; }
+  .page-body img,
+  .page-body iframe { @apply max-w-full; }
+}

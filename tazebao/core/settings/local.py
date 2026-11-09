@@ -26,9 +26,8 @@ MAILQUEUE_LIMIT = 500
 
 # CKEDITOR
 CKEDITOR_CONFIGS['default']['contentsCss'] = [
-    STATIC_URL + 'core/src/vendor/Font-Awesome/scss/font-awesome.css',
-    STATIC_URL + 'core/src/scss/styles.css',
-    STATIC_URL + 'core/src/css/ckeditor.css']
+    STATIC_URL + 'core/css/site.css',
+    STATIC_URL + 'core/css/ckeditor.css']
 
 # DEBUG TOOLBAR
 DEBUG_TOOLBAR_PANELS = [

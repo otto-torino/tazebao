@@ -1,7 +1,5 @@
-{% load static %}
-{% load pipeline %}
-<!DOCTYPE html>
-<html>
+{% load static %}<!DOCTYPE html>
+<html lang="it">
     <head>
         <meta charset="utf-8" />
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
@@ -9,104 +7,79 @@
         {% block meta %}
             <meta name="title" content="tazebao" />
             <meta name="description" content="Otto srl newsletter web application" />
-            <meta name="keywords" content="" />
-
             <meta property="og:title" content="tazebao" />
             <meta property="og:type" content="website" />
             <meta property="og:url" content="https://www.tazebao.email" />
             <meta property="og:description" content="Otto srl newsletter web application" />
-
             <meta name="twitter:card" content="summary" />
             <meta name="twitter:url" content="https://www.tazebao.email" />
             <meta name="twitter:title" content="tazebao" />
             <meta name="twitter:description" content="Otto srl newsletter web application" />
-            <meta name="twitter:creator" content="@abidibo" />
         {% endblock %}
-        <link rel="shortcut icon" href="https://www.tazebao.email/static/core/img/favicon.ico" />
-        <link href="https://fonts.googleapis.com/css?family=Lato:100,300i,400,700,900|Oswald:400,700&display=swap" rel="stylesheet">
-        {% stylesheet 'vendor' %}
-        {% stylesheet 'tazebao' %}
+        <link rel="icon" href="{% static 'core/img/favicon.ico' %}" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css?family=Lato:300,400,700,900|Oswald:400,700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="{% static 'core/css/site.css' %}" />
         {% block extra_css %}{% endblock %}
-        <script src="{% static 'core/src/vendor/jquery/jquery.min.js' %}"></script>
-        {% javascript 'vendor' %}
-        {% javascript 'tazebao' %}
         {% block extra_js %}{% endblock %}
     </head>
-    <body class="{% block body_css %}{% endblock %}">
+    <body class="flex min-h-screen flex-col {% block body_css %}{% endblock %}">
         {% block body_top %}{% endblock %}
-        {% block menu %}
-        <div class="ui left vertical menu inverted sidebar main-menu">
-          <ul style="margin-top: 0">
-            <li><a href="/">Home <i class="home icon"></i></a></li>
-            <li><a href="/api/">API <i class="terminal icon"></i></a></li>
-            <li><a href="https://app.tazebao.email">Accedi <i class="lock icon"></i></a></li>
-          </ul>
-        </div>
-        {% endblock menu %}
-        <div class="pusher">
-            {% block navbar %}
-                <div class="ui top tiny menu navbar main-navbar" style="margin-bottom: 0;">
-                    {% block menu_toggle %}
-                    <a class="item" onclick="core.IS_LOGO_LINK_ACTIVE = false; $('.ui.sidebar').sidebar({transition: 'push', onHidden: function() { $('body').removeClass('pushable'); core.IS_LOGO_LINK_ACTIVE = true }}).sidebar('toggle')" href="javascript:void(0)">
-                        <i class="icon big bars"></i>
-                    </a>
-                    {% endblock menu_toggle %}
-                    <a class="item no-border" href="javascript:void(0)" onclick="if(core.IS_LOGO_LINK_ACTIVE) location.href='/'">
-                        <span id="logo" class="logo">
-                            <img src="{% static 'core/img/logo.png' %}" alt="logo" style="height: 30px;" onclick="location.href='/'" />
-                        </span>
-                    </a>
+        {% block navbar %}
+            <header class="bg-black/85 text-white">
+                <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-2">
+                    <a href="/" class="shrink-0"><img src="{% static 'core/img/logo.png' %}" alt="Tazebao" class="h-8" /></a>
+                    {% block menu %}
+                        <nav class="ml-auto hidden gap-6 md:flex" aria-label="Menu principale">
+                            <a class="text-white" href="/">Home</a>
+                            <a class="text-white" href="/api/">API</a>
+                            <a class="text-white" href="https://app.tazebao.email">Accedi</a>
+                        </nav>
+                        <details class="relative ml-auto md:hidden">
+                            <summary class="cursor-pointer list-none rounded px-2 py-1 text-2xl leading-none" aria-label="Apri il menu">&#9776;</summary>
+                            <nav class="absolute right-0 z-10 mt-2 flex w-48 flex-col rounded-md bg-neutral-700 py-2 shadow-lg" aria-label="Menu principale">
+                                <a class="px-4 py-2 text-white" href="/">Home</a>
+                                <a class="px-4 py-2 text-white" href="/api/">API</a>
+                                <a class="px-4 py-2 text-white" href="https://app.tazebao.email">Accedi</a>
+                            </nav>
+                        </details>
+                    {% endblock menu %}
                     {% block logo %}
-                        <div class="right item social no-border">
-                            <!-- <a href=""><i class="twitter icon"></i></a> -->
-                            <!-- <a href=""><i class="youtube icon"></i></a> -->
-                            <!-- <a href=""><i class="linkedin icon"></i></a> -->
-                            <!-- <a href=""><i class="flickr icon"></i></a> -->
-                            <a href="https://www.otto.to.it"><img src="{% static 'core/img/otto.png' %}" alt="otto srl" /></a>
-                            <!-- <a href=""><i class="instagram icon"></i></a> -->
-                        </div>
+                        <a href="https://www.otto.to.it" class="shrink-0 md:ml-6"><img src="{% static 'core/img/otto.png' %}" alt="Otto srl" class="h-8" /></a>
                     {% endblock logo %}
                 </div>
-            {% endblock %}
+            </header>
+        {% endblock %}
+        <main class="flex-1">
             {% block jumbotron %}{% endblock %}
             {% block content %}{% endblock %}
-            {% block footer_wrapper %}
-                <footer class="main-footer" style="flex-shrink: 0">
-                    {% block footer %}
-                        <strong>©2016-{% now "Y" %} <a href="https://www.otto.to.it">Otto srl</a><br />
-                            <small><a style="color: #fff;" href="https://www.otto.to.it/privacy-policy/">Privacy</a> - <a style="color: #fff;" href="/cookie/">Cookies</a></small>
-                    {% endblock footer %}
-                </footer>
-            {% endblock %}
-        </div>
-        <div class="ui basic modal" id="dynamic-modal">
-            <i class="close icon"></i>
-            <div class="header modal-title"></div>
-            <div class="scrolling content modal-body" id="dynamic-modal-body"></div>
-            <div class="actions modal-footer">
-                <div class="ui black deny button">
-                    Chiudi
-                </div>
-                <div class="ui positive right labeled icon button">
-                    Salva
-                    <i class="checkmark icon"></i>
-                </div>
-            </div>
-        </div>
-        {% if not DEBUG %}
-        {% endif %}
+        </main>
+        {% block footer_wrapper %}
+            <footer class="bg-black px-4 py-8 text-center text-white">
+                {% block footer %}
+                    <strong>&copy;2016-{% now "Y" %} <a class="text-white" href="https://www.otto.to.it">Otto srl</a></strong><br />
+                    <small><a class="text-white" href="https://www.otto.to.it/privacy-policy/">Privacy</a> - <a class="text-white" href="/cookie/">Cookies</a></small>
+                {% endblock footer %}
+            </footer>
+        {% endblock %}
         {% block messages %}
-        {% if messages %}
-            <script>
-var html = '<ul style="list-style-type: none; padding-left: 0;">';
-{% for message in messages %}
-        html += '<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{% if message.tags == 'error' %}<i class="exclamation red icon"></i>{% elif message.tags == 'success' %}<i class="check green icon"></i>{% elif message.tags == 'info' %}<i class="info teal icon"></i>{% endif %} {{ message }}</li>';
-{% endfor %}
-html += '</ul>';
-var m = new core.Modal({title: 'Tazebao', content: html, basic: true});
-m.open();
-            </script>
-        {% endif %}
+            {% if messages %}
+                <dialog id="messages-dialog" class="m-auto w-[min(32rem,calc(100%-2rem))] rounded-lg p-0 shadow-xl backdrop:bg-black/60">
+                    <div class="bg-black px-6 py-3 font-display text-lg text-white">{% block messages_title %}Tazebao{% endblock %}</div>
+                    <ul class="space-y-2 px-6 py-5">
+                        {% for message in messages %}
+                            <li class="flex items-start gap-2 {% if message.tags == 'error' %}text-red-700{% elif message.tags == 'success' %}text-green-700{% else %}text-sky-800{% endif %}">
+                                <span aria-hidden="true">{% if message.tags == 'error' %}&#9888;{% elif message.tags == 'success' %}&#10004;{% else %}&#8505;{% endif %}</span>
+                                <span>{{ message }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <form method="dialog" class="px-6 pb-5 text-right">
+                        <button class="btn" autofocus>Chiudi</button>
+                    </form>
+                </dialog>
+                <script>document.getElementById('messages-dialog').showModal();</script>
+            {% endif %}
         {% endblock messages %}
     </body>
 </html>

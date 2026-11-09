@@ -16,3 +16,4 @@ tags
 backups
 .venv312
 celerybeat-schedule*
+node_modules

@@ -1,0 +1,13 @@
+{
+  "name": "tazebao-frontend",
+  "private": true,
+  "description": "Builds the CSS of the public pages (Tailwind). The output is committed: the server needs no Node.",
+  "scripts": {
+    "build:css": "tailwindcss -i tazebao/core/tailwind/site.css -o tazebao/core/static/core/css/site.css --minify",
+    "watch:css": "tailwindcss -i tazebao/core/tailwind/site.css -o tazebao/core/static/core/css/site.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.5",
+    "tailwindcss": "4.3.5"
+  }
+}
