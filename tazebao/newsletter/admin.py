@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from django.urls import reverse
+from django.urls import re_path, reverse
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
@@ -432,13 +432,12 @@ class CampaignAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
     def get_urls(self):
         """ adds the url to send the campaign
         """
-        from django.conf.urls import url
         original_urls = super(CampaignAdmin, self).get_urls()
 
         info = self.model._meta.app_label, self.model._meta.model_name
 
         my_urls = [
-            url(r'^send/(?P<campaign_pk>\d+)/$',
+            re_path(r'^send/(?P<campaign_pk>\d+)/$',
                 self.admin_site.admin_view(self.view_send_campaign),
                 name='%s_%s_send_campaign' % info),
         ]
@@ -477,6 +476,8 @@ class CampaignAdmin(DisplayOnlyIfAdminOrHasClient, ManageOnlyClientsRows,
             {
                 'campaign': campaign,
                 'form': form,
+                # admin jQuery (django.jQuery) needed by change_form.html scripts
+                'media': self.media + form.media,
                 # just to extend change_list without problems
                 'opts': self.model._meta,
                 'change': True,

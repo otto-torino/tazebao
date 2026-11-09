@@ -6,7 +6,7 @@ from django.utils import timezone
 from django.template import Context
 from django.urls import reverse
 from django.contrib.sites.models import Site
-from django.core.signing import Signer
+from . import signing
 from django.core.mail import EmailMultiAlternatives
 
 from core.celery import app
@@ -90,8 +90,7 @@ def test_campaign(lists_ids, campaign_id):
                     # add tracking image
                     matches = re.match(r'[^\$]*(</body>)[^\$]*', html_content, re.I) # noqa
                     if matches:
-                        signer = Signer()
-                        s = signer.sign('%s-%s' % (str(dispatch.id), str(subscriber.id))).split(':')[1] # noqa
+                        s = signing.sign(signing.open_tracking_value(dispatch.id, subscriber.id))
                         current_site = Site.objects.get_current()
                         tracking_image = '''
                         <img src="%s" />
@@ -109,7 +108,7 @@ def test_campaign(lists_ids, campaign_id):
                         html_content = rexp.sub(tracking_image + matches.group(1), html_content) # noqa
                         open_tracking = True
 
-                    if re.match('[^\$]*{% ?link[^\$]*?%}[^\$]*', campaign.html_text): # noqa
+                    if re.match(r'[^\$]*{% ?link[^\$]*?%}[^\$]*', campaign.html_text): # noqa
                         click_tracking = True
 
                     msg.attach_alternative(html_content, "text/html")
@@ -204,8 +203,7 @@ def send_campaign(lists_ids, campaign_id, test=False):
                     # add tracking image
                     matches = re.match(r'[^\$]*(</body>)[^\$]*', html_content, re.I) # noqa
                     if matches:
-                        signer = Signer()
-                        s = signer.sign('%s-%s' % (str(dispatch.id), str(subscriber.id))).split(':')[1] # noqa
+                        s = signing.sign(signing.open_tracking_value(dispatch.id, subscriber.id))
                         current_site = Site.objects.get_current()
                         tracking_image = '''
                         <img src="%s" />
@@ -223,7 +221,7 @@ def send_campaign(lists_ids, campaign_id, test=False):
                         html_content = rexp.sub(tracking_image + matches.group(1), html_content) # noqa
                         open_tracking = True
 
-                    if re.match('[^\$]*{% ?link[^\$]*?%}[^\$]*', campaign.html_text): # noqa
+                    if re.match(r'[^\$]*{% ?link[^\$]*?%}[^\$]*', campaign.html_text): # noqa
                         click_tracking = True
                     msg.html_content = html_content
                 try:

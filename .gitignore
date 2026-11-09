@@ -14,3 +14,5 @@ logs
 tazebao/.ropeproject
 tags
 backups
+.venv312
+celerybeat-schedule*

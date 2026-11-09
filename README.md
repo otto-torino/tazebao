@@ -17,6 +17,7 @@ Otto srl newsletter web application.
 * [Scheduled jobs](#scheduled-jobs)
 * [Remote setup](#remote-setup)
 * [Deploy and Stuff](#deploy)
+    * [Upgrade to Python 3.12 / Django 5.2 (one-time)](#upgrade-2026)
 * [Related repositories](#related-repositories)
 
 ## <a name="what"></a>What?
@@ -576,7 +577,7 @@ The mosaico core lib has been touched only to prevent url encoding of django tem
 
 ## <a name="getting-started"></a>Getting Started
 
-Requirements: Python 3.8 (see `.python-version`), MySQL, Redis (celery broker).
+Requirements: Python 3.12 (see `.python-version`), MySQL 8, Redis (celery broker).
 
 To be up and running for local development just follow these steps:
 
@@ -585,9 +586,9 @@ To be up and running for local development just follow these steps:
 - cd the new project    
   `$ cd tazebao`
 - create a virtualenv    
-  `$ python3.8 -m venv .virtualenv`
+  `$ python3.12 -m venv .venv312`
 - activate it    
-  `$ source .virtualenv/bin/activate`
+  `$ source .venv312/bin/activate`
 - install requirements    
   `$ pip install -r tazebao/requirements/local.txt`
 - create the `.env` file inside the django project folder (`tazebao/tazebao/.env`, not the repository root)    
@@ -618,6 +619,18 @@ Available environment variables:
 | `AI_ORGANIZATION` | OpenAI organization, used by the subject suggestions |
 | `REMOTE_DB_PWD` | remote db password, used by the fab commands |
 | `REMOTE_USER_PWD` | remote user password, used by the fab commands |
+
+Dependencies: `tazebao/requirements/common.in` lists the direct dependencies, `common.txt` is the frozen full set generated from it. To upgrade, edit `common.in`, install it in a clean Python 3.12 virtualenv and regenerate `common.txt` with `pip freeze`.
+
+### Tests
+
+The test suite pins the behaviour seen by external clients (HMAC and JWT API, Postfix bounces, tracking links in e-mails already sent, campaign sending, admin pages). It needs a throwaway MySQL server, by default on `127.0.0.1:3317`:
+
+    $ docker run -d --name tazebao_test_mysql -e MYSQL_ROOT_PASSWORD=tazebao -p 127.0.0.1:3317:3306 mysql:8.0
+    $ cd tazebao
+    $ python manage.py test --settings=core.settings.test
+
+Host, port and credentials can be changed with the `TEST_DB_HOST`, `TEST_DB_PORT`, `TEST_DB_USER`, `TEST_DB_PASSWORD` environment variables.
 
 E-mails are queued and sent in blocks. The scheduling is managed with crontab, but the queue preparation is managed asynchronously with a celery task. That's because preparing thousand of e-mails for sending is a dispendious job to do within a request, and it would require a not-pleasant timeout setting.
 
@@ -686,20 +699,20 @@ Celery has a production ready configuration file you find in the ROOT of the rep
 
 `supervisord.conf.production`
 
-You need to customize it in order to match your remote user and remote paths, just edit the following section:
+It is configured for the production server (user __otto__, webapp dir `/home/otto/www/tazebao`, virtualenv `.venv312`); customize the following section to match a different remote user and remote paths:
 
     [program:tazebao-workers]
-    command=/home/tazebao/www/tazebao/.virtualenv/bin/celery --app=core.celery:app worker --loglevel=INFO
-    directory=/home/tazebao/www/tazebao/releases/current
-    user=tazebao
+    command=/home/otto/www/tazebao/.venv312/bin/celery --app=core.celery:app worker --loglevel=INFO
+    directory=/home/otto/www/tazebao/releases/current
+    user=otto
     numprocs=1
-    stdout_logfile=/home/tazebao/www/tazebao/logs/celery-beat.log
-    stderr_logfile=/home/tazebao/www/tazebao/logs/celery-beat.log
+    stdout_logfile=/home/otto/www/tazebao/logs/celery-worker.log
+    stderr_logfile=/home/otto/www/tazebao/logs/celery-worker.log
     autostart=true
     autorestart=true
     startsecs=10
 
-(in this case the user is __tazebao__ and the webapp remote dir is `/home/tazebao/www/tazebao`, leave the nested parts of the paths as they are, or it'll not work).
+(leave the nested parts of the paths as they are, or it'll not work).
 
 As for now it is not uploaded during the provisioning phase with ansible, so you have to do it manually:
 
@@ -728,7 +741,7 @@ see [this answer on stack overflow](http://stackoverflow.com/questions/5555328/e
 
 ## <a name="deploy"></a>Deploy and Stuff
 
-Deploy is done with [fabric](https://www.fabfile.org/) 2. Two environments are configured in `tazebao/fabfile.py`:
+Deploy is done with [fabric](https://www.fabfile.org/) 3 (installed by `requirements/local.txt`). Two environments are configured in `tazebao/fabfile.py`:
 
 - `production`: `otto@tazebao.email`, webapp dir `/home/otto/www/tazebao`
 - `staging`: `otto@tazebao.sqrt64.it`, webapp dir `/home/otto/www/tazebao`
@@ -752,7 +765,7 @@ launched from the repository root after moving into the django project folder (w
 - upload it to the server
 - untar it in a folder "app-revision\_id" inside the releases folder
 - copy the .env file inside this folder
-- upgrade the virtualenv
+- upgrade the virtualenv (`.venv312` in the webapp dir, created with `/usr/bin/python3.12` if missing)
 - collectstatic
 - migrations
 - move the current release in the previous release (releases/previous)
@@ -779,6 +792,33 @@ When you deploy again it won't be necessary to repeat the command above, because
     $ supervisord -c ../../supervisord.conf.production
 
 Then just check with `ps ax | grep supervisor` and `ps ax | grep celery` if all is ok, if not just `kill -9` the processes and restart supervisord.
+
+### <a name="upgrade-2026"></a>Upgrade to Python 3.12 / Django 5.2 (one-time)
+
+Until November 2026 production ran Python 3.8 / Django 2.2 from the `.virtualenv` virtualenv. The new code runs on the system Python 3.12 of the server (Ubuntu 24.04) in a new virtualenv, `.venv312`; the old one stays untouched for the rollback. No system package is needed: `python3.12-venv`, `python3.12-dev`, `libmysqlclient-dev` and `pkg-config` are already installed.
+
+uWSGI is switched by `fab production deploy`, while the celery workers and the crontab of `otto` still point to `.virtualenv`: once `releases/current` points to the new code they would fail, so they must be switched in the same session.
+
+Before the deploy:
+
+- check that the mosaico templates contain valid JSON (migration `mosaico.0017` converts the columns from `longtext` to `json`):
+
+      SELECT id FROM mosaico_template WHERE NOT JSON_VALID(template_data) OR NOT JSON_VALID(meta_data);
+
+  must return no rows
+- dump the database (`fab production dumpDbSnapshot`): the migrations are not reversible for free
+- tell the web app and desktop app users they will have to log in again: tokens issued by the old JWT library are not valid anymore (login, refresh and the `Authorization: JWT <token>` header did not change)
+
+Deploy, on the server as `otto`:
+
+- comment out the tazebao lines in the crontab (`crontab -e`)
+- stop the celery workers: `supervisorctl -c supervisord.conf.production stop all`
+- from the local machine: `fab production deploy`
+- copy the new `supervisord.conf.production` to `/home/otto/www/tazebao/` and restart supervisord with it (`supervisorctl -c supervisord.conf.production shutdown`, then `supervisord -c supervisord.conf.production`)
+- in the crontab replace `/home/otto/www/tazebao/.virtualenv/` with `/home/otto/www/tazebao/.venv312/` and uncomment the lines
+- check: `ps ax | grep -E "uwsgi|celery"` shows the `.venv312` paths, `logs/cron_mail.log` and `logs/celery-worker.log` have no errors, a test campaign is delivered
+
+Rollback: restore the database dump, `fab production rollback`, then point supervisord and the crontab back to `.virtualenv` and restart uWSGI with `/home/otto/www/tazebao/.virtualenv/bin/uwsgi -H /home/otto/www/tazebao/.virtualenv --ini /home/otto/www/tazebao/releases/current/uwsgi.ini`.
 
 ### Other useful fab commands
 

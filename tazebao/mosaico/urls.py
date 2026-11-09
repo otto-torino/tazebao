@@ -1,7 +1,7 @@
 import os
 
 from django.conf import settings
-from django.conf.urls import url
+from django.urls import re_path
 from django.views.static import serve
 
 from .views import (appeditor, appindex, apptemplate, appupload,  # noqa
@@ -11,7 +11,7 @@ from .views import (appeditor, appindex, apptemplate, appupload,  # noqa
 app_name = 'mosaico'
 
 urlpatterns = [
-    url(
+    re_path(
         r'^img/social_def/(?P<path>.*)$', serve, {
             'document_root':
             os.path.join(settings.STATIC_ROOT, 'mosaico', 'templates',
@@ -20,17 +20,17 @@ urlpatterns = [
 ]
 
 urlpatterns += [
-    url(r'^$', index, name="index"),
-    url(r'^app.html$', appindex, name="app-index"),  # react app
-    url(r'^editor.html$', editor, name="editor"),
-    url(r'^appeditor.html$', appeditor, name="appeditor"),  # react app
-    url(r'^img/$', image),
-    url(r'^upload/$', upload),
-    url(r'^appupload/$', appupload),
-    url(r'^dl/$', download),
-    url(r'^apptemplate/$', apptemplate),
-    url(r'^template/$', template),
-    url(r'^template/content/(?P<template_id>\d+)/?$',
+    re_path(r'^$', index, name="index"),
+    re_path(r'^app.html$', appindex, name="app-index"),  # react app
+    re_path(r'^editor.html$', editor, name="editor"),
+    re_path(r'^appeditor.html$', appeditor, name="appeditor"),  # react app
+    re_path(r'^img/$', image),
+    re_path(r'^upload/$', upload),
+    re_path(r'^appupload/$', appupload),
+    re_path(r'^dl/$', download),
+    re_path(r'^apptemplate/$', apptemplate),
+    re_path(r'^template/$', template),
+    re_path(r'^template/content/(?P<template_id>\d+)/?$',
         template_content,
         name='mosaico-template-content'),
 ]

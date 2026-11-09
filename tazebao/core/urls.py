@@ -20,8 +20,8 @@ from django.urls import include, path, re_path
 from django.views import static
 from django.views.generic import TemplateView
 from rest_framework.routers import DefaultRouter
-from rest_framework_jwt.views import obtain_jwt_token, refresh_jwt_token
 
+from core.authentication import ObtainTokenView, RefreshTokenView
 from core.views.api import WhoAmI
 from newsletter.views import (CampaignViewSet, DispatchStatsApiView, DispatchViewSet,
                               FailedEmailApiView, FailedEmailViewSet,
@@ -62,8 +62,8 @@ urlpatterns = [
     path('api/v1/newsletter/failedemail/',
          FailedEmailApiView.as_view(),
          name='failed-email-api'),
-    path('api/v1/login/', obtain_jwt_token),
-    path('api/v1/refresh-token/', refresh_jwt_token),
+    path('api/v1/login/', ObtainTokenView.as_view()),
+    path('api/v1/refresh-token/', RefreshTokenView.as_view()),
     path('api/v1/whoami/', WhoAmI.as_view()),
     path('api/v1/newsletter/stats/', StatsApiView.as_view()),
     path('api/v1/newsletter/dispatches/stats/', DispatchStatsApiView.as_view()),
